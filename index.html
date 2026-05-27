@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ── CONFIG ── Update these two lines ───────────────────────────────── */
+  /* See setup instructions at the bottom of this file                    */
+
+  :root {
+    --sheet-id: "1ceunbIokxAZz4enXrrYz9hApE2XfDFAMxmZGhidd1Vo";
+    --api-key:  "configured";
+
+    /* Palette — TAG brand: purple + teal, muted light theme */
+    --bg:         #ece9e4;   /* deeper warm beige background */
+    --surface:    #ffffff;
+    --surface2:   #faf9f7;   /* near-white for row fills */
+    --border:     #c8c3ba;   /* noticeably darker border */
+    --text:       #2c2a35;
+    --muted:      #8a8599;
+    --accent1:    #a0487a;   /* muted company purple */
+    --accent2:    #c45e93;   /* lighter purple highlight */
+    --accent3:    #4aada8;   /* muted teal */
+    --accent4:    #8b3d6b;   /* deep purple */
+    --telus:      #4aada8;   /* teal for TELUS */
+    --cg:         #a0487a;   /* purple for CG */
+    --empire:     #c47a3a;   /* warm amber for EMPIRE */
+
+    --rank1: #c9a227;   /* muted gold */
+    --rank2: #8a9ba8;   /* muted silver */
+    --rank3: #a0724a;   /* muted bronze */
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── SUBTLE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(160,72,122,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(160,72,122,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 40px 24px 260px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(160,72,122,0.07), transparent 60%);
+    background-color: var(--surface);
+  }
+
+  .logo-block { display: flex; align-items: baseline; gap: 12px; }
+
+  .logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 0.08em;
+    background: linear-gradient(90deg, var(--accent4), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-sub {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .header-right { display: flex; align-items: center; gap: 20px; }
+
+  .refresh-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; font-size: 0.78rem; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .refresh-btn.spinning { animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    position: relative; z-index: 1;
+    max-width: 1920px; margin: 0 auto;
+    padding: 32px 48px;
+    display: grid;
+    grid-template-columns: 1fr 340px 260px;
+    grid-template-rows: 1fr auto;
+    gap: 28px;
+    margin-left: 220px;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem; letter-spacing: 0.25em;
+    color: var(--muted); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard-wrap { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; align-self: stretch; }
+
+  .leaderboard-grid {
+    display: flex; flex-direction: column; gap: 10px;
+    flex: 1;
+  }
+
+  .lb-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 80px 72px;
+    align-items: center; gap: 10px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    animation: slideIn 0.4s ease both;
+    flex: 1;
+  }
+
+  .lb-row:hover { transform: translateX(4px); border-color: var(--accent1); box-shadow: 0 2px 8px rgba(160,72,122,0.12); }
+
+  .lb-row.rank-1 { border-color: var(--rank1); border-width: 2px; background: var(--surface); }
+  .lb-row.rank-2 { border-color: var(--rank2); border-width: 2px; background: var(--surface); }
+  .lb-row.rank-3 { border-color: var(--rank3); border-width: 2px; background: var(--surface); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--muted); text-align: center;
+  }
+  .rank-1 .lb-rank { color: var(--rank1); }
+  .rank-2 .lb-rank { color: var(--rank2); }
+  .rank-3 .lb-rank { color: var(--rank3); }
+
+  .lb-name {
+    font-size: 1.2rem; font-weight: 700; letter-spacing: 0.02em;
+  }
+
+  .lb-bar-wrap { position: relative; }
+
+  .lb-bar-track {
+    height: 10px; background: var(--border); border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .lb-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent3));
+    transition: width 1s cubic-bezier(0.22,1,0.36,1);
+    width: 0%;
+  }
+  .rank-1 .lb-bar-fill { background: linear-gradient(90deg, var(--rank1), #d4a843); }
+
+  .lb-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--accent1); text-align: right;
+  }
+  .rank-1 .lb-pct { color: var(--rank1); }
+
+  /* ── CLIENT STATS (middle column) ── */
+  #clients-wrap { grid-column: 2; grid-row: 1; }
+
+  /* ── TEAM TARGETS (right column) ── */
+  #targets-wrap { grid-column: 3; grid-row: 1; }
+
+  .client-cards { display: flex; flex-direction: column; gap: 14px; }
+
+  .client-card {
+    padding: 18px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: center; gap: 12px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .client-card.telus  { border-top: 3px solid var(--telus);  }
+  .client-card.cg     { border-top: 3px solid var(--cg);     }
+  .client-card.empire { border-top: 3px solid var(--empire); }
+
+  .client-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem; letter-spacing: 0.12em;
+  }
+  .client-card.telus  .client-name { color: var(--telus);  }
+  .client-card.cg     .client-name { color: var(--cg);     }
+  .client-card.empire .client-name { color: var(--empire); }
+
+  .client-nums {
+    display: flex; gap: 16px; margin-top: 8px;
+  }
+
+  .client-stat { text-align: center; }
+  .client-stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem; font-weight: 700; display: block;
+  }
+  .client-stat-lbl {
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--muted);
+  }
+
+  .client-pct-ring { position: relative; width: 58px; height: 58px; }
+  .client-pct-ring svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--border); stroke-width: 5; }
+  .ring-fill  {
+    fill: none; stroke-width: 5; stroke-linecap: round;
+    stroke-dasharray: 138; stroke-dashoffset: 138;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .client-card.telus  .ring-fill { stroke: var(--telus);  }
+  .client-card.cg     .ring-fill { stroke: var(--cg);     }
+  .client-card.empire .ring-fill { stroke: var(--empire); }
+
+  .ring-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; font-weight: 700;
+  }
+
+  .all-clients-banner {
+    margin-top: 14px; padding: 14px 20px;
+    background: linear-gradient(135deg, rgba(160,72,122,0.08), rgba(74,173,168,0.06));
+    border: 1px solid rgba(160,72,122,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .all-clients-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem; letter-spacing: 0.15em; color: var(--accent4);
+  }
+
+  .all-clients-nums {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; color: var(--text);
+    display: flex; gap: 16px; align-items: center;
+  }
+
+  .all-clients-nums span { color: var(--muted); font-size: 0.7rem; }
+
+  /* ── TEAM TARGETS — vertical bar chart ── */
+  .targets-panel {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: visible;
+    animation: fadeUp 0.6s 0.3s ease both;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .targets-header {
+    padding: 12px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .targets-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem; letter-spacing: 0.18em; color: #c45e93;
+    font-weight: 400;
+  }
+
+  .targets-ytd-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--muted);
+  }
+
+  /* The chart area */
+  .targets-chart {
+    flex: 1;
+    position: relative;
+    padding: 20px 24px 16px 52px;
+    min-height: 520px;
+  }
+
+  /* Y-axis grid lines + labels */
+  .targets-yaxis {
+    position: absolute;
+    left: 0; top: 20px; bottom: 16px;
+    width: 52px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .targets-ytick {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: right;
+    padding-right: 8px;
+    line-height: 1;
+  }
+
+  /* Grid lines */
+  .targets-grid {
+    position: absolute;
+    left: 52px; right: 50px;
+    top: 20px; bottom: 16px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .targets-gridline {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    opacity: 0.7;
+  }
+
+  /* Bar area */
+  .targets-bars-area {
+    position: absolute;
+    left: 52px; right: 50px;
+    top: 20px; bottom: 16px;
+  }
+
+  /* Background fill (pink tint behind bar) */
+  .targets-bg-fill {
+    position: absolute;
+    left: 20%; right: 20%;
+    bottom: 0;
+    background: rgba(196, 94, 147, 0.07);
+    border-radius: 4px 4px 0 0;
+  }
+
+  /* The main current % bar */
+  .targets-main-bar {
+    position: absolute;
+    left: 28%; right: 28%;
+    bottom: 0;
+    background: rgba(160, 72, 122, 0.25);
+    border: 1.5px solid rgba(160, 72, 122, 0.4);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    transition: height 1.2s cubic-bezier(0.22,1,0.36,1);
+    position: absolute;
+  }
+
+  /* Horizontal reference lines */
+  .targets-hline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2.5px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+  }
+
+  .targets-hline-label {
+    position: absolute;
+    left: calc(100% + 5px);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .hline-survival { background: #e53935; }
+  .hline-survival .targets-hline-label { color: #e53935; }
+
+  .hline-target   { background: #1565c0; }
+  .hline-target   .targets-hline-label { color: #1565c0; }
+
+  .hline-avg      { background: #2e7d32; }
+  .hline-avg      .targets-hline-label { color: #2e7d32; }
+
+  /* Legend */
+  .targets-legend {
+    position: relative;
+    left: unset; right: unset;
+    bottom: unset;
+    padding: 8px 24px 12px 52px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.68rem; color: var(--text);
+  }
+
+  .legend-swatch {
+    width: 22px; height: 3px; border-radius: 2px; flex-shrink: 0;
+  }
+  .legend-swatch.current  { background: rgba(160, 72, 122, 0.6); height: 3px; }
+  .legend-swatch.survival { background: #e53935; height: 3px; }
+  .legend-swatch.target   { background: #1565c0; height: 3px; }
+  .legend-swatch.avg      { background: #2e7d32; height: 3px; }
+
+  .legend-item.current-item { color: var(--text); }
+
+  /* ── RECRUITER DETAIL TABLE ── */
+  #recruiter-wrap { grid-column: 1 / -1; grid-row: 1; }
+
+  .recruiter-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    table-layout: fixed;
+  }
+
+  .recruiter-table colgroup col:nth-child(1) { width: 30%; }
+  .recruiter-table colgroup col:nth-child(2) { width: 17.5%; }
+  .recruiter-table colgroup col:nth-child(3) { width: 17.5%; }
+  .recruiter-table colgroup col:nth-child(4) { width: 17.5%; }
+  .recruiter-table colgroup col:nth-child(5) { width: 17.5%; }
+
+  .recruiter-table thead th {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--muted); font-weight: 600; padding: 0 24px 10px;
+    text-align: left; cursor: pointer; user-select: none;
+    white-space: nowrap; transition: color 0.15s;
+  }
+  .recruiter-table thead th:not(:first-child) { text-align: center; }
+  .recruiter-table thead th:hover { color: var(--accent1); }
+  .recruiter-table thead th.sort-asc::after  { content: ' ↑'; color: var(--accent1); }
+  .recruiter-table thead th.sort-desc::after { content: ' ↓'; color: var(--accent1); }
+
+  .recruiter-table tbody tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: background 0.15s, box-shadow 0.15s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .recruiter-table tbody tr:hover { background: var(--surface2); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+  .recruiter-table tbody td {
+    padding: 18px 24px;
+    font-size: 1rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .recruiter-table tbody td:first-child {
+    border-radius: 12px 0 0 12px;
+    border-left: 1px solid var(--border);
+    font-weight: 700; font-size: 1.05rem;
+  }
+  .recruiter-table tbody td:last-child {
+    border-radius: 0 12px 12px 0;
+    border-right: 1px solid var(--border);
+  }
+  .recruiter-table tbody td:not(:first-child) { text-align: center; }
+
+  .td-ici {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .td-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 1rem;
+    padding: 4px 10px; border-radius: 6px;
+    display: inline-block;
+  }
+
+  .pct-high { background: rgba(74,173,168,0.12); color: #2d9491; }
+  .pct-mid  { background: rgba(196,122,58,0.12); color: #b56a20; }
+  .pct-low  { background: rgba(160,72,122,0.12); color: var(--accent1); }
+  .pct-na   { background: transparent; color: var(--muted); }
+
+  /* ── LOADING / ERROR STATES ── */
+  .loading-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+  }
+
+  .loader-ring {
+    width: 56px; height: 56px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent1);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem; letter-spacing: 0.2em; color: var(--muted);
+  }
+
+  .error-msg {
+    background: rgba(160,72,122,0.08); border: 1px solid rgba(160,72,122,0.25);
+    color: var(--accent4); border-radius: 10px; padding: 16px 20px;
+    font-size: 0.85rem; line-height: 1.6;
+    grid-column: 1 / -1;
+  }
+
+  .error-msg code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--accent3);
+    display: block; margin-top: 8px; white-space: pre-wrap;
+  }
+
+  /* ── SETUP BANNER (shown when API key not set) ── */
+  .setup-banner {
+    background: rgba(160,72,122,0.05);
+    border: 1px solid rgba(160,72,122,0.2);
+    border-radius: 12px; padding: 20px 24px;
+    grid-column: 1 / -1;
+  }
+  .setup-banner h3 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+    letter-spacing: 0.1em; color: var(--accent4); margin-bottom: 10px;
+  }
+  .setup-banner ol { padding-left: 20px; }
+  .setup-banner li { font-size: 0.85rem; line-height: 2; color: var(--muted); }
+  .setup-banner code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--accent3);
+    background: rgba(74,173,168,0.1); padding: 1px 6px; border-radius: 4px;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 210px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+  }
+
+  .sidebar-logo {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+    background: linear-gradient(90deg, var(--accent4), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+  }
+
+  .sidebar-logo-sub {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 8px;
+    margin-bottom: 6px;
+    margin-top: 8px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+
+  .nav-btn:hover {
+    background: rgba(160,72,122,0.07);
+    color: var(--accent4);
+  }
+
+  .nav-btn.active {
+    background: linear-gradient(90deg, rgba(160,72,122,0.12), rgba(74,173,168,0.06));
+    color: var(--accent4);
+    font-weight: 700;
+    border-left: 3px solid var(--accent1);
+    padding-left: 9px;
+  }
+
+  .nav-icon { font-size: 1rem; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: contents; }
+
+  /* recruiter page spans full grid width */
+  #page-recruiter { display: none; }
+  #page-recruiter.active {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+  #page-recruiter.active #recruiter-wrap {
+    grid-column: 1 / -1;
+  }
+
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HEADER tweaks ── */
+  .week-chip {
+    background: rgba(160,72,122,0.08);
+    border: 1px solid rgba(160,72,122,0.25);
+    border-radius: 999px; padding: 6px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent4);
+  }
+
+  .live-dot {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.75rem; font-weight: 700; color: var(--accent1);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+
+  .live-dot::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent1);
+    animation: pulse-purple 2s infinite;
+  }
+
+  @keyframes pulse-purple {
+    0%   { box-shadow: 0 0 0 0 rgba(160,72,122,0.6); }
+    70%  { box-shadow: 0 0 0 8px rgba(160,72,122,0); }
+    100% { box-shadow: 0 0 0 0 rgba(160,72,122,0); }
+  }
+
+  /* ── CURRENT BAR LABEL — centered vertically in bar ── */
+  .targets-main-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: rgba(139, 61, 107, 0.85);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* ── HAMBURGER BUTTON ── */
+  .hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 8px;
+    flex-direction: column;
+    gap: 5px;
+    transition: background 0.2s;
+  }
+  .hamburger:hover { background: rgba(160,72,122,0.08); }
+  .hamburger span {
+    display: block;
+    width: 22px; height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.25s;
+  }
+
+  /* Sidebar slide-in overlay on mobile */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 19;
+  }
+  .sidebar-overlay.open { display: block; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 1fr 300px 260px; padding: 20px; gap: 20px; }
+  }
+  @media (max-width: 900px) {
+    .hamburger { display: flex; }
+
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    header { padding: 16px 20px; }
+    .logo-title { font-size: 1.8rem; }
+
+    main {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+      padding: 20px;
+      margin-left: 0;
+      gap: 20px;
+    }
+    #leaderboard-wrap { grid-column: 1; grid-row: 1; }
+    #clients-wrap     { grid-column: 1; grid-row: 2; }
+    #targets-wrap     { grid-column: 1; grid-row: 3; }
+    #recruiter-wrap   { grid-column: 1; grid-row: 4; }
+
+    /* Let leaderboard rows shrink back to auto height on mobile */
+    .lb-row { flex: unset; }
+    .leaderboard-grid { flex: unset; }
+    #leaderboard-wrap { align-self: unset; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="loader-ring"></div>
+  <div class="loading-text">Fetching live data…</div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <img src="data:image/jpeg;base64,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" alt="The Acquisition Group" style="width:110px;height:110px;object-fit:cover;display:block;border-radius:4px;" />
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-label">Sections</div>
+    <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')">
+      <span class="nav-icon">🏆</span> Team Leaderboard
+    </button>
+    <button class="nav-btn" id="nav-recruiter" onclick="showPage('recruiter')">
+      <span class="nav-icon">👤</span> Recruiter Breakdown
+    </button>
+  </div>
+  <div class="sidebar-footer">Auto-refreshes every 5 min</div>
+</nav>
+
+<!-- HEADER -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<header>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo-block">
+    <div class="logo-title">Team Dashboard</div>
+    <div class="logo-sub">Weekly Prelim Report</div>
+  </div>
+  <div class="header-right">
+    <div class="week-chip" id="week-chip">Week of —</div>
+    <div class="live-dot">Live</div>
+    <button class="refresh-btn" id="refresh-btn" onclick="fetchData()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- PAGE 1: TEAM LEADERBOARD -->
+  <div class="page active" id="page-overview">
+    <!-- LEADERBOARD -->
+    <section id="leaderboard-wrap">
+      <div class="section-label">🏆 Prelim Attendance Leaderboard</div>
+      <div class="leaderboard-grid" id="leaderboard"></div>
+    </section>
+
+    <!-- CLIENT STATS -->
+    <aside id="clients-wrap">
+      <div class="section-label">📊 By Client</div>
+      <div class="client-cards" id="client-cards"></div>
+      <div class="all-clients-banner" id="all-clients-banner" style="display:none"></div>
+    </aside>
+
+    <!-- TEAM TARGETS -->
+    <aside id="targets-wrap">
+      <div class="section-label">🎯 Team Targets</div>
+      <div class="targets-panel" id="targets-panel">
+        <div class="targets-header">
+          <div class="targets-title">Team Target</div>
+          <div class="targets-ytd-note" id="targets-ytd-note">Loading YTD…</div>
+        </div>
+        <div class="targets-chart" id="targets-chart">
+          <div class="targets-yaxis" id="targets-yaxis"></div>
+          <div class="targets-grid" id="targets-grid"></div>
+          <div class="targets-bars-area" id="targets-bars-area">
+            <div class="targets-bg-fill" id="targets-bg-fill" style="height:0%"></div>
+            <div class="targets-main-bar" id="targets-main-bar" style="height:0%">
+              <span class="targets-main-bar-label" id="targets-main-bar-label">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="targets-legend">
+            <div class="legend-item"><div class="legend-swatch survival"></div>S. Target</div>
+            <div class="legend-item"><div class="legend-swatch target"></div>Target</div>
+            <div class="legend-item"><div class="legend-swatch avg"></div>A. Target</div>
+            <div class="legend-item current-item"><div class="legend-swatch current"></div>Current<span id="targets-current-val" style="display:none;">—</span></div>
+          </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- PAGE 2: RECRUITER BREAKDOWN -->
+  <div class="page" id="page-recruiter">
+    <section id="recruiter-wrap">
+      <div class="section-label">👤 Recruiter Breakdown</div>
+      <table class="recruiter-table">
+        <colgroup><col /><col /><col /><col /><col /></colgroup>
+        <thead>
+          <tr>
+            <th data-col="name" data-type="text">Recruiter</th>
+            <th data-col="booked" data-type="num">Prelim Booked</th>
+            <th data-col="completed" data-type="num">Completed</th>
+            <th data-col="attended" data-type="num">Attended</th>
+            <th data-col="pct" data-type="num">Attendance %</th>
+          </tr>
+        </thead>
+        <tbody id="recruiter-tbody"></tbody>
+      </table>
+    </section>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CONFIGURATION — edit these two values
+// ════════════════════════════════════════════════════════
+const SHEET_ID = "1ceunbIokxAZz4enXrrYz9hApE2XfDFAMxmZGhidd1Vo";
+const API_KEY  = "AIzaSyDi8fFtZgoOtawMNj6idXL76nfONuBw0sY";   // ← replace this
+
+// Auto-refresh interval (ms). Default: 5 minutes.
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+
+// ════════════════════════════════════════════════════════
+//  PAGE NAVIGATION
+// ════════════════════════════════════════════════════════
+function showPage(name) {
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  // Deactivate all nav buttons
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  // Show selected page
+  const page = document.getElementById('page-' + name);
+  if (page) {
+    page.classList.add('active');
+    // Slide-in animation
+    page.style.animation = 'none';
+    requestAnimationFrame(() => {
+      page.style.animation = 'pageIn 0.3s ease both';
+    });
+  }
+  // Activate nav button
+  const btn = document.getElementById('nav-' + name);
+  if (btn) btn.classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════
+//  SHEETS API HELPER
+// ════════════════════════════════════════════════════════
+async function getRange(sheetAndRange) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(sheetAndRange)}?key=${API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.values || [];
+}
+
+function cell(rows, r, c, fallback = "") {
+  return (rows[r] && rows[r][c] !== undefined) ? rows[r][c] : fallback;
+}
+
+function parsePct(val) {
+  if (!val || val === "" || val.includes("DIV") || val.includes("N/A") || val.includes("NUM")) return null;
+  const s = String(val).replace("%","").trim();
+  const n = parseFloat(s);
+  if (isNaN(n)) return null;
+  return n > 1 ? n / 100 : n;   // handle both 0.7 and 70%
+}
+
+function fmtPct(p) {
+  if (p === null) return "—";
+  return Math.round(p * 100) + "%";
+}
+
+function pctClass(p) {
+  if (p === null) return "pct-na";
+  if (p >= 0.45) return "pct-high";
+  if (p >= 0.30) return "pct-mid";
+  return "pct-low";
+}
+
+function fmtDate(raw) {
+  if (!raw) return "—";
+  try {
+    let d;
+    // Google Sheets serial number (days since Dec 30, 1899)
+    const num = Number(raw);
+    if (!isNaN(num) && num > 1000) {
+      d = new Date(Date.UTC(1899, 11, 30) + num * 86400000);
+    } else {
+      // String date — parse as local time by replacing hyphens to avoid UTC midnight shift
+      d = new Date(String(raw).replace(/-/g, '/'));
+    }
+    // Move to the Monday of that week
+    const day = d.getUTCDay !== undefined && !isNaN(num) ? d.getUTCDay() : d.getDay();
+    const useUTC = !isNaN(num) && num > 1000;
+    const dayOfWeek = useUTC ? d.getUTCDay() : d.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    if (useUTC) {
+      d.setUTCDate(d.getUTCDate() + diff);
+      return d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    } else {
+      d.setDate(d.getDate() + diff);
+      return d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+  } catch { return raw; }
+}
+
+// ════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════
+function renderLeaderboard(rows) {
+  // Dashboard B5:C13  → leaderboard rows (name, pct)
+  // rows[0] = headers offset; data starts at index 0 of what we fetch
+  const names = [], pcts = [];
+  rows.forEach(r => {
+    const n = r[0] || "";
+    const p = parsePct(r[1]);
+    if (n && n !== "#N/A" && p !== null) { names.push(n); pcts.push(p); }
+  });
+
+  const lb = document.getElementById("leaderboard");
+  lb.innerHTML = "";
+  names.forEach((name, i) => {
+    const rank = i + 1;
+    const pct  = pcts[i];
+    const rankClass = rank <= 3 ? `rank-${rank}` : "";
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+    const div = document.createElement("div");
+    div.className = `lb-row ${rankClass}`;
+    div.style.animationDelay = `${i * 60}ms`;
+    div.innerHTML = `
+      <div class="lb-rank">${rank}</div>
+      <div class="lb-name">${medal} ${name}</div>
+      <div class="lb-bar-wrap">
+        <div class="lb-bar-track"><div class="lb-bar-fill" data-pct="${pct}"></div></div>
+      </div>
+      <div class="lb-pct">${fmtPct(pct)}</div>
+    `;
+    lb.appendChild(div);
+  });
+
+  // Animate bars after paint
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".lb-bar-fill").forEach(el => {
+      el.style.width = (parseFloat(el.dataset.pct) * 100) + "%";
+    });
+  });
+}
+
+function renderClients(telus, empire) {
+  const clients = [
+    { key: "telus",  label: "TELUS",  ...telus  },
+    { key: "empire", label: "EMPIRE", ...empire },
+  ];
+
+  const container = document.getElementById("client-cards");
+  container.innerHTML = "";
+
+  let totalCompleted = 0, totalAttended = 0;
+
+  clients.forEach((c, i) => {
+    const pct = c.pct;
+    const pctNum = pct !== null ? Math.round(pct * 100) : 0;
+    // ring: circumference ~138 for r=22
+    const offset = pct !== null ? 138 - (138 * pct) : 138;
+    totalCompleted += (c.completed || 0);
+    totalAttended  += (c.attended  || 0);
+
+    const card = document.createElement("div");
+    card.className = `client-card card ${c.key}`;
+    card.style.animationDelay = `${i * 80}ms`;
+    card.innerHTML = `
+      <div>
+        <div class="client-name">${c.label}</div>
+        <div class="client-nums">
+          <div class="client-stat">
+            <span class="client-stat-val">${c.completed ?? "—"}</span>
+            <span class="client-stat-lbl">Completed</span>
+          </div>
+          <div class="client-stat">
+            <span class="client-stat-val">${c.attended ?? "—"}</span>
+            <span class="client-stat-lbl">Attended</span>
+          </div>
+        </div>
+      </div>
+      <div class="client-pct-ring">
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle class="ring-track" cx="29" cy="29" r="22"/>
+          <circle class="ring-fill" cx="29" cy="29" r="22"
+            style="stroke-dashoffset:${offset}" data-offset="${offset}"/>
+        </svg>
+        <div class="ring-label">${fmtPct(pct)}</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  const allPct = totalCompleted > 0 ? totalAttended / totalCompleted : null;
+  const allOffset = allPct !== null ? 138 - (138 * allPct) : 138;
+  const banner = document.getElementById("all-clients-banner");
+  banner.style.display = "block";
+  banner.innerHTML = `
+    <div class="client-card card all-clients" style="animation-delay:160ms">
+      <div>
+        <div class="client-name" style="color:var(--accent4)">ALL CLIENTS</div>
+        <div class="client-nums">
+          <div class="client-stat">
+            <span class="client-stat-val">${totalCompleted}</span>
+            <span class="client-stat-lbl">Completed</span>
+          </div>
+          <div class="client-stat">
+            <span class="client-stat-val">${totalAttended}</span>
+            <span class="client-stat-lbl">Attended</span>
+          </div>
+        </div>
+      </div>
+      <div class="client-pct-ring">
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle class="ring-track" cx="29" cy="29" r="22"/>
+          <circle class="ring-fill" cx="29" cy="29" r="22"
+            style="stroke:var(--accent4);stroke-dashoffset:${allOffset}" data-offset="${allOffset}"/>
+        </svg>
+        <div class="ring-label">${fmtPct(allPct)}</div>
+      </div>
+    </div>
+  `;
+  // Animate ring
+  requestAnimationFrame(() => {
+    banner.querySelectorAll(".ring-fill").forEach(el => {
+      el.style.transition = "stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)";
+      el.style.strokeDashoffset = el.dataset.offset;
+    });
+  });
+}
+
+function renderRecruiters(rows) {
+  // rows = DataEngine G4:K12 → ICI, Name, Booked, Completed, Attended, Pct
+  _recData = rows.filter(r => r[1] && r[1] !== "#N/A");
+  renderRecruiterRows(_recData);
+  initRecruiterSort();
+}
+
+// ── RECRUITER TABLE SORT ──
+let _recData = [];   // store rows for re-sorting
+let _sortCol = null;
+let _sortDir = 1;    // 1 = asc, -1 = desc
+
+function initRecruiterSort() {
+  const ths = document.querySelectorAll(".recruiter-table thead th");
+  ths.forEach(th => {
+    th.addEventListener("click", () => {
+      const col  = th.dataset.col;
+      const type = th.dataset.type;
+
+      if (_sortCol === col) {
+        _sortDir *= -1;
+      } else {
+        _sortDir = type === "text" ? 1 : -1;
+      }
+      _sortCol = col;
+
+      ths.forEach(t => t.classList.remove("sort-asc", "sort-desc"));
+      th.classList.add(_sortDir === 1 ? "sort-asc" : "sort-desc");
+
+      const sorted = [..._recData].sort((a, b) => {
+        let av, bv;
+        switch(col) {
+          case "name":      av = a[1]; bv = b[1]; break;
+          case "booked":    av = a[2]; bv = b[2]; break;
+          case "completed": av = a[3]; bv = b[3]; break;
+          case "attended":  av = a[4]; bv = b[4]; break;
+          case "pct":       av = a[5]; bv = b[5]; break;
+        }
+        if (type === "text") return _sortDir * String(av).localeCompare(String(bv));
+        const an = parseFloat(String(av).replace(/[^0-9.\-]/g,"")) || 0;
+        const bn = parseFloat(String(bv).replace(/[^0-9.\-]/g,"")) || 0;
+        return _sortDir * (an - bn);
+      });
+      renderRecruiterRows(sorted);
+    });
+  });
+}
+
+function renderRecruiterRows(rows) {
+  const tbody = document.getElementById("recruiter-tbody");
+  tbody.innerHTML = "";
+  rows.forEach((r, i) => {
+    const ici  = r[0] || "—";
+    const name = r[1] || "—";
+    const booked    = r[2] || "—";
+    const completed = r[3] || "—";
+    const attended  = r[4] || "—";
+    const pct = parsePct(r[5]);
+    const tr = document.createElement("tr");
+    tr.style.animationDelay = `${i * 50}ms`;
+    tr.innerHTML = `
+      <td>
+        <div>${name}</div>
+        <div class="td-ici">${ici}</div>
+      </td>
+      <td>${booked}</td>
+      <td>${completed}</td>
+      <td>${attended}</td>
+      <td><span class="td-pct ${pctClass(pct)}">${fmtPct(pct)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+// ════════════════════════════════════════════════════════
+//  TEAM TARGETS
+// ════════════════════════════════════════════════════════
+function renderTargets(survivalPct, goalPct, currentPct, avgTargetPct) {
+  // Values: survivalPct=E17, goalPct=F17, currentPct=G17, avgTargetPct=H17
+
+  const fmt = (p) => p !== null ? Math.round(p * 100) + "%" : "—";
+
+  // Update YTD note
+  const noteEl = document.getElementById("targets-ytd-note");
+  if (noteEl) noteEl.textContent = currentPct !== null ? `YTD: ${fmt(currentPct)}` : "";
+
+  // Chart bounds: 0% to 100%, displayed range 0–100%
+  // We'll show 0%–100% on Y axis with gridlines at 0,20,40,60,80,100
+  const CHART_MIN = 0;
+  const CHART_MAX = 1.0;
+  const range = CHART_MAX - CHART_MIN;
+
+  // Helper: convert a percentage value to a CSS bottom% within the chart area
+  const toY = (p) => p !== null ? ((p - CHART_MIN) / range * 100).toFixed(2) + "%" : null;
+
+  // Build Y-axis labels
+  const yaxis = document.getElementById("targets-yaxis");
+  if (yaxis) {
+    yaxis.innerHTML = "";
+    for (let v = 0; v <= 100; v += 20) {
+      const tick = document.createElement("div");
+      tick.className = "targets-ytick";
+      tick.textContent = v + "%";
+      yaxis.appendChild(tick);
+    }
+  }
+
+  // Build grid lines (one per tick)
+  const grid = document.getElementById("targets-grid");
+  if (grid) {
+    grid.innerHTML = "";
+    for (let v = 0; v <= 100; v += 20) {
+      const line = document.createElement("div");
+      line.className = "targets-gridline";
+      grid.appendChild(line);
+    }
+  }
+
+  // Set bg fill and main bar heights
+  const barsArea = document.getElementById("targets-bars-area");
+  const bgFill   = document.getElementById("targets-bg-fill");
+  const mainBar  = document.getElementById("targets-main-bar");
+  const mainLbl  = document.getElementById("targets-main-bar-label");
+  const currentVal = document.getElementById("targets-current-val");
+
+  if (mainLbl) mainLbl.textContent = fmt(currentPct);
+  if (currentVal) currentVal.textContent = fmt(currentPct);
+
+  // Animate after a frame
+  requestAnimationFrame(() => {
+    const hPct = currentPct !== null ? Math.min(100, Math.max(0, currentPct * 100)) : 0;
+    if (bgFill)  { bgFill.style.height  = hPct + "%"; }
+    if (mainBar) { mainBar.style.height = hPct + "%"; }
+  });
+
+  // Remove old hlines
+  if (barsArea) {
+    barsArea.querySelectorAll(".targets-hline").forEach(el => el.remove());
+
+    // Draw reference lines for survival, target, avg
+    const lines = [
+      { pct: survivalPct,  cls: "hline-survival", label: fmt(survivalPct)  },
+      { pct: goalPct,      cls: "hline-target",   label: fmt(goalPct)      },
+      { pct: avgTargetPct, cls: "hline-avg",       label: fmt(avgTargetPct) },
+    ].filter(l => l.pct !== null).sort((a, b) => a.pct - b.pct);
+
+    // Also include currentPct as a "virtual" point for collision detection
+    const allPcts = [
+      ...lines.map(l => l.pct),
+      ...(currentPct !== null ? [currentPct] : [])
+    ].sort((a, b) => a - b);
+
+    // Compute label vertical offsets to avoid collisions
+    // Min gap in percentage points before we nudge labels
+    const MIN_GAP_PX = 18; // px between label centers
+    const chartHeight = barsArea.offsetHeight || 500;
+    const MIN_GAP_PCT = MIN_GAP_PX / chartHeight;
+
+    // Assign a label offset (in px) per line to spread crowded labels
+    // Strategy: for each line, nudge its label up/down if too close to neighbours
+    const labelOffsets = {}; // index → px offset
+    lines.forEach((l, i) => { labelOffsets[i] = 0; });
+
+    // Two passes to push labels apart
+    for (let pass = 0; pass < 5; pass++) {
+      for (let i = 0; i < lines.length; i++) {
+        for (let j = i + 1; j < lines.length; j++) {
+          const gap = (lines[j].pct - lines[i].pct) * chartHeight;
+          const offsetGap = gap + labelOffsets[j] - labelOffsets[i];
+          if (offsetGap < MIN_GAP_PX) {
+            const push = (MIN_GAP_PX - offsetGap) / 2;
+            labelOffsets[i] -= push;
+            labelOffsets[j] += push;
+          }
+        }
+      }
+    }
+
+    lines.forEach(({ pct, cls, label }, i) => {
+      const line = document.createElement("div");
+      line.className = "targets-hline " + cls;
+      line.style.bottom = toY(pct);
+
+      const lbl = document.createElement("div");
+      lbl.className = "targets-hline-label";
+      lbl.textContent = label;
+      // nudge label vertically to avoid overlap; positive = up
+      const nudge = labelOffsets[i] || 0;
+      lbl.style.transform = `translateY(calc(-50% - ${nudge}px))`;
+      line.appendChild(lbl);
+
+      barsArea.appendChild(line);
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  MAIN FETCH
+async function fetchData() {
+  const btn = document.getElementById("refresh-btn");
+  btn.classList.add("spinning");
+
+  // Check API key
+  if (!API_KEY || API_KEY === "YOUR_GOOGLE_API_KEY_HERE") {
+    document.getElementById("loading").style.display = "none";
+    document.querySelector("main").insertAdjacentHTML("afterbegin", `
+      <div class="setup-banner">
+        <h3>⚙️ Setup Required</h3>
+        <ol>
+          <li>Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent3)">Google Cloud Console</a> and create a project.</li>
+          <li>Enable the <code>Google Sheets API</code> for that project.</li>
+          <li>Create an <strong>API key</strong> under <em>APIs &amp; Services → Credentials</em>.</li>
+          <li>Restrict the key to <code>Google Sheets API</code> and optionally your domain.</li>
+          <li>Open this HTML file in a text editor and replace <code>AIzaSyDi8fFtZgoOtawMNj6idXL76nfONuBw0sY</code> with your key.</li>
+          <li>Make sure the Google Sheet is shared as <strong>"Anyone with the link can view"</strong>.</li>
+        </ol>
+      </div>
+    `);
+    btn.classList.remove("spinning");
+    return;
+  }
+
+  try {
+    // Fetch all ranges in parallel
+    const [
+      weekRow,      // Dashboard!B3
+      lbRows,       // Dashboard!B5:C13  (name, pct)
+      clientRows,   // DataEngine!B18:E20 (label, completed, attended, pct)
+      recRows,      // DataEngine!F4:K12  (ICI, name, booked, completed, attended, pct)
+      targetRows,   // MoM Target!E17:H17 (survival, target, current, avgTarget)
+    ] = await Promise.all([
+      getRange("Dashboard!B3"),
+      getRange("Dashboard!B5:C13"),
+      getRange("DataEngine!B18:E20"),
+      getRange("DataEngine!F4:K12"),
+      getRange("'MoM Target'!E17:H17"),
+    ]);
+
+    // Week chip
+    const weekVal = cell(weekRow, 0, 0);
+    document.getElementById("week-chip").textContent =
+      weekVal ? "Week of " + fmtDate(weekVal) : "Current Week";
+
+    // Leaderboard
+    renderLeaderboard(lbRows);
+
+    // Clients
+    const parseClient = (row) => ({
+      completed: parseInt(cell([row],0,1)) || 0,
+      attended:  parseInt(cell([row],0,2)) || 0,
+      pct:       parsePct(cell([row],0,3)),
+    });
+    renderClients(
+      parseClient(clientRows[0] || []),
+      parseClient(clientRows[2] || []),
+    );
+
+    // Recruiters
+    renderRecruiters(recRows);
+
+    // Team Targets — E17:H17: survival, target, current, avgTarget
+    const survivalPct  = parsePct(cell(targetRows, 0, 0));
+    const goalPct      = parsePct(cell(targetRows, 0, 1));
+    const currentPct   = parsePct(cell(targetRows, 0, 2));
+    const avgTargetPct = parsePct(cell(targetRows, 0, 3));
+    renderTargets(survivalPct, goalPct, currentPct, avgTargetPct);
+
+    document.getElementById("loading").style.display = "none";
+
+  } catch (err) {
+    document.getElementById("loading").style.display = "none";
+    // Remove any existing error
+    document.querySelectorAll(".error-msg").forEach(e => e.remove());
+    document.querySelector("main").insertAdjacentHTML("afterbegin", `
+      <div class="error-msg">
+        ⚠️ Could not load data from Google Sheets.
+        Make sure your API key is valid and the sheet is set to "Anyone with the link can view".
+        <code>${err.message}</code>
+      </div>
+    `);
+  }
+
+  btn.classList.remove("spinning");
+}
+
+
+// ════════════════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ════════════════════════════════════════════════════════
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', isOpen);
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+// Close sidebar when a nav item is clicked on mobile
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (window.innerWidth <= 900) closeSidebar();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+fetchData();
+setInterval(fetchData, REFRESH_INTERVAL);
+</script>
+
+<!--
+═══════════════════════════════════════════════════════════
+  SETUP GUIDE
+═══════════════════════════════════════════════════════════
+
+  1. GOOGLE CLOUD PROJECT
+     → https://console.cloud.google.com
+     → Create a new project (or use an existing one)
+
+  2. ENABLE SHEETS API
+     → APIs & Services → Library → search "Google Sheets API" → Enable
+
+  3. CREATE API KEY
+     → APIs & Services → Credentials → Create Credentials → API key
+     → Restrict it to "Google Sheets API" under API restrictions
+
+  4. SHARE YOUR SHEET
+     → Open the spreadsheet → Share → "Anyone with the link" → Viewer
+     (The API key only works on public/shared sheets)
+
+  5. PASTE YOUR KEY
+     → In this file, replace YOUR_GOOGLE_API_KEY_HERE with your key
+     → The Sheet ID is already filled in
+
+  6. OPEN IN BROWSER
+     → Open this .html file directly in Chrome/Edge/Safari
+     → Data auto-refreshes every 5 minutes
+
+═══════════════════════════════════════════════════════════
+-->
+</body>
+</html>
