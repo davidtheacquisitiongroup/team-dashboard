@@ -1,0 +1,2661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  /* ── CONFIG ── Update these two lines ───────────────────────────────── */
+  /* See setup instructions at the bottom of this file                    */
+
+  :root {
+    --sheet-id: "1ceunbIokxAZz4enXrrYz9hApE2XfDFAMxmZGhidd1Vo";
+    --api-key:  "configured";
+
+    /* Palette — TAG brand: purple + teal, muted light theme */
+    --bg:         #ece9e4;   /* deeper warm beige background */
+    --surface:    #ffffff;
+    --surface2:   #faf9f7;   /* near-white for row fills */
+    --border:     #c8c3ba;   /* noticeably darker border */
+    --text:       #2c2a35;
+    --muted:      #8a8599;
+    --accent1:    #a0487a;   /* muted company purple */
+    --accent2:    #c45e93;   /* lighter purple highlight */
+    --accent3:    #4aada8;   /* muted teal */
+    --accent4:    #8b3d6b;   /* deep purple */
+    --telus:      #4aada8;   /* teal for TELUS */
+    --cg:         #a0487a;   /* purple for CG */
+    --empire:     #c47a3a;   /* warm amber for EMPIRE */
+
+    --rank1: #c9a227;   /* muted gold */
+    --rank2: #8a9ba8;   /* muted silver */
+    --rank3: #a0724a;   /* muted bronze */
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  /* ── SUBTLE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(160,72,122,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(160,72,122,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 24px 40px 24px 260px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(160,72,122,0.07), transparent 60%);
+    background-color: var(--surface);
+  }
+
+  .logo-block { display: flex; align-items: baseline; gap: 12px; }
+
+  .logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.4rem;
+    letter-spacing: 0.08em;
+    background: linear-gradient(90deg, var(--accent4), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .logo-sub {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  .header-right { display: flex; align-items: center; gap: 20px; }
+
+  .refresh-btn {
+    background: none; border: 1px solid var(--border);
+    color: var(--muted); padding: 6px 14px; border-radius: 6px;
+    cursor: pointer; font-size: 0.78rem; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .refresh-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .refresh-btn.spinning { animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    position: relative; z-index: 1;
+    max-width: 1920px; margin: 0 auto;
+    padding: 32px 48px;
+    display: grid;
+    grid-template-columns: 1fr 340px 260px;
+    grid-template-rows: 1fr auto;
+    gap: 28px;
+    margin-left: 220px;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem; letter-spacing: 0.25em;
+    color: var(--muted); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  /* ── LEADERBOARD ── */
+  #leaderboard-wrap { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; align-self: stretch; }
+
+  .leaderboard-grid {
+    display: flex; flex-direction: column; gap: 10px;
+    flex: 1;
+  }
+
+  .lb-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 80px 72px;
+    align-items: center; gap: 10px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    animation: slideIn 0.4s ease both;
+    flex: 1;
+  }
+
+  .lb-row:hover { transform: translateX(4px); border-color: var(--accent1); box-shadow: 0 2px 8px rgba(160,72,122,0.12); }
+
+  .lb-row.rank-1 { border-color: var(--rank1); border-width: 2px; background: var(--surface); }
+  .lb-row.rank-2 { border-color: var(--rank2); border-width: 2px; background: var(--surface); }
+  .lb-row.rank-3 { border-color: var(--rank3); border-width: 2px; background: var(--surface); }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  .lb-rank {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.2rem;
+    color: var(--muted); text-align: center;
+  }
+  .rank-1 .lb-rank { color: var(--rank1); }
+  .rank-2 .lb-rank { color: var(--rank2); }
+  .rank-3 .lb-rank { color: var(--rank3); }
+
+  .lb-name {
+    font-size: 1.2rem; font-weight: 700; letter-spacing: 0.02em;
+  }
+
+  .lb-bar-wrap { position: relative; }
+
+  .lb-bar-track {
+    height: 10px; background: var(--border); border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .lb-bar-fill {
+    height: 100%; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent3));
+    transition: width 1s cubic-bezier(0.22,1,0.36,1);
+    width: 0%;
+  }
+  .rank-1 .lb-bar-fill { background: linear-gradient(90deg, var(--rank1), #d4a843); }
+
+  .lb-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.2rem; font-weight: 700;
+    color: var(--accent1); text-align: right;
+  }
+  .rank-1 .lb-pct { color: var(--rank1); }
+
+  /* ── CLIENT STATS (middle column) ── */
+  #clients-wrap { grid-column: 2; grid-row: 1; }
+
+  /* ── TEAM TARGETS (right column) ── */
+  #targets-wrap { grid-column: 3; grid-row: 1; }
+
+  .client-cards { display: flex; flex-direction: column; gap: 14px; }
+
+  .client-card {
+    padding: 18px 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: grid; grid-template-columns: 1fr auto;
+    align-items: center; gap: 12px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .client-card.telus  { border-top: 3px solid var(--telus);  }
+  .client-card.cg     { border-top: 3px solid var(--cg);     }
+  .client-card.empire { border-top: 3px solid var(--empire); }
+
+  .client-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem; letter-spacing: 0.12em;
+  }
+  .client-card.telus  .client-name { color: var(--telus);  }
+  .client-card.cg     .client-name { color: var(--cg);     }
+  .client-card.empire .client-name { color: var(--empire); }
+
+  .client-nums {
+    display: flex; gap: 16px; margin-top: 8px;
+  }
+
+  .client-stat { text-align: center; }
+  .client-stat-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem; font-weight: 700; display: block;
+  }
+  .client-stat-lbl {
+    font-size: 0.65rem; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--muted);
+  }
+
+  .client-pct-ring { position: relative; width: 58px; height: 58px; }
+  .client-pct-ring svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--border); stroke-width: 5; }
+  .ring-fill  {
+    fill: none; stroke-width: 5; stroke-linecap: round;
+    stroke-dasharray: 138; stroke-dashoffset: 138;
+    transition: stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1);
+  }
+  .client-card.telus  .ring-fill { stroke: var(--telus);  }
+  .client-card.cg     .ring-fill { stroke: var(--cg);     }
+  .client-card.empire .ring-fill { stroke: var(--empire); }
+
+  .ring-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; font-weight: 700;
+  }
+
+  .all-clients-banner {
+    margin-top: 14px; padding: 14px 20px;
+    background: linear-gradient(135deg, rgba(160,72,122,0.08), rgba(74,173,168,0.06));
+    border: 1px solid rgba(160,72,122,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  .all-clients-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.9rem; letter-spacing: 0.15em; color: var(--accent4);
+  }
+
+  .all-clients-nums {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem; color: var(--text);
+    display: flex; gap: 16px; align-items: center;
+  }
+
+  .all-clients-nums span { color: var(--muted); font-size: 0.7rem; }
+
+  /* ── TEAM TARGETS — vertical bar chart ── */
+  .targets-panel {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: visible;
+    animation: fadeUp 0.6s 0.3s ease both;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .targets-header {
+    padding: 12px 18px 10px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .targets-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem; letter-spacing: 0.18em; color: #c45e93;
+    font-weight: 400;
+  }
+
+  .targets-ytd-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem; color: var(--muted);
+  }
+
+  /* The chart area */
+  .targets-chart {
+    flex: 1;
+    position: relative;
+    padding: 20px 24px 16px 52px;
+    min-height: 520px;
+  }
+
+  /* Y-axis grid lines + labels */
+  .targets-yaxis {
+    position: absolute;
+    left: 0; top: 20px; bottom: 16px;
+    width: 52px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .targets-ytick {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-align: right;
+    padding-right: 8px;
+    line-height: 1;
+  }
+
+  /* Grid lines */
+  .targets-grid {
+    position: absolute;
+    left: 52px; right: 50px;
+    top: 20px; bottom: 16px;
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    pointer-events: none;
+  }
+
+  .targets-gridline {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    opacity: 0.7;
+  }
+
+  /* Bar area */
+  .targets-bars-area {
+    position: absolute;
+    left: 52px; right: 50px;
+    top: 20px; bottom: 16px;
+  }
+
+  /* Background fill (pink tint behind bar) */
+  .targets-bg-fill {
+    position: absolute;
+    left: 20%; right: 20%;
+    bottom: 0;
+    background: rgba(196, 94, 147, 0.07);
+    border-radius: 4px 4px 0 0;
+  }
+
+  /* The main current % bar */
+  .targets-main-bar {
+    position: absolute;
+    left: 28%; right: 28%;
+    bottom: 0;
+    background: rgba(160, 72, 122, 0.25);
+    border: 1.5px solid rgba(160, 72, 122, 0.4);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    transition: height 1.2s cubic-bezier(0.22,1,0.36,1);
+    position: absolute;
+  }
+
+  /* Horizontal reference lines */
+  .targets-hline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2.5px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+  }
+
+  .targets-hline-label {
+    position: absolute;
+    left: calc(100% + 5px);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .hline-survival { background: #e53935; }
+  .hline-survival .targets-hline-label { color: #e53935; }
+
+  .hline-target   { background: #1565c0; }
+  .hline-target   .targets-hline-label { color: #1565c0; }
+
+  .hline-avg      { background: #2e7d32; }
+  .hline-avg      .targets-hline-label { color: #2e7d32; }
+
+  /* Legend */
+  .targets-legend {
+    position: relative;
+    left: unset; right: unset;
+    bottom: unset;
+    padding: 8px 24px 12px 52px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.68rem; color: var(--text);
+  }
+
+  .legend-swatch {
+    width: 22px; height: 3px; border-radius: 2px; flex-shrink: 0;
+  }
+  .legend-swatch.current  { background: rgba(160, 72, 122, 0.6); height: 3px; }
+  .legend-swatch.survival { background: #e53935; height: 3px; }
+  .legend-swatch.target   { background: #1565c0; height: 3px; }
+  .legend-swatch.avg      { background: #2e7d32; height: 3px; }
+
+  .legend-item.current-item { color: var(--text); }
+
+  /* ── RECRUITER DETAIL TABLE ── */
+  #recruiter-wrap { grid-column: 1 / -1; grid-row: 1; }
+
+  .recruiter-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    table-layout: fixed;
+  }
+
+  .recruiter-table colgroup col:nth-child(1) { width: 30%; }
+  .recruiter-table colgroup col:nth-child(2) { width: 17.5%; }
+  .recruiter-table colgroup col:nth-child(3) { width: 17.5%; }
+  .recruiter-table colgroup col:nth-child(4) { width: 17.5%; }
+  .recruiter-table colgroup col:nth-child(5) { width: 17.5%; }
+
+  .recruiter-table thead th {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.15em;
+    color: var(--muted); font-weight: 600; padding: 0 24px 10px;
+    text-align: left; cursor: pointer; user-select: none;
+    white-space: nowrap; transition: color 0.15s;
+  }
+  .recruiter-table thead th:not(:first-child) { text-align: center; }
+  .recruiter-table thead th:hover { color: var(--accent1); }
+  .recruiter-table thead th.sort-asc::after  { content: ' ↑'; color: var(--accent1); }
+  .recruiter-table thead th.sort-desc::after { content: ' ↓'; color: var(--accent1); }
+
+  .recruiter-table tbody tr {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: background 0.15s, box-shadow 0.15s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .recruiter-table tbody tr:hover { background: var(--surface2); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+
+  .recruiter-table tbody td {
+    padding: 18px 24px;
+    font-size: 1rem;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .recruiter-table tbody td:first-child {
+    border-radius: 12px 0 0 12px;
+    border-left: 1px solid var(--border);
+    font-weight: 700; font-size: 1.05rem;
+  }
+  .recruiter-table tbody td:last-child {
+    border-radius: 0 12px 12px 0;
+    border-right: 1px solid var(--border);
+  }
+  .recruiter-table tbody td:not(:first-child) { text-align: center; }
+
+  .td-ici {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .td-pct {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 1rem;
+    padding: 4px 10px; border-radius: 6px;
+    display: inline-block;
+  }
+
+  .pct-high { background: rgba(74,173,168,0.12); color: #2d9491; }
+  .pct-mid  { background: rgba(196,122,58,0.12); color: #b56a20; }
+  .pct-low  { background: rgba(160,72,122,0.12); color: var(--accent1); }
+  .pct-na   { background: transparent; color: var(--muted); }
+
+  /* ── LOADING / ERROR STATES ── */
+  .loading-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 20px;
+  }
+
+  .loader-ring {
+    width: 56px; height: 56px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent1);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem; letter-spacing: 0.2em; color: var(--muted);
+  }
+
+  .error-msg {
+    background: rgba(160,72,122,0.08); border: 1px solid rgba(160,72,122,0.25);
+    color: var(--accent4); border-radius: 10px; padding: 16px 20px;
+    font-size: 0.85rem; line-height: 1.6;
+    grid-column: 1 / -1;
+  }
+
+  .error-msg code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--accent3);
+    display: block; margin-top: 8px; white-space: pre-wrap;
+  }
+
+  /* ── SETUP BANNER (shown when API key not set) ── */
+  .setup-banner {
+    background: rgba(160,72,122,0.05);
+    border: 1px solid rgba(160,72,122,0.2);
+    border-radius: 12px; padding: 20px 24px;
+    grid-column: 1 / -1;
+  }
+  .setup-banner h3 {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem;
+    letter-spacing: 0.1em; color: var(--accent4); margin-bottom: 10px;
+  }
+  .setup-banner ol { padding-left: 20px; }
+  .setup-banner li { font-size: 0.85rem; line-height: 2; color: var(--muted); }
+  .setup-banner code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem; color: var(--accent3);
+    background: rgba(74,173,168,0.1); padding: 1px 6px; border-radius: 4px;
+  }
+
+  /* ── SIDEBAR NAV ── */
+  .sidebar {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    width: 210px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+  }
+
+  .sidebar-logo {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.08em;
+    background: linear-gradient(90deg, var(--accent4), var(--accent3));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+  }
+
+  .sidebar-logo-sub {
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sidebar-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 8px;
+    margin-bottom: 6px;
+    margin-top: 8px;
+  }
+
+  .nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: background 0.15s, color 0.15s;
+    position: relative;
+  }
+
+  .nav-btn:hover {
+    background: rgba(160,72,122,0.07);
+    color: var(--accent4);
+  }
+
+  .nav-btn.active {
+    background: linear-gradient(90deg, rgba(160,72,122,0.12), rgba(74,173,168,0.06));
+    color: var(--accent4);
+    font-weight: 700;
+    border-left: 3px solid var(--accent1);
+    padding-left: 9px;
+  }
+
+  .nav-icon { font-size: 1rem; flex-shrink: 0; }
+
+  .sidebar-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: contents; }
+
+  /* recruiter page spans full grid width */
+  #page-recruiter { display: none; }
+  #page-recruiter.active {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+  #page-recruiter.active #recruiter-wrap {
+    grid-column: 1 / -1;
+  }
+
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HEADER tweaks ── */
+  .week-chip {
+    background: rgba(160,72,122,0.08);
+    border: 1px solid rgba(160,72,122,0.25);
+    border-radius: 999px; padding: 6px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--accent4);
+  }
+
+  .live-dot {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.75rem; font-weight: 700; color: var(--accent1);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+
+  .live-dot::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent1);
+    animation: pulse-purple 2s infinite;
+  }
+
+  @keyframes pulse-purple {
+    0%   { box-shadow: 0 0 0 0 rgba(160,72,122,0.6); }
+    70%  { box-shadow: 0 0 0 8px rgba(160,72,122,0); }
+    100% { box-shadow: 0 0 0 0 rgba(160,72,122,0); }
+  }
+
+  /* ── CURRENT BAR LABEL — centered vertically in bar ── */
+  .targets-main-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: rgba(139, 61, 107, 0.85);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* ── HAMBURGER BUTTON ── */
+  .hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 8px;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .hamburger:hover { background: rgba(160,72,122,0.08); }
+  .hamburger span {
+    display: block;
+    width: 26px; height: 2.5px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.25s;
+  }
+
+  /* Sidebar slide-in overlay on mobile */
+  .sidebar-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 19;
+  }
+  .sidebar-overlay.open { display: block; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    main { grid-template-columns: 1fr 300px 260px; padding: 20px; gap: 20px; }
+  }
+
+  @media (max-width: 900px) {
+    .hamburger { display: flex; }
+
+    .sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    }
+    .sidebar.open { transform: translateX(0); }
+
+    /* Header: compact, no left padding, don't let items overflow */
+    header {
+      padding: 12px 16px;
+      gap: 10px;
+      flex-wrap: nowrap;
+      overflow: hidden;
+    }
+    .logo-block { gap: 6px; min-width: 0; }
+    .logo-title { font-size: 1.4rem; white-space: nowrap; }
+    .logo-sub { display: none; }
+
+    /* Header right: tighten up, hide less important items */
+    .header-right { gap: 8px; flex-shrink: 0; }
+    .week-chip {
+      font-size: 0.68rem;
+      padding: 4px 10px;
+      white-space: nowrap;
+    }
+    .live-dot { display: none; }
+    .refresh-btn { padding: 5px 10px; font-size: 0.72rem; }
+
+    main {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+      padding: 16px;
+      margin-left: 0;
+      gap: 16px;
+      /* Prevent horizontal scroll */
+      width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+
+    #leaderboard-wrap { grid-column: 1; grid-row: 1; align-self: unset; }
+    #clients-wrap     { grid-column: 1; grid-row: 2; }
+    #targets-wrap     { grid-column: 1; grid-row: 3; }
+    #recruiter-wrap   { grid-column: 1; grid-row: 4; }
+
+    /* Leaderboard rows: natural height on mobile */
+    .lb-row {
+      flex: unset;
+      padding: 12px 14px;
+      grid-template-columns: 36px 1fr 60px 56px;
+    }
+    .lb-rank { font-size: 1.6rem; }
+    .lb-name { font-size: 0.95rem; }
+    .lb-pct  { font-size: 0.95rem; }
+    .leaderboard-grid { flex: unset; gap: 8px; }
+
+    /* Cards: full width, no overflow */
+    .card { padding: 18px; }
+
+    /* Targets chart: reduce min-height for mobile */
+    .targets-chart { min-height: 360px; }
+
+    /* Recruiter table: allow horizontal scroll within its container only */
+    #recruiter-wrap .card { overflow-x: auto; }
+    .recruiter-table { min-width: 500px; }
+
+    /* Section labels */
+    .section-label { font-size: 0.78rem; }
+  }
+
+  /* ── HEADCOUNT PAGE ── */
+  #page-headcount { display: none; }
+  #page-headcount.active {
+    display: grid; grid-column: 1 / -1; grid-template-columns: subgrid;
+  }
+  #page-headcount.active #headcount-wrap { grid-column: 1 / -1; }
+
+  /* YTD strip — bare on background, no card */
+  .hc-ytd-strip {
+    display: flex; align-items: stretch; gap: 20px;
+    margin-bottom: 16px; padding: 12px 0;
+  }
+  .hc-ytd-chips { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+  .hc-ytd-chip {
+    display: flex; flex-direction: column;
+    background: rgba(255,255,255,0.55); border: 1px solid rgba(200,195,186,0.6);
+    border-radius: 8px; padding: 8px 14px; min-width: 92px;
+  }
+  .hc-ytd-val { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700; color: var(--accent4); line-height: 1; }
+  .hc-ytd-val.positive { color: #4aada8; }
+  .hc-ytd-val.negative { color: #c45e93; }
+  .hc-ytd-lbl { font-size: 0.57rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.13em; color: var(--muted); margin-top: 3px; }
+  .hc-ytd-chart-wrap { flex: 1; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .hc-ytd-label { display: flex; align-items: baseline; gap: 8px; }
+  .hc-ytd-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.12em; color: var(--accent4); line-height: 1; }
+  .hc-ytd-sublabel { font-size: 0.63rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+  /* Scrollable wrapper */
+  .hc-scroll-wrap {
+    overflow-x: auto; overflow-y: hidden; border-radius: 8px;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  .hc-scroll-wrap::-webkit-scrollbar { height: 4px; }
+  .hc-scroll-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .hc-ytd-scroll { background: rgba(255,255,255,0.4); border: 1px solid rgba(200,195,186,0.5); }
+  .hc-ytd-inner { display: block; height: 130px; }
+  .hc-ytd-svg   { display: block; width: 100%; height: 100%; }
+
+  /* Main card */
+  #headcount-card { padding: 20px 24px; }
+
+  /* Toolbar */
+  .hc-toolbar {
+    display: flex; align-items: stretch; gap: 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+  }
+  .hc-toolbar-left  { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .hc-toolbar-right { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; justify-content: space-between; }
+  .hc-toolbar-group { display: flex; align-items: center; gap: 8px; }
+  .hc-toolbar-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted); white-space: nowrap; min-width: 36px; }
+  .hc-toolbar-divider { width: 1px; background: var(--border); align-self: stretch; flex-shrink: 0; }
+
+  .hc-select {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+    color: var(--text); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 7px;
+    padding: 5px 10px; cursor: pointer; outline: none; min-width: 190px;
+  }
+  .hc-select:focus { border-color: var(--accent1); }
+
+  /* Pills */
+  .hc-pill-group { display: flex; gap: 4px; flex-wrap: wrap; }
+  .hc-pill {
+    font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    border: 1px solid var(--border); background: transparent; color: var(--muted);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap; user-select: none;
+  }
+  .hc-pill:hover { border-color: var(--accent1); color: var(--accent1); }
+  .hc-pill.active { background: rgba(160,72,122,0.1); border-color: var(--accent1); color: var(--accent4); }
+  .hc-pill[data-office]:not([data-office="all"]).active {
+    background: color-mix(in srgb, var(--office-color, var(--accent1)) 12%, transparent);
+    border-color: var(--office-color, var(--accent1)); color: var(--office-color, var(--accent4));
+  }
+  .hc-pill[data-office]:not([data-office="all"]):hover {
+    border-color: var(--office-color, var(--accent1)); color: var(--office-color, var(--accent1));
+  }
+
+  /* Summary inline */
+  .hc-summary-inline { display: flex; gap: 12px; align-items: center; }
+  .hc-summary-item   { display: flex; flex-direction: column; align-items: center; }
+  .hc-summary-val { font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--accent4); line-height: 1; }
+  .hc-summary-lbl { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-top: 2px; }
+
+  /* Charts: vertical bar + pie */
+  .hc-charts { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+  .hc-chart-panel { display: flex; flex-direction: column; gap: 10px; }
+  .hc-chart-title { font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; letter-spacing: 0.18em; color: var(--muted); }
+  .hc-chart-subtitle { font-family: 'DM Sans', sans-serif; font-size: 0.68rem; font-weight: 500; color: var(--muted); text-transform: none; }
+
+  /* Vertical bar chart — taller, thinner bars via padding */
+  .hc-vbar-chart {
+    display: flex; align-items: flex-end; gap: 6px;
+    height: 340px; padding: 0 8px;
+    border-bottom: 2px solid var(--border);
+  }
+  .hc-bar-col {
+    display: flex; flex-direction: column; align-items: center;
+    flex: 1; height: 100%; justify-content: flex-end; gap: 3px; position: relative;
+  }
+  /* Inner wrapper that's 65% of the column width */
+  .hc-bar-inner {
+    width: 65%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    height: 100%; gap: 3px;
+  }
+  .hc-bar-val { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; font-weight: 700; color: var(--accent4); }
+  .hc-bar-track { width: 100%; position: relative; flex-shrink: 0; }
+  .hc-bar-ghost { position: absolute; bottom: 0; left: 0; width: 100%; border-radius: 5px 5px 0 0; opacity: 0.2; transition: height 0.9s cubic-bezier(0.22,1,0.36,1); }
+  .hc-bar-fill  { width: 100%; border-radius: 5px 5px 0 0; transition: height 0.7s cubic-bezier(0.22,1,0.36,1); min-height: 2px; position: relative; z-index: 1; }
+  .hc-bar-fill:hover { filter: brightness(1.1); }
+  .hc-bar-lbl { font-size: 0.72rem; font-weight: 700; color: var(--text); text-align: center; white-space: nowrap; margin-top: 5px; line-height: 1.3; }
+
+  /* Pie chart — bigger, no legend, external labels */
+  .hc-pie-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .hc-pie-svg  { width: 340px; height: 306px; display: block; overflow: visible; }
+  .hc-pie-legend { display: none; }
+
+  /* Client dropdown */
+  .hc-toolbar-separator {
+    height: 1px; background: var(--border); margin: 2px 0;
+  }
+  .hc-client-select-wrap { position: relative; }
+  .hc-client-select {
+    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    color: var(--accent4); background: var(--surface);
+    border: 1.5px solid var(--accent1); border-radius: 8px;
+    padding: 6px 28px 6px 12px; cursor: pointer; outline: none;
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a0487a' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    min-width: 170px; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .hc-client-select:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(160,72,122,0.12); }
+  .hc-client-select option { font-weight: 500; color: var(--text); }
+
+  /* ── RESPONSIVE — Headcount page ── */
+  @media (max-width: 1100px) {
+    .hc-charts { grid-template-columns: 1fr 300px; gap: 18px; }
+    .hc-pie-svg { width: 300px; height: 270px; }
+  }
+
+  @media (max-width: 900px) {
+    /* Page layout */
+    #page-headcount.active { display: block; }
+    #headcount-wrap { padding: 0; }
+
+    /* YTD strip stacks chips above chart */
+    .hc-ytd-strip { flex-direction: column; gap: 10px; padding: 10px 0; }
+    .hc-ytd-chips { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+    .hc-ytd-chip  { min-width: 80px; padding: 7px 12px; }
+    .hc-ytd-inner { height: 100px; }
+    .hc-ytd-scroll { height: 100px; }
+
+    /* Toolbar wraps */
+    .hc-toolbar { flex-direction: column; gap: 12px; padding: 14px; }
+    .hc-toolbar-left  { width: 100%; }
+    .hc-toolbar-right { width: 100%; align-items: flex-start; flex-direction: row; flex-wrap: wrap; gap: 12px; }
+    .hc-toolbar-divider { display: none; }
+    .hc-summary-inline { gap: 10px; }
+
+    /* Charts stack vertically */
+    .hc-charts { grid-template-columns: 1fr; gap: 20px; }
+
+    /* Bar chart: allow horizontal scroll on very small screens */
+    .hc-vbar-chart { min-width: 480px; }
+    .hc-bar-panel  { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+    /* Pie chart: full width, smaller */
+    .hc-pie-wrap { width: 100%; }
+    .hc-pie-svg  { width: 100%; max-width: 340px; height: auto; }
+
+    /* Pills wrap more aggressively */
+    .hc-pill-group { gap: 5px; }
+    .hc-pill { padding: 5px 12px; font-size: 0.74rem; min-height: 32px; }
+
+    /* Client dropdown full width */
+    .hc-client-select { width: 100%; min-width: unset; }
+    .hc-client-select-wrap { width: 100%; }
+  }
+
+  @media (max-width: 600px) {
+    #headcount-card { padding: 14px; }
+
+    /* YTD chips smaller */
+    .hc-ytd-val { font-size: 1rem; }
+    .hc-ytd-title { font-size: 1.2rem; }
+
+    /* Summary chips: smaller gap */
+    .hc-summary-inline { gap: 8px; }
+    .hc-summary-val { font-size: 0.85rem; }
+
+    /* Toolbar groups wrap */
+    .hc-toolbar-group { flex-wrap: wrap; }
+
+    /* Bar labels smaller */
+    .hc-bar-lbl { font-size: 0.62rem; }
+    .hc-bar-val { font-size: 0.62rem; }
+  }
+
+  @media (max-width: 400px) {
+    .hc-ytd-chips { gap: 4px; }
+    .hc-ytd-chip  { min-width: 70px; padding: 6px 10px; }
+    .hc-pill      { padding: 4px 9px; font-size: 0.68rem; }
+    .hc-summary-lbl { font-size: 0.48rem; }
+  }
+
+  /* Extra small phones */
+  @media (max-width: 400px) {
+    .logo-title { font-size: 1.1rem; }
+    .week-chip { display: none; }
+    main { padding: 12px; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loading">
+  <div class="loader-ring"></div>
+  <div class="loading-text">Fetching live data…</div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <img src="data:image/jpeg;base64,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" alt="The Acquisition Group" style="width:110px;height:110px;object-fit:cover;display:block;border-radius:4px;" />
+  </div>
+  <div class="sidebar-nav">
+    <div class="sidebar-label">Sections</div>
+    <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')">
+      <span class="nav-icon">🏆</span> Team Leaderboard
+    </button>
+    <button class="nav-btn" id="nav-recruiter" onclick="showPage('recruiter')">
+      <span class="nav-icon">👤</span> Recruiter Breakdown
+    </button>
+    <button class="nav-btn" id="nav-headcount" onclick="showPage('headcount')">
+      <span class="nav-icon">🏢</span> Headcount
+    </button>
+  </div>
+  <div class="sidebar-footer">Auto-refreshes every 5 min</div>
+</nav>
+
+<!-- HEADER -->
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<header>
+  <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo-block">
+    <div class="logo-title">Team Dashboard</div>
+    <div class="logo-sub">Recruitment Intelligence</div>
+  </div>
+  <div class="header-right">
+    <div class="week-chip" id="week-chip">Week of —</div>
+    <div class="live-dot">Live</div>
+    <button class="refresh-btn" id="refresh-btn" onclick="fetchData(); fetchHeadcount()">↻ Refresh</button>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main>
+
+  <!-- PAGE 1: TEAM LEADERBOARD -->
+  <div class="page active" id="page-overview">
+    <!-- LEADERBOARD -->
+    <section id="leaderboard-wrap">
+      <div class="section-label">🏆 Prelim Attendance Leaderboard</div>
+      <div class="leaderboard-grid" id="leaderboard"></div>
+    </section>
+
+    <!-- CLIENT STATS -->
+    <aside id="clients-wrap">
+      <div class="section-label">📊 By Client</div>
+      <div class="client-cards" id="client-cards"></div>
+      <div class="all-clients-banner" id="all-clients-banner" style="display:none"></div>
+    </aside>
+
+    <!-- TEAM TARGETS -->
+    <aside id="targets-wrap">
+      <div class="section-label">🎯 Team Targets</div>
+      <div class="targets-panel" id="targets-panel">
+        <div class="targets-header">
+          <div class="targets-title">Team Target</div>
+          <div class="targets-ytd-note" id="targets-ytd-note">Loading YTD…</div>
+        </div>
+        <div class="targets-chart" id="targets-chart">
+          <div class="targets-yaxis" id="targets-yaxis"></div>
+          <div class="targets-grid" id="targets-grid"></div>
+          <div class="targets-bars-area" id="targets-bars-area">
+            <div class="targets-bg-fill" id="targets-bg-fill" style="height:0%"></div>
+            <div class="targets-main-bar" id="targets-main-bar" style="height:0%">
+              <span class="targets-main-bar-label" id="targets-main-bar-label">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="targets-legend">
+            <div class="legend-item"><div class="legend-swatch survival"></div>S. Target</div>
+            <div class="legend-item"><div class="legend-swatch target"></div>Target</div>
+            <div class="legend-item"><div class="legend-swatch avg"></div>A. Target</div>
+            <div class="legend-item current-item"><div class="legend-swatch current"></div>Current<span id="targets-current-val" style="display:none;">—</span></div>
+          </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- PAGE 2: RECRUITER BREAKDOWN -->
+  <div class="page" id="page-recruiter">
+    <section id="recruiter-wrap">
+      <div class="section-label">👤 Recruiter Breakdown</div>
+      <table class="recruiter-table">
+        <colgroup><col /><col /><col /><col /><col /></colgroup>
+        <thead>
+          <tr>
+            <th data-col="name" data-type="text">Recruiter</th>
+            <th data-col="booked" data-type="num">Prelim Booked</th>
+            <th data-col="completed" data-type="num">Completed</th>
+            <th data-col="attended" data-type="num">Attended</th>
+            <th data-col="pct" data-type="num">Attendance %</th>
+          </tr>
+        </thead>
+        <tbody id="recruiter-tbody"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- PAGE 3: HEADCOUNT -->
+  <div class="page" id="page-headcount">
+    <section id="headcount-wrap">
+      <div class="section-label">🏢 Headcount</div>
+
+      <!-- YTD STRIP — lives on the background, no card -->
+      <div class="hc-ytd-strip">
+        <div class="hc-ytd-chips">
+          <div class="hc-ytd-chip">
+            <span class="hc-ytd-val" id="hc-ytd-current">—</span>
+            <span class="hc-ytd-lbl">This Week</span>
+          </div>
+          <div class="hc-ytd-chip">
+            <span class="hc-ytd-val" id="hc-ytd-peak">—</span>
+            <span class="hc-ytd-lbl">Peak Week</span>
+          </div>
+          <div class="hc-ytd-chip">
+            <span class="hc-ytd-val" id="hc-ytd-delta">—</span>
+            <span class="hc-ytd-lbl">vs Last Week</span>
+          </div>
+        </div>
+        <div class="hc-ytd-chart-wrap">
+          <div class="hc-ytd-label"><span class="hc-ytd-title">YTD</span> <span class="hc-ytd-sublabel">All Roles · All Offices</span></div>
+          <div class="hc-scroll-wrap hc-ytd-scroll">
+            <div class="hc-ytd-inner" id="hc-ytd-inner">
+              <svg id="hc-ytd-svg" class="hc-ytd-svg" preserveAspectRatio="none"></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN CARD: toolbar + charts -->
+      <div class="card" id="headcount-card">
+
+        <!-- UNIFIED TOOLBAR -->
+        <div class="hc-toolbar">
+          <div class="hc-toolbar-left">
+            <!-- Client dropdown — top level context -->
+            <div class="hc-toolbar-group">
+              <span class="hc-toolbar-label">Client</span>
+              <div class="hc-client-select-wrap">
+                <select id="hc-client-select" class="hc-client-select">
+                  <option value="all">All Clients</option>
+                  <option value="telus-d2c">TELUS – D2C</option>
+                  <option value="telus-b2b">TELUS – B2B</option>
+                  <option value="empire">Empire Telecom</option>
+                  <option value="common-good">Common Good</option>
+                </select>
+              </div>
+            </div>
+            <div class="hc-toolbar-separator"></div>
+            <div class="hc-toolbar-group">
+              <span class="hc-toolbar-label">Role</span>
+              <div class="hc-pill-group" id="hc-role-btns">
+                <button class="hc-pill active" data-role="all">All</button>
+                <button class="hc-pill active" data-role="JMC">JMC</button>
+                <button class="hc-pill active" data-role="SMC">SMC</button>
+                <button class="hc-pill active" data-role="MM">MM</button>
+                <button class="hc-pill active" data-role="GM">GM</button>
+              </div>
+            </div>
+            <div class="hc-toolbar-group">
+              <span class="hc-toolbar-label">Office</span>
+              <div class="hc-pill-group" id="hc-office-btns"></div>
+            </div>
+          </div>
+          <div class="hc-toolbar-divider"></div>
+          <div class="hc-toolbar-right">
+            <div class="hc-toolbar-group">
+              <span class="hc-toolbar-label">Week</span>
+              <select id="hc-week-select" class="hc-select">
+                <option value="">Loading…</option>
+              </select>
+            </div>
+            <div class="hc-summary-inline">
+              <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-total">—</span><span class="hc-summary-lbl">Total</span></div>
+              <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-jmc">—</span><span class="hc-summary-lbl">JMC</span></div>
+              <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-smc">—</span><span class="hc-summary-lbl">SMC</span></div>
+              <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-mm">—</span><span class="hc-summary-lbl">MM</span></div>
+              <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-gm">—</span><span class="hc-summary-lbl">GM</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHARTS: bar + pie side by side -->
+        <div class="hc-charts">
+          <div class="hc-chart-panel hc-bar-panel">
+            <div class="hc-chart-title">Headcount by Office <span class="hc-chart-subtitle" id="hc-bar-subtitle"></span></div>
+            <div class="hc-vbar-chart" id="hc-bar-chart"></div>
+          </div>
+          <div class="hc-chart-panel hc-pie-panel">
+            <div class="hc-chart-title">Office Distribution <span class="hc-chart-subtitle" id="hc-pie-subtitle"></span></div>
+            <div class="hc-pie-wrap">
+              <svg id="hc-pie-svg" class="hc-pie-svg" viewBox="0 0 320 320"></svg>
+              <div class="hc-pie-legend" id="hc-pie-legend"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════
+//  CONFIGURATION — edit these two values
+// ════════════════════════════════════════════════════════
+const SHEET_ID = "1ceunbIokxAZz4enXrrYz9hApE2XfDFAMxmZGhidd1Vo";
+const API_KEY  = "AIzaSyDi8fFtZgoOtawMNj6idXL76nfONuBw0sY";   // ← replace this
+
+// Auto-refresh interval (ms). Default: 5 minutes.
+const REFRESH_INTERVAL = 5 * 60 * 1000;
+
+// ════════════════════════════════════════════════════════
+//  PAGE NAVIGATION
+// ════════════════════════════════════════════════════════
+let _leaderboardWeekChip = ""; // stores leaderboard chip text
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const page = document.getElementById('page-' + name);
+  if (page) {
+    page.classList.add('active');
+    page.style.animation = 'none';
+    requestAnimationFrame(() => { page.style.animation = 'pageIn 0.3s ease both'; });
+  }
+  const btn = document.getElementById('nav-' + name);
+  if (btn) btn.classList.add('active');
+  // Swap header week chip contextually
+  const chip = document.getElementById("week-chip");
+  if (name === "headcount" && _hcWeek) {
+    const d = WEEK_DATES[_hcWeek];
+    chip.textContent = d ? `Week ${_hcWeek}  ·  ${d.start}–${d.end}` : `Week ${_hcWeek}`;
+  } else {
+    chip.textContent = _leaderboardWeekChip || "Week of —";
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  SHEETS API HELPER
+// ════════════════════════════════════════════════════════
+async function getRange(sheetAndRange) {
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(sheetAndRange)}?key=${API_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return data.values || [];
+}
+
+function cell(rows, r, c, fallback = "") {
+  return (rows[r] && rows[r][c] !== undefined) ? rows[r][c] : fallback;
+}
+
+function parsePct(val) {
+  if (!val || val === "" || val.includes("DIV") || val.includes("N/A") || val.includes("NUM")) return null;
+  const s = String(val).replace("%","").trim();
+  const n = parseFloat(s);
+  if (isNaN(n)) return null;
+  return n > 1 ? n / 100 : n;   // handle both 0.7 and 70%
+}
+
+function fmtPct(p) {
+  if (p === null) return "—";
+  return Math.round(p * 100) + "%";
+}
+
+function pctClass(p) {
+  if (p === null) return "pct-na";
+  if (p >= 0.45) return "pct-high";
+  if (p >= 0.30) return "pct-mid";
+  return "pct-low";
+}
+
+function fmtDate(raw) {
+  if (!raw) return "—";
+  try {
+    let d;
+    // Google Sheets serial number (days since Dec 30, 1899)
+    const num = Number(raw);
+    if (!isNaN(num) && num > 1000) {
+      d = new Date(Date.UTC(1899, 11, 30) + num * 86400000);
+    } else {
+      // String date — parse as local time by replacing hyphens to avoid UTC midnight shift
+      d = new Date(String(raw).replace(/-/g, '/'));
+    }
+    // Move to the Monday of that week
+    const day = d.getUTCDay !== undefined && !isNaN(num) ? d.getUTCDay() : d.getDay();
+    const useUTC = !isNaN(num) && num > 1000;
+    const dayOfWeek = useUTC ? d.getUTCDay() : d.getDay();
+    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+    if (useUTC) {
+      d.setUTCDate(d.getUTCDate() + diff);
+      return d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    } else {
+      d.setDate(d.getDate() + diff);
+      return d.toLocaleDateString('en-CA', { month: 'long', day: 'numeric', year: 'numeric' });
+    }
+  } catch { return raw; }
+}
+
+// ════════════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════════════
+function renderLeaderboard(rows) {
+  // Dashboard B5:C13  → leaderboard rows (name, pct)
+  // rows[0] = headers offset; data starts at index 0 of what we fetch
+  const names = [], pcts = [];
+  rows.forEach(r => {
+    const n = r[0] || "";
+    const p = parsePct(r[1]);
+    if (n && n !== "#N/A" && p !== null) { names.push(n); pcts.push(p); }
+  });
+
+  const lb = document.getElementById("leaderboard");
+  lb.innerHTML = "";
+  names.forEach((name, i) => {
+    const rank = i + 1;
+    const pct  = pcts[i];
+    const rankClass = rank <= 3 ? `rank-${rank}` : "";
+    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+    const div = document.createElement("div");
+    div.className = `lb-row ${rankClass}`;
+    div.style.animationDelay = `${i * 60}ms`;
+    div.innerHTML = `
+      <div class="lb-rank">${rank}</div>
+      <div class="lb-name">${medal} ${name}</div>
+      <div class="lb-bar-wrap">
+        <div class="lb-bar-track"><div class="lb-bar-fill" data-pct="${pct}"></div></div>
+      </div>
+      <div class="lb-pct">${fmtPct(pct)}</div>
+    `;
+    lb.appendChild(div);
+  });
+
+  // Animate bars after paint
+  requestAnimationFrame(() => {
+    document.querySelectorAll(".lb-bar-fill").forEach(el => {
+      el.style.width = (parseFloat(el.dataset.pct) * 100) + "%";
+    });
+  });
+}
+
+function renderClients(telus, empire) {
+  const clients = [
+    { key: "telus",  label: "TELUS",  ...telus  },
+    { key: "empire", label: "EMPIRE", ...empire },
+  ];
+
+  const container = document.getElementById("client-cards");
+  container.innerHTML = "";
+
+  let totalCompleted = 0, totalAttended = 0;
+
+  clients.forEach((c, i) => {
+    const pct = c.pct;
+    const pctNum = pct !== null ? Math.round(pct * 100) : 0;
+    // ring: circumference ~138 for r=22
+    const offset = pct !== null ? 138 - (138 * pct) : 138;
+    totalCompleted += (c.completed || 0);
+    totalAttended  += (c.attended  || 0);
+
+    const card = document.createElement("div");
+    card.className = `client-card card ${c.key}`;
+    card.style.animationDelay = `${i * 80}ms`;
+    card.innerHTML = `
+      <div>
+        <div class="client-name">${c.label}</div>
+        <div class="client-nums">
+          <div class="client-stat">
+            <span class="client-stat-val">${c.completed ?? "—"}</span>
+            <span class="client-stat-lbl">Completed</span>
+          </div>
+          <div class="client-stat">
+            <span class="client-stat-val">${c.attended ?? "—"}</span>
+            <span class="client-stat-lbl">Attended</span>
+          </div>
+        </div>
+      </div>
+      <div class="client-pct-ring">
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle class="ring-track" cx="29" cy="29" r="22"/>
+          <circle class="ring-fill" cx="29" cy="29" r="22"
+            style="stroke-dashoffset:${offset}" data-offset="${offset}"/>
+        </svg>
+        <div class="ring-label">${fmtPct(pct)}</div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  const allPct = totalCompleted > 0 ? totalAttended / totalCompleted : null;
+  const allOffset = allPct !== null ? 138 - (138 * allPct) : 138;
+  const banner = document.getElementById("all-clients-banner");
+  banner.style.display = "block";
+  banner.innerHTML = `
+    <div class="client-card card all-clients" style="animation-delay:160ms">
+      <div>
+        <div class="client-name" style="color:var(--accent4)">ALL CLIENTS</div>
+        <div class="client-nums">
+          <div class="client-stat">
+            <span class="client-stat-val">${totalCompleted}</span>
+            <span class="client-stat-lbl">Completed</span>
+          </div>
+          <div class="client-stat">
+            <span class="client-stat-val">${totalAttended}</span>
+            <span class="client-stat-lbl">Attended</span>
+          </div>
+        </div>
+      </div>
+      <div class="client-pct-ring">
+        <svg width="58" height="58" viewBox="0 0 58 58">
+          <circle class="ring-track" cx="29" cy="29" r="22"/>
+          <circle class="ring-fill" cx="29" cy="29" r="22"
+            style="stroke:var(--accent4);stroke-dashoffset:${allOffset}" data-offset="${allOffset}"/>
+        </svg>
+        <div class="ring-label">${fmtPct(allPct)}</div>
+      </div>
+    </div>
+  `;
+  // Animate ring
+  requestAnimationFrame(() => {
+    banner.querySelectorAll(".ring-fill").forEach(el => {
+      el.style.transition = "stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1)";
+      el.style.strokeDashoffset = el.dataset.offset;
+    });
+  });
+}
+
+function renderRecruiters(rows) {
+  // rows = DataEngine G4:K12 → ICI, Name, Booked, Completed, Attended, Pct
+  _recData = rows.filter(r => r[1] && r[1] !== "#N/A");
+  renderRecruiterRows(_recData);
+  initRecruiterSort();
+}
+
+// ── RECRUITER TABLE SORT ──
+let _recData = [];   // store rows for re-sorting
+let _sortCol = null;
+let _sortDir = 1;    // 1 = asc, -1 = desc
+
+function initRecruiterSort() {
+  const ths = document.querySelectorAll(".recruiter-table thead th");
+  ths.forEach(th => {
+    th.addEventListener("click", () => {
+      const col  = th.dataset.col;
+      const type = th.dataset.type;
+
+      if (_sortCol === col) {
+        _sortDir *= -1;
+      } else {
+        _sortDir = type === "text" ? 1 : -1;
+      }
+      _sortCol = col;
+
+      ths.forEach(t => t.classList.remove("sort-asc", "sort-desc"));
+      th.classList.add(_sortDir === 1 ? "sort-asc" : "sort-desc");
+
+      const sorted = [..._recData].sort((a, b) => {
+        let av, bv;
+        switch(col) {
+          case "name":      av = a[1]; bv = b[1]; break;
+          case "booked":    av = a[2]; bv = b[2]; break;
+          case "completed": av = a[3]; bv = b[3]; break;
+          case "attended":  av = a[4]; bv = b[4]; break;
+          case "pct":       av = a[5]; bv = b[5]; break;
+        }
+        if (type === "text") return _sortDir * String(av).localeCompare(String(bv));
+        const an = parseFloat(String(av).replace(/[^0-9.\-]/g,"")) || 0;
+        const bn = parseFloat(String(bv).replace(/[^0-9.\-]/g,"")) || 0;
+        return _sortDir * (an - bn);
+      });
+      renderRecruiterRows(sorted);
+    });
+  });
+}
+
+function renderRecruiterRows(rows) {
+  const tbody = document.getElementById("recruiter-tbody");
+  tbody.innerHTML = "";
+  rows.forEach((r, i) => {
+    const ici  = r[0] || "—";
+    const name = r[1] || "—";
+    const booked    = r[2] || "—";
+    const completed = r[3] || "—";
+    const attended  = r[4] || "—";
+    const pct = parsePct(r[5]);
+    const tr = document.createElement("tr");
+    tr.style.animationDelay = `${i * 50}ms`;
+    tr.innerHTML = `
+      <td>
+        <div>${name}</div>
+        <div class="td-ici">${ici}</div>
+      </td>
+      <td>${booked}</td>
+      <td>${completed}</td>
+      <td>${attended}</td>
+      <td><span class="td-pct ${pctClass(pct)}">${fmtPct(pct)}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+// ════════════════════════════════════════════════════════
+//  TEAM TARGETS
+// ════════════════════════════════════════════════════════
+function renderTargets(survivalPct, goalPct, currentPct, avgTargetPct) {
+  // Values: survivalPct=E17, goalPct=F17, currentPct=G17, avgTargetPct=H17
+
+  const fmt = (p) => p !== null ? Math.round(p * 100) + "%" : "—";
+
+  // Update YTD note
+  const noteEl = document.getElementById("targets-ytd-note");
+  if (noteEl) noteEl.textContent = currentPct !== null ? `YTD: ${fmt(currentPct)}` : "";
+
+  // Chart bounds: 0% to 100%, displayed range 0–100%
+  // We'll show 0%–100% on Y axis with gridlines at 0,20,40,60,80,100
+  const CHART_MIN = 0;
+  const CHART_MAX = 1.0;
+  const range = CHART_MAX - CHART_MIN;
+
+  // Helper: convert a percentage value to a CSS bottom% within the chart area
+  const toY = (p) => p !== null ? ((p - CHART_MIN) / range * 100).toFixed(2) + "%" : null;
+
+  // Build Y-axis labels
+  const yaxis = document.getElementById("targets-yaxis");
+  if (yaxis) {
+    yaxis.innerHTML = "";
+    for (let v = 0; v <= 100; v += 20) {
+      const tick = document.createElement("div");
+      tick.className = "targets-ytick";
+      tick.textContent = v + "%";
+      yaxis.appendChild(tick);
+    }
+  }
+
+  // Build grid lines (one per tick)
+  const grid = document.getElementById("targets-grid");
+  if (grid) {
+    grid.innerHTML = "";
+    for (let v = 0; v <= 100; v += 20) {
+      const line = document.createElement("div");
+      line.className = "targets-gridline";
+      grid.appendChild(line);
+    }
+  }
+
+  // Set bg fill and main bar heights
+  const barsArea = document.getElementById("targets-bars-area");
+  const bgFill   = document.getElementById("targets-bg-fill");
+  const mainBar  = document.getElementById("targets-main-bar");
+  const mainLbl  = document.getElementById("targets-main-bar-label");
+  const currentVal = document.getElementById("targets-current-val");
+
+  if (mainLbl) mainLbl.textContent = fmt(currentPct);
+  if (currentVal) currentVal.textContent = fmt(currentPct);
+
+  // Animate after a frame
+  requestAnimationFrame(() => {
+    const hPct = currentPct !== null ? Math.min(100, Math.max(0, currentPct * 100)) : 0;
+    if (bgFill)  { bgFill.style.height  = hPct + "%"; }
+    if (mainBar) { mainBar.style.height = hPct + "%"; }
+  });
+
+  // Remove old hlines
+  if (barsArea) {
+    barsArea.querySelectorAll(".targets-hline").forEach(el => el.remove());
+
+    // Draw reference lines for survival, target, avg
+    const lines = [
+      { pct: survivalPct,  cls: "hline-survival", label: fmt(survivalPct)  },
+      { pct: goalPct,      cls: "hline-target",   label: fmt(goalPct)      },
+      { pct: avgTargetPct, cls: "hline-avg",       label: fmt(avgTargetPct) },
+    ].filter(l => l.pct !== null).sort((a, b) => a.pct - b.pct);
+
+    // Also include currentPct as a "virtual" point for collision detection
+    const allPcts = [
+      ...lines.map(l => l.pct),
+      ...(currentPct !== null ? [currentPct] : [])
+    ].sort((a, b) => a - b);
+
+    // Compute label vertical offsets to avoid collisions
+    // Min gap in percentage points before we nudge labels
+    const MIN_GAP_PX = 18; // px between label centers
+    const chartHeight = barsArea.offsetHeight || 500;
+    const MIN_GAP_PCT = MIN_GAP_PX / chartHeight;
+
+    // Assign a label offset (in px) per line to spread crowded labels
+    // Strategy: for each line, nudge its label up/down if too close to neighbours
+    const labelOffsets = {}; // index → px offset
+    lines.forEach((l, i) => { labelOffsets[i] = 0; });
+
+    // Two passes to push labels apart
+    for (let pass = 0; pass < 5; pass++) {
+      for (let i = 0; i < lines.length; i++) {
+        for (let j = i + 1; j < lines.length; j++) {
+          const gap = (lines[j].pct - lines[i].pct) * chartHeight;
+          const offsetGap = gap + labelOffsets[j] - labelOffsets[i];
+          if (offsetGap < MIN_GAP_PX) {
+            const push = (MIN_GAP_PX - offsetGap) / 2;
+            labelOffsets[i] -= push;
+            labelOffsets[j] += push;
+          }
+        }
+      }
+    }
+
+    lines.forEach(({ pct, cls, label }, i) => {
+      const line = document.createElement("div");
+      line.className = "targets-hline " + cls;
+      line.style.bottom = toY(pct);
+
+      const lbl = document.createElement("div");
+      lbl.className = "targets-hline-label";
+      lbl.textContent = label;
+      // nudge label vertically to avoid overlap; positive = up
+      const nudge = labelOffsets[i] || 0;
+      lbl.style.transform = `translateY(calc(-50% - ${nudge}px))`;
+      line.appendChild(lbl);
+
+      barsArea.appendChild(line);
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  MAIN FETCH
+async function fetchData() {
+  const btn = document.getElementById("refresh-btn");
+  btn.classList.add("spinning");
+
+  // Check API key
+  if (!API_KEY || API_KEY === "YOUR_GOOGLE_API_KEY_HERE") {
+    document.getElementById("loading").style.display = "none";
+    document.querySelector("main").insertAdjacentHTML("afterbegin", `
+      <div class="setup-banner">
+        <h3>⚙️ Setup Required</h3>
+        <ol>
+          <li>Go to <a href="https://console.cloud.google.com" target="_blank" style="color:var(--accent3)">Google Cloud Console</a> and create a project.</li>
+          <li>Enable the <code>Google Sheets API</code> for that project.</li>
+          <li>Create an <strong>API key</strong> under <em>APIs &amp; Services → Credentials</em>.</li>
+          <li>Restrict the key to <code>Google Sheets API</code> and optionally your domain.</li>
+          <li>Open this HTML file in a text editor and replace <code>AIzaSyDi8fFtZgoOtawMNj6idXL76nfONuBw0sY</code> with your key.</li>
+          <li>Make sure the Google Sheet is shared as <strong>"Anyone with the link can view"</strong>.</li>
+        </ol>
+      </div>
+    `);
+    btn.classList.remove("spinning");
+    return;
+  }
+
+  try {
+    // Fetch all ranges in parallel
+    const [
+      weekRow,      // Dashboard!B3
+      lbRows,       // Dashboard!B5:C13  (name, pct)
+      clientRows,   // DataEngine!B18:E20 (label, completed, attended, pct)
+      recRows,      // DataEngine!F4:K12  (ICI, name, booked, completed, attended, pct)
+      targetRows,   // MoM Target!E17:H17 (survival, target, current, avgTarget)
+    ] = await Promise.all([
+      getRange("Dashboard!B3"),
+      getRange("Dashboard!B5:C13"),
+      getRange("DataEngine!B18:E20"),
+      getRange("DataEngine!F4:K12"),
+      getRange("'MoM Target'!E17:H17"),
+    ]);
+
+    // Week chip
+    const weekVal = cell(weekRow, 0, 0);
+    const weekChipText = weekVal ? "Week of " + fmtDate(weekVal) : "Current Week";
+    _leaderboardWeekChip = weekChipText;
+    // Only update chip if not on headcount page
+    const activePage = document.querySelector('.page.active');
+    if (!activePage || activePage.id !== 'page-headcount') {
+      document.getElementById("week-chip").textContent = weekChipText;
+    }
+
+    // Leaderboard
+    renderLeaderboard(lbRows);
+
+    // Clients
+    const parseClient = (row) => ({
+      completed: parseInt(cell([row],0,1)) || 0,
+      attended:  parseInt(cell([row],0,2)) || 0,
+      pct:       parsePct(cell([row],0,3)),
+    });
+    renderClients(
+      parseClient(clientRows[0] || []),
+      parseClient(clientRows[2] || []),
+    );
+
+    // Recruiters
+    renderRecruiters(recRows);
+
+    // Team Targets — E17:H17: survival, target, current, avgTarget
+    const survivalPct  = parsePct(cell(targetRows, 0, 0));
+    const goalPct      = parsePct(cell(targetRows, 0, 1));
+    const currentPct   = parsePct(cell(targetRows, 0, 2));
+    const avgTargetPct = parsePct(cell(targetRows, 0, 3));
+    renderTargets(survivalPct, goalPct, currentPct, avgTargetPct);
+
+    document.getElementById("loading").style.display = "none";
+
+  } catch (err) {
+    document.getElementById("loading").style.display = "none";
+    // Remove any existing error
+    document.querySelectorAll(".error-msg").forEach(e => e.remove());
+    document.querySelector("main").insertAdjacentHTML("afterbegin", `
+      <div class="error-msg">
+        ⚠️ Could not load data from Google Sheets.
+        Make sure your API key is valid and the sheet is set to "Anyone with the link can view".
+        <code>${err.message}</code>
+      </div>
+    `);
+  }
+
+  btn.classList.remove("spinning");
+}
+
+
+// ════════════════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ════════════════════════════════════════════════════════
+function toggleSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const isOpen = sidebar.classList.toggle('open');
+  overlay.classList.toggle('open', isOpen);
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
+// Close sidebar when a nav item is clicked on mobile
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (window.innerWidth <= 900) closeSidebar();
+  });
+});
+
+// ════════════════════════════════════════════════════════
+//  HEADCOUNT
+// ════════════════════════════════════════════════════════
+
+// Week lookup table: { weekNum → { start, end } }
+const WEEK_DATES = {
+  998:  { start: "Jan 5",  end: "Jan 9"   },
+  999:  { start: "Jan 12", end: "Jan 16"  },
+  1000: { start: "Jan 19", end: "Jan 23"  },
+  1001: { start: "Jan 26", end: "Jan 30"  },
+  1002: { start: "Feb 2",  end: "Feb 6"   },
+  1003: { start: "Feb 9",  end: "Feb 13"  },
+  1004: { start: "Feb 16", end: "Feb 20"  },
+  1005: { start: "Feb 23", end: "Feb 27"  },
+  1006: { start: "Mar 2",  end: "Mar 6"   },
+  1007: { start: "Mar 9",  end: "Mar 13"  },
+  1008: { start: "Mar 16", end: "Mar 20"  },
+  1009: { start: "Mar 23", end: "Mar 27"  },
+  1010: { start: "Mar 30", end: "Apr 3"   },
+  1011: { start: "Apr 6",  end: "Apr 10"  },
+  1012: { start: "Apr 13", end: "Apr 17"  },
+  1013: { start: "Apr 20", end: "Apr 24"  },
+  1014: { start: "Apr 27", end: "May 1"   },
+  1015: { start: "May 4",  end: "May 8"   },
+  1016: { start: "May 11", end: "May 15"  },
+  1017: { start: "May 18", end: "May 22"  },
+  1018: { start: "May 25", end: "May 29"  },
+  1019: { start: "Jun 1",  end: "Jun 5"   },
+  1020: { start: "Jun 8",  end: "Jun 12"  },
+  1021: { start: "Jun 15", end: "Jun 19"  },
+  1022: { start: "Jun 22", end: "Jun 26"  },
+  1023: { start: "Jun 29", end: "Jul 3"   },
+  1024: { start: "Jul 6",  end: "Jul 10"  },
+  1025: { start: "Jul 13", end: "Jul 17"  },
+  1026: { start: "Jul 20", end: "Jul 24"  },
+  1027: { start: "Jul 27", end: "Jul 31"  },
+  1028: { start: "Aug 3",  end: "Aug 7"   },
+  1029: { start: "Aug 10", end: "Aug 14"  },
+  1030: { start: "Aug 17", end: "Aug 21"  },
+  1031: { start: "Aug 24", end: "Aug 28"  },
+  1032: { start: "Aug 31", end: "Sep 4"   },
+  1033: { start: "Sep 7",  end: "Sep 11"  },
+  1034: { start: "Sep 14", end: "Sep 18"  },
+  1035: { start: "Sep 21", end: "Sep 25"  },
+  1036: { start: "Sep 28", end: "Oct 2"   },
+  1037: { start: "Oct 5",  end: "Oct 9"   },
+  1038: { start: "Oct 12", end: "Oct 16"  },
+  1039: { start: "Oct 19", end: "Oct 23"  },
+  1040: { start: "Oct 26", end: "Oct 30"  },
+  1041: { start: "Nov 2",  end: "Nov 6"   },
+  1042: { start: "Nov 9",  end: "Nov 13"  },
+  1043: { start: "Nov 16", end: "Nov 20"  },
+  1044: { start: "Nov 23", end: "Nov 27"  },
+  1045: { start: "Nov 30", end: "Dec 4"   },
+  1046: { start: "Dec 7",  end: "Dec 11"  },
+  1047: { start: "Dec 14", end: "Dec 18"  },
+  1048: { start: "Dec 21", end: "Dec 25"  },
+  1049: { start: "Dec 28", end: "Dec 31"  },
+};
+
+// ── State ──
+let _hcAllRows  = [];
+let _hcWeek     = null;
+let _hcRoles    = new Set(["JMC","SMC","MM","GM"]);
+let _hcOffices  = new Set();
+let _hcClient   = "all"; // "all" | "telus-d2c" | "telus-b2b" | "empire" | "common-good"
+
+// Per-office color palette (cycles)
+const HC_OFFICE_COLORS = ["#a0487a","#4aada8","#c47a3a","#6b8fc4","#7a9e5a","#b05a5a","#7a5ab0","#5ab09e","#c4a23a","#a87050"];
+
+function weekLabel(w) {
+  const d = WEEK_DATES[w];
+  if (!d) return `Week ${w}`;
+  return `Week ${w}  ·  ${d.start}–${d.end}, 2026`;
+}
+
+// ── Fetch (called on load + refresh button) ──
+async function fetchHeadcount() {
+  try {
+    const rows = await getRange("Headcount!A2:G");
+    _hcAllRows = rows.filter(r => r[0] && r[1]);
+    buildWeekSelector();
+    buildOfficeFilter();
+    renderHeadcount();
+  } catch(e) {
+    console.warn("Headcount fetch failed:", e.message);
+  }
+}
+
+// ── Week selector ──
+function buildWeekSelector() {
+  const sel = document.getElementById("hc-week-select");
+  const prevWeek = _hcWeek;
+  const weeks = [...new Set(_hcAllRows.map(r => parseInt(r[0])))].filter(Boolean).sort((a,b) => b-a);
+  sel.innerHTML = "";
+  weeks.forEach((w, i) => {
+    const opt = document.createElement("option");
+    opt.value = w;
+    opt.textContent = weekLabel(w);
+    // Keep previously selected week if it still exists, else default to latest
+    if ((prevWeek && w === prevWeek) || (!prevWeek && i === 0)) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  _hcWeek = parseInt(sel.value) || (weeks[0] || null);
+  sel.onchange = () => {
+    _hcWeek = parseInt(sel.value);
+    // Update header chip if on headcount page
+    const activePage = document.querySelector('.page.active');
+    if (activePage && activePage.id === 'page-headcount') {
+      const d = WEEK_DATES[_hcWeek];
+      document.getElementById("week-chip").textContent = d ? `Week ${_hcWeek}  ·  ${d.start}–${d.end}` : `Week ${_hcWeek}`;
+    }
+    renderHeadcount();
+  };
+}
+
+// ── Office filter ──
+function buildOfficeFilter() {
+  const container = document.getElementById("hc-office-btns");
+  if (!container) return;
+
+  const seen = new Map();
+  _hcAllRows.forEach(r => { if (r[1] && !seen.has(r[1])) seen.set(r[1], r[2] || ""); });
+
+  if (_hcOffices.size === 0) seen.forEach((city, office) => _hcOffices.add(office));
+
+  container.innerHTML = "";
+
+  const syncAllBtn = () => {
+    const allBtn = container.querySelector('[data-office="all"]');
+    if (allBtn) allBtn.classList.toggle("active", _hcOffices.size === seen.size);
+  };
+
+  // "All Offices" pill — double-click resets to all
+  const allBtn = document.createElement("button");
+  allBtn.className = "hc-pill" + (_hcOffices.size === seen.size ? " active" : "");
+  allBtn.dataset.office = "all";
+  allBtn.textContent = "All";
+  let allClickTimer = null;
+  allBtn.addEventListener("click", () => {
+    if (allClickTimer) { clearTimeout(allClickTimer); allClickTimer = null; }
+    allClickTimer = setTimeout(() => {
+      seen.forEach((city, office) => _hcOffices.add(office));
+      container.querySelectorAll(".hc-pill").forEach(b => b.classList.add("active"));
+      renderHeadcount();
+      allClickTimer = null;
+    }, 220);
+  });
+  allBtn.addEventListener("dblclick", () => {
+    if (allClickTimer) { clearTimeout(allClickTimer); allClickTimer = null; }
+    seen.forEach((city, office) => _hcOffices.add(office));
+    container.querySelectorAll(".hc-pill").forEach(b => b.classList.add("active"));
+    renderHeadcount();
+  });
+  container.appendChild(allBtn);
+
+  let colorIdx = 0;
+  seen.forEach((city, office) => {
+    const color = HC_OFFICE_COLORS[colorIdx++ % HC_OFFICE_COLORS.length];
+    const btn = document.createElement("button");
+    btn.className = "hc-pill" + (_hcOffices.has(office) ? " active" : "");
+    btn.dataset.office = office;
+    btn.style.setProperty("--office-color", color);
+    btn.textContent = office;
+
+    let clickTimer = null;
+
+    // Single click — toggle
+    btn.addEventListener("click", () => {
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+      clickTimer = setTimeout(() => {
+        if (_hcOffices.has(office)) {
+          if (_hcOffices.size > 1) { _hcOffices.delete(office); btn.classList.remove("active"); syncAllBtn(); }
+        } else {
+          _hcOffices.add(office); btn.classList.add("active"); syncAllBtn();
+        }
+        renderHeadcount();
+        clickTimer = null;
+      }, 220);
+    });
+
+    // Double-click — isolate to just this office
+    btn.addEventListener("dblclick", () => {
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+      _hcOffices.clear();
+      _hcOffices.add(office);
+      container.querySelectorAll(".hc-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderHeadcount();
+    });
+
+    container.appendChild(btn);
+  });
+}
+
+// ── Role value helper ──
+function getRoleVal(row, roles) {
+  const jmc = parseInt(row[3]) || 0;
+  const smc = parseInt(row[4]) || 0;
+  const mm  = parseInt(row[5]) || 0;
+  const gm  = parseInt(row[6]) || 0;
+  let v = 0;
+  if (roles.has("JMC")) v += jmc;
+  if (roles.has("SMC")) v += smc;
+  if (roles.has("MM"))  v += mm;
+  if (roles.has("GM"))  v += gm;
+  return v;
+}
+
+// ── Office toggle/isolate helpers (shared by pills, bars, pie) ──
+function hcToggleOffice(office) {
+  const container = document.getElementById("hc-office-btns");
+  const seen = new Set(_hcAllRows.map(r=>r[1]).filter(Boolean));
+  if (_hcOffices.has(office)) {
+    if (_hcOffices.size > 1) {
+      _hcOffices.delete(office);
+      if (container) { const b = container.querySelector(`[data-office="${office}"]`); if (b) b.classList.remove("active"); }
+      if (container) { const a = container.querySelector('[data-office="all"]'); if (a) a.classList.remove("active"); }
+    }
+  } else {
+    _hcOffices.add(office);
+    if (container) { const b = container.querySelector(`[data-office="${office}"]`); if (b) b.classList.add("active"); }
+    if (_hcOffices.size === seen.size && container) { const a = container.querySelector('[data-office="all"]'); if (a) a.classList.add("active"); }
+  }
+  renderHeadcount();
+}
+
+function hcIsolateOffice(office) {
+  const container = document.getElementById("hc-office-btns");
+  _hcOffices.clear();
+  _hcOffices.add(office);
+  if (container) {
+    container.querySelectorAll(".hc-pill").forEach(b => b.classList.remove("active"));
+    const b = container.querySelector(`[data-office="${office}"]`); if (b) b.classList.add("active");
+  }
+  renderHeadcount();
+}
+
+// ── Main render ──
+function renderHeadcount() {
+  if (!_hcWeek) return;
+  const weekRows = _hcAllRows.filter(r => parseInt(r[0]) === _hcWeek);
+  const allRoles = new Set(["JMC","SMC","MM","GM"]);
+
+  // Totals always show full week totals (all roles, all offices)
+  let totJMC=0, totSMC=0, totMM=0, totGM=0;
+  weekRows.forEach(r => {
+    totJMC += parseInt(r[3])||0;
+    totSMC += parseInt(r[4])||0;
+    totMM  += parseInt(r[5])||0;
+    totGM  += parseInt(r[6])||0;
+  });
+  document.getElementById("hc-val-total").textContent = totJMC+totSMC+totMM+totGM;
+  document.getElementById("hc-val-jmc").textContent   = totJMC;
+  document.getElementById("hc-val-smc").textContent   = totSMC;
+  document.getElementById("hc-val-mm").textContent    = totMM;
+  document.getElementById("hc-val-gm").textContent    = totGM;
+
+  // Pass ALL week rows to bar (dims unselected), filtered rows to pie
+  renderHcYTD();
+  renderHcBars(weekRows);
+  renderHcPie(weekRows);
+}
+
+// ── Vertical bar chart — all offices always shown, unselected dimmed, clickable ──
+function renderHcBars(allWeekRows) {
+  const container = document.getElementById("hc-bar-chart");
+  container.innerHTML = "";
+
+  const officeColorMap = {};
+  document.querySelectorAll(".hc-pill[data-office]").forEach(btn => {
+    if (btn.dataset.office !== "all") officeColorMap[btn.dataset.office] = btn.style.getPropertyValue("--office-color") || "#a0487a";
+  });
+
+  const rows = allWeekRows.map(r => ({
+    office: r[1] || "—", city: r[2] || "", row: r,
+    val: getRoleVal(r, _hcRoles),
+    color: officeColorMap[r[1]] || "#a0487a",
+    selected: _hcOffices.has(r[1]),
+  }));
+
+  // Peak uses all weeks, all offices
+  const peakByOffice = {};
+  rows.forEach(r => { peakByOffice[r.office] = 0; });
+  _hcAllRows.forEach(r => {
+    if (peakByOffice.hasOwnProperty(r[1])) {
+      const v = getRoleVal(r, _hcRoles);
+      if (v > peakByOffice[r[1]]) peakByOffice[r[1]] = v;
+    }
+  });
+
+  const maxVal = Math.max(...rows.map(r => r.val), ...Object.values(peakByOffice), 1);
+  const sub = document.getElementById("hc-bar-subtitle");
+  if (sub) sub.textContent = `· ${_hcRoles.size === 4 ? "All Roles" : [..._hcRoles].join("+")}`;
+
+  rows.forEach(({ office, city, val, color, selected }) => {
+    const peak    = peakByOffice[office] || val;
+    const fillPct = (val  / maxVal) * 100;
+    const ghPct   = (peak / maxVal) * 100;
+    const dim     = !selected;
+
+    const col = document.createElement("div");
+    col.className = "hc-bar-col";
+    col.style.opacity = dim ? "0.18" : "1";
+    col.style.cursor = "pointer";
+    col.style.transition = "opacity 0.25s";
+    col.innerHTML = `
+      <div class="hc-bar-inner">
+        <div class="hc-bar-val" style="color:${selected ? color : "var(--muted)"}">${val}</div>
+        <div class="hc-bar-track" style="height:${ghPct.toFixed(1)}%;flex:0 0 auto;width:100%;position:relative;">
+          <div class="hc-bar-ghost" style="height:100%;background:${color};position:absolute;bottom:0;left:0;width:100%;border-radius:5px 5px 0 0;"></div>
+          <div class="hc-bar-fill" data-pct="${((fillPct/ghPct)*100).toFixed(1)}" style="height:0%;background:linear-gradient(180deg,${color}cc,${color});position:absolute;bottom:0;left:0;width:100%;border-radius:5px 5px 0 0;transition:height 0.7s cubic-bezier(0.22,1,0.36,1);z-index:1;"></div>
+        </div>
+      </div>
+      <div class="hc-bar-lbl">
+        <span style="font-size:0.72rem;font-weight:700;color:var(--text)">${office}</span><br>
+        <span style="font-size:0.52rem;color:var(--muted)">${city}</span>
+      </div>
+    `;
+
+    // Single click = toggle, double click = isolate
+    let colTimer = null;
+    col.addEventListener("click", () => {
+      if (colTimer) { clearTimeout(colTimer); colTimer = null; }
+      colTimer = setTimeout(() => { hcToggleOffice(office); colTimer = null; }, 220);
+    });
+    col.addEventListener("dblclick", () => {
+      if (colTimer) { clearTimeout(colTimer); colTimer = null; }
+      hcIsolateOffice(office);
+    });
+
+    container.appendChild(col);
+  });
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    container.querySelectorAll(".hc-bar-fill").forEach(el => { el.style.height = el.dataset.pct + "%"; });
+  }));
+}
+
+// ── Pie chart: office mode (2+) or role mode (1 office) ──
+// Uses leader lines + external labels for clean readability
+function renderHcPie(allWeekRows) {
+  const svg = document.getElementById("hc-pie-svg");
+  if (!svg) return;
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const ns = "http://www.w3.org/2000/svg";
+  const officeColorMap = {};
+  document.querySelectorAll(".hc-pill[data-office]").forEach(btn => {
+    if (btn.dataset.office !== "all") officeColorMap[btn.dataset.office] = btn.style.getPropertyValue("--office-color") || "#a0487a";
+  });
+
+  const selectedOffices = [..._hcOffices];
+  const singleOffice    = selectedOffices.length === 1;
+  const sub = document.getElementById("hc-pie-subtitle");
+
+  // ViewBox with tighter label margin
+  const VW = 400, VH = 360;
+  svg.setAttribute("viewBox", `0 0 ${VW} ${VH}`);
+  const cx = VW/2, cy = VH/2, r = 138;
+
+  // Build slices array
+  let slices = [];
+  if (singleOffice) {
+    const office = selectedOffices[0];
+    const offRow = allWeekRows.find(rr => rr[1] === office);
+    if (sub) sub.textContent = `· ${office} by Role`;
+    const roleColors = { JMC: "#a0487a", SMC: "#4aada8", MM: "#c47a3a", GM: "#6b8fc4" };
+    const colIdx    = { JMC: 3, SMC: 4, MM: 5, GM: 6 };
+    slices = ["JMC","SMC","MM","GM"].map(role => ({
+      label: role, val: offRow ? (parseInt(offRow[colIdx[role]]) || 0) : 0,
+      color: roleColors[role], clickCb: null,
+    })).filter(s => s.val > 0);
+  } else {
+    if (sub) sub.textContent = `· ${_hcRoles.size === 4 ? "All Roles" : [..._hcRoles].join("+")}`;
+    slices = allWeekRows
+      .filter(rr => _hcOffices.has(rr[1]))
+      .map((rr, i) => ({
+        label: rr[1] || "—", val: getRoleVal(rr, _hcRoles),
+        color: officeColorMap[rr[1]] || HC_OFFICE_COLORS[i % HC_OFFICE_COLORS.length],
+        office: rr[1],
+        clickCb: () => hcToggleOffice(rr[1]),
+        dblClickCb: () => hcIsolateOffice(rr[1]),
+      })).filter(s => s.val > 0);
+  }
+
+  const total = slices.reduce((s, r) => s + r.val, 0);
+  if (total === 0) {
+    const t = document.createElementNS(ns, "text");
+    t.setAttribute("x", cx); t.setAttribute("y", cy); t.setAttribute("text-anchor", "middle");
+    t.setAttribute("fill", "#8a8599"); t.setAttribute("font-family", "DM Sans"); t.setAttribute("font-size", 14);
+    t.textContent = "No data"; svg.appendChild(t); return;
+  }
+
+  // First pass: draw slices
+  let angle = -Math.PI / 2;
+  slices.forEach(s => {
+    const sweep = (s.val / total) * Math.PI * 2;
+    const x1 = cx + r * Math.cos(angle);
+    const y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(angle + sweep);
+    const y2 = cy + r * Math.sin(angle + sweep);
+    const large = sweep > Math.PI ? 1 : 0;
+
+    const path = document.createElementNS(ns, "path");
+    path.setAttribute("d", `M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`);
+    path.setAttribute("fill", s.color);
+    path.setAttribute("opacity", "0.92");
+    path.setAttribute("stroke", "#fff");
+    path.setAttribute("stroke-width", "2");
+    if (s.clickCb || s.dblClickCb) {
+      path.style.cursor = "pointer";
+      let pt = null;
+      path.addEventListener("click", () => {
+        if (pt) { clearTimeout(pt); pt = null; }
+        pt = setTimeout(() => { if (s.clickCb) s.clickCb(); pt = null; }, 220);
+      });
+      path.addEventListener("dblclick", () => {
+        if (pt) { clearTimeout(pt); pt = null; }
+        if (s.dblClickCb) s.dblClickCb();
+      });
+    }
+    svg.appendChild(path);
+    s._angle = angle;
+    s._sweep = sweep;
+    angle += sweep;
+  });
+
+  // Second pass: draw leader lines + external labels (after all slices so labels are on top)
+  // Collision-aware vertical nudging
+  const labelData = slices.map(s => {
+    const midA = s._angle + s._sweep / 2;
+    const pct  = Math.round(s.val / total * 100);
+    // Elbow point at r+10 from center
+    const ex = cx + (r + 10) * Math.cos(midA);
+    const ey = cy + (r + 10) * Math.sin(midA);
+    // Diagonal end point — shorter reach
+    const isRight = Math.cos(midA) >= 0;
+    const lx = cx + (r + 26) * Math.cos(midA);
+    const ly = cy + (r + 26) * Math.sin(midA);
+    const anchor = isRight ? "start" : "end";
+    const textX  = isRight ? lx + 4 : lx - 4;
+    return { midA, ex, ey, lx, ly, textX, anchor, label: s.label, pct, val: s.val, color: s.color, sweep: s._sweep };
+  });
+
+  // Nudge overlapping labels apart vertically (simple greedy pass)
+  const MIN_GAP = 16;
+  for (let pass = 0; pass < 4; pass++) {
+    for (let i = 0; i < labelData.length - 1; i++) {
+      for (let j = i + 1; j < labelData.length; j++) {
+        const a = labelData[i], b = labelData[j];
+        // Only nudge if on same side
+        const sameHalf = (Math.cos(a.midA) >= 0) === (Math.cos(b.midA) >= 0);
+        if (!sameHalf) continue;
+        const gap = Math.abs(b.ly - a.ly);
+        if (gap < MIN_GAP) {
+          const push = (MIN_GAP - gap) / 2 + 1;
+          a.ly -= push; a.textX === a.textX && (a.ly -= 0);
+          b.ly += push;
+        }
+      }
+    }
+  }
+
+  labelData.forEach(({ midA, ex, ey, lx, ly, textX, anchor, label, pct, val, color, sweep }) => {
+    if (sweep < 0.08) return; // skip tiny slices
+
+    // Leader line: radial segment + horizontal tick
+    const line1 = document.createElementNS(ns, "line");
+    line1.setAttribute("x1", (cx + (r+2) * Math.cos(midA)).toFixed(1));
+    line1.setAttribute("y1", (cy + (r+2) * Math.sin(midA)).toFixed(1));
+    line1.setAttribute("x2", ex.toFixed(1)); line1.setAttribute("y2", ey.toFixed(1));
+    line1.setAttribute("stroke", color); line1.setAttribute("stroke-width", "1.5"); line1.setAttribute("opacity", "0.7");
+    svg.appendChild(line1);
+
+    const line2 = document.createElementNS(ns, "line");
+    line2.setAttribute("x1", ex.toFixed(1)); line2.setAttribute("y1", ey.toFixed(1));
+    line2.setAttribute("x2", lx.toFixed(1)); line2.setAttribute("y2", ly.toFixed(1));
+    line2.setAttribute("stroke", color); line2.setAttribute("stroke-width", "1.5"); line2.setAttribute("opacity", "0.7");
+    svg.appendChild(line2);
+
+    const hLen = anchor === "start" ? 14 : -14;
+    const line3 = document.createElementNS(ns, "line");
+    line3.setAttribute("x1", lx.toFixed(1)); line3.setAttribute("y1", ly.toFixed(1));
+    line3.setAttribute("x2", (lx + hLen).toFixed(1)); line3.setAttribute("y2", ly.toFixed(1));
+    line3.setAttribute("stroke", color); line3.setAttribute("stroke-width", "1.5"); line3.setAttribute("opacity", "0.7");
+    svg.appendChild(line3);
+
+    // Label: ICI/role on top, count+pct below
+    const t1 = document.createElementNS(ns, "text");
+    t1.setAttribute("x", (lx + hLen + (anchor === "start" ? 3 : -3)).toFixed(1));
+    t1.setAttribute("y", (ly - 4).toFixed(1));
+    t1.setAttribute("text-anchor", anchor);
+    t1.setAttribute("fill", "#2c2a35");
+    t1.setAttribute("font-family", "JetBrains Mono");
+    t1.setAttribute("font-size", "12");
+    t1.setAttribute("font-weight", "700");
+    t1.textContent = label;
+    svg.appendChild(t1);
+
+    const t2 = document.createElementNS(ns, "text");
+    t2.setAttribute("x", (lx + hLen + (anchor === "start" ? 3 : -3)).toFixed(1));
+    t2.setAttribute("y", (ly + 10).toFixed(1));
+    t2.setAttribute("text-anchor", anchor);
+    t2.setAttribute("fill", "#8a8599");
+    t2.setAttribute("font-family", "JetBrains Mono");
+    t2.setAttribute("font-size", "11");
+    t2.setAttribute("font-weight", "600");
+    t2.textContent = `${val} · ${pct}%`;
+    svg.appendChild(t2);
+  });
+}
+
+// ── YTD strip (always all roles, all offices, unaffected by filters) ──
+function renderHcYTD() {
+  const svg   = document.getElementById("hc-ytd-svg");
+  const inner = document.getElementById("hc-ytd-inner");
+  if (!svg || !inner) return;
+
+  const allWeeks = [...new Set(_hcAllRows.map(r => parseInt(r[0])))].filter(Boolean).sort((a,b) => a-b);
+  if (allWeeks.length === 0) return;
+
+  const points = allWeeks.map(w => {
+    const rows = _hcAllRows.filter(r => parseInt(r[0]) === w);
+    const val  = rows.reduce((s,r) => s+(parseInt(r[3])||0)+(parseInt(r[4])||0)+(parseInt(r[5])||0)+(parseInt(r[6])||0), 0);
+    return { w, val };
+  });
+
+  // Stat chips
+  const latest = points[points.length-1];
+  const prev   = points.length >= 2 ? points[points.length-2] : null;
+  const peak   = points.reduce((a,b) => b.val>a.val?b:a, points[0]);
+  const delta  = prev ? latest.val - prev.val : null;
+  document.getElementById("hc-ytd-current").textContent = latest.val;
+  document.getElementById("hc-ytd-peak").textContent    = peak.val;
+  const deltaEl = document.getElementById("hc-ytd-delta");
+  if (delta===null) { deltaEl.textContent="—"; deltaEl.className="hc-ytd-val"; }
+  else { deltaEl.textContent=(delta>=0?"▲ +":"▼ ")+delta; deltaEl.className="hc-ytd-val "+(delta>=0?"positive":"negative"); }
+
+  if (points.length < 2) {
+    inner.style.width="100%";
+    svg.setAttribute("viewBox","0 0 400 150"); svg.setAttribute("width","400"); svg.setAttribute("height","150");
+    svg.innerHTML=`<text x="200" y="75" text-anchor="middle" fill="#8a8599" font-family="DM Sans" font-size="12">Need more weeks of data</text>`;
+    return;
+  }
+
+  // 6 weeks visible at natural width, scroll left for more
+  const PX_PER_WEEK = 90;
+  const padL=46, padR=16, padT=24, padB=38;
+  const H=150;
+  const W = padL + PX_PER_WEEK*(points.length-1) + padR;
+  const cH = H-padT-padB;
+
+  inner.style.width = W+"px";
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("width", W); svg.setAttribute("height", H);
+  svg.innerHTML = "";
+
+  const vals  = points.map(p=>p.val);
+  const minV  = Math.min(...vals), maxV = Math.max(...vals, minV+1);
+  const rangeV= maxV-minV||1;
+  const px = i => padL + i*PX_PER_WEEK;
+  const py = v => padT + cH - ((v-minV)/rangeV)*cH;
+
+  svg.innerHTML += `<defs><linearGradient id="ytdGrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#8b3d6b" stop-opacity="0.28"/>
+    <stop offset="100%" stop-color="#8b3d6b" stop-opacity="0.02"/>
+  </linearGradient></defs>`;
+
+  // Grid lines
+  [0, 0.5, 1].forEach(f => {
+    const v=minV+rangeV*f, y=py(v);
+    svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.4"/>`;
+    svg.innerHTML+=`<text x="${padL-5}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`;
+  });
+
+  // Area + line
+  const area=`M${px(0)},${py(points[0].val)} `+points.slice(1).map((p,i)=>`L${px(i+1)},${py(p.val)}`).join(" ")+` L${px(points.length-1)},${padT+cH} L${padL},${padT+cH} Z`;
+  svg.innerHTML+=`<path d="${area}" fill="url(#ytdGrad)"/>`;
+  svg.innerHTML+=`<path d="M${points.map((p,i)=>`${px(i)},${py(p.val)}`).join(" L")}" fill="none" stroke="#8b3d6b" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
+
+  // Dots + value labels above + date labels below (not rotated, padB is generous)
+  points.forEach((p,i) => {
+    const x=px(i), y=py(p.val);
+    const isPeak = p.w===peak.w;
+    const dotColor = isPeak?"#c9a227":"#8b3d6b";
+    svg.innerHTML+=`<circle cx="${x}" cy="${y}" r="${isPeak?5:3.5}" fill="${dotColor}" stroke="#fff" stroke-width="1.5"/>`;
+    // Value above dot — bold, darker
+    svg.innerHTML+=`<text x="${x}" y="${y-9}" text-anchor="middle" fill="${dotColor}" font-family="JetBrains Mono" font-size="11" font-weight="700">${p.val}</text>`;
+    // Date below x-axis — NOT rotated, padB gives room
+    const d=WEEK_DATES[p.w];
+    const lbl=d?d.start:`W${p.w}`;
+    svg.innerHTML+=`<text x="${x}" y="${H-8}" text-anchor="middle" fill="#5a5870" font-family="JetBrains Mono" font-size="10" font-weight="600">${lbl}</text>`;
+  });
+
+  // Scroll to most recent
+  const wrap=inner.parentElement;
+  if (wrap) requestAnimationFrame(()=>{ wrap.scrollLeft=wrap.scrollWidth; });
+}
+
+// ── Line chart: 3 modes, scrollable ──
+function renderHcLine() {
+  const svg    = document.getElementById("hc-line-svg");
+  const inner  = document.getElementById("hc-line-inner");
+  if (!svg || !inner) return;
+  svg.innerHTML = "";
+
+  const allWeeks = [...new Set(_hcAllRows.map(r => parseInt(r[0])))].filter(Boolean).sort((a,b) => a-b);
+  if (allWeeks.length < 2) {
+    inner.style.width = "100%";
+    svg.setAttribute("viewBox","0 0 400 160"); svg.setAttribute("width","400"); svg.setAttribute("height","160");
+    svg.innerHTML = `<text x="200" y="80" text-anchor="middle" fill="#8a8599" font-family="DM Sans" font-size="13">Need at least 2 weeks of data</text>`;
+    return;
+  }
+
+  const selectedOffices = [..._hcOffices];
+  const allOffices = [...new Set(_hcAllRows.map(r => r[1]).filter(Boolean))];
+  const isAllOffices   = selectedOffices.length === allOffices.length;
+  const isSingleOffice = selectedOffices.length === 1;
+
+  // Color map from pill buttons
+  const officeColorMap = {};
+  document.querySelectorAll(".hc-pill[data-office]").forEach(btn => {
+    if (btn.dataset.office !== "all") officeColorMap[btn.dataset.office] = btn.style.getPropertyValue("--office-color") || "#a0487a";
+  });
+
+  const PX_PER_WEEK = 90;
+  const padL=48, padT=18, padB=34;
+  const H=160;
+
+  if (isAllOffices || isSingleOffice) {
+    // ── MODE 1 & 3: single clean line ──
+    const padR=20;
+    const W = padL + PX_PER_WEEK*(allWeeks.length-1) + padR;
+    const cH = H-padT-padB;
+
+    inner.style.width = W+"px";
+    svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("width",W); svg.setAttribute("height",H);
+
+    const points = allWeeks.map(w => {
+      const rows = _hcAllRows.filter(r => parseInt(r[0])===w && (isAllOffices || r[1]===selectedOffices[0]));
+      return { w, val: rows.reduce((s,r)=>s+getRoleVal(r,_hcRoles),0) };
+    });
+
+    const minV=Math.min(...points.map(p=>p.val)), maxV=Math.max(...points.map(p=>p.val),1);
+    const rangeV=maxV-minV||1;
+    const px = i => padL + i*PX_PER_WEEK;
+    const py = v => padT + cH - ((v-minV)/rangeV)*cH;
+    const color = isSingleOffice ? (officeColorMap[selectedOffices[0]]||"#a0487a") : "#a0487a";
+
+    svg.innerHTML += `<defs><linearGradient id="hcGrad0" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${color}" stop-opacity="0.28"/>
+      <stop offset="100%" stop-color="${color}" stop-opacity="0.02"/>
+    </linearGradient></defs>`;
+
+    for (let i=0;i<=4;i++) {
+      const v=minV+(rangeV/4)*i, y=py(v);
+      svg.innerHTML += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.5"/>`;
+      svg.innerHTML += `<text x="${padL-6}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`;
+    }
+    points.forEach((p,i)=>{
+      const d=WEEK_DATES[p.w];
+      svg.innerHTML += `<text x="${px(i)}" y="${H-4}" text-anchor="middle" fill="#5a5870" font-family="JetBrains Mono" font-size="10" font-weight="600">${d?d.start:`W${p.w}`}</text>`;
+    });
+    const area=`M${px(0)},${py(points[0].val)} `+points.slice(1).map((p,i)=>`L${px(i+1)},${py(p.val)}`).join(" ")+` L${px(points.length-1)},${padT+cH} L${padL},${padT+cH} Z`;
+    svg.innerHTML += `<path d="${area}" fill="url(#hcGrad0)"/>`;
+    svg.innerHTML += `<path d="M${points.map((p,i)=>`${px(i)},${py(p.val)}`).join(" L")}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+    points.forEach((p,i)=>{
+      const x=px(i),y=py(p.val);
+      svg.innerHTML += `<circle cx="${x}" cy="${y}" r="4" fill="${color}" stroke="#fff" stroke-width="1.5"/>`;
+      svg.innerHTML += `<text x="${x}" y="${y-8}" text-anchor="middle" fill="${color}" font-family="JetBrains Mono" font-size="10" font-weight="700">${p.val}</text>`;
+    });
+
+    const roleLabel=_hcRoles.size===4?"All Roles":[..._hcRoles].join("+");
+    document.getElementById("hc-trend-subtitle").textContent=`(${roleLabel} · ${isAllOffices?"All Offices":selectedOffices[0]})`;
+
+  } else {
+    // ── MODE 2: stacked area ──
+    const padR=120;
+    const W = padL + PX_PER_WEEK*(allWeeks.length-1) + padR;
+    const cH = H-padT-padB;
+
+    inner.style.width = W+"px";
+    svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("width",W); svg.setAttribute("height",H);
+
+    const officeOrder = allOffices.filter(o=>selectedOffices.includes(o));
+    const stackData = allWeeks.map(w => {
+      let running=0;
+      const bands = officeOrder.map(office=>{
+        const row=_hcAllRows.find(r=>parseInt(r[0])===w&&r[1]===office);
+        const val=row?getRoleVal(row,_hcRoles):0;
+        const y0=running; running+=val;
+        return {office,val,y0,y1:running};
+      });
+      return {w,total:running,bands};
+    });
+
+    const maxTotal=Math.max(...stackData.map(d=>d.total),1);
+    const px = i => padL + i*PX_PER_WEEK;
+    const py = v => padT + cH - (v/maxTotal)*cH;
+
+    let defs=`<defs>`;
+    officeOrder.forEach((o,oi)=>{
+      const c=officeColorMap[o]||HC_OFFICE_COLORS[oi%HC_OFFICE_COLORS.length];
+      defs+=`<linearGradient id="hcSG${oi}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${c}" stop-opacity="0.72"/><stop offset="100%" stop-color="${c}" stop-opacity="0.22"/></linearGradient>`;
+    });
+    defs+=`</defs>`;
+    svg.innerHTML+=defs;
+
+    for (let i=0;i<=4;i++){
+      const v=(maxTotal/4)*i, y=py(v);
+      svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.4"/>`;
+      svg.innerHTML+=`<text x="${padL-6}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`;
+    }
+    allWeeks.forEach((w,i)=>{
+      const d=WEEK_DATES[w];
+      svg.innerHTML+=`<text x="${px(i)}" y="${H-4}" text-anchor="middle" fill="#5a5870" font-family="JetBrains Mono" font-size="10" font-weight="600">${d?d.start:`W${w}`}</text>`;
+    });
+
+    officeOrder.forEach((office,oi)=>{
+      const color=officeColorMap[office]||HC_OFFICE_COLORS[oi%HC_OFFICE_COLORS.length];
+      const topPts=stackData.map((d,i)=>`${px(i)},${py(d.bands[oi].y1)}`);
+      const botPts=stackData.map((d,i)=>`${px(i)},${py(d.bands[oi].y0)}`).reverse();
+      svg.innerHTML+=`<path d="M${topPts.join(" L")} L${botPts.join(" L")} Z" fill="url(#hcSG${oi})" stroke="${color}" stroke-width="1.2" stroke-linejoin="round"/>`;
+    });
+
+    // Legend (pinned inside right padding)
+    officeOrder.forEach((office,oi)=>{
+      const color=officeColorMap[office]||HC_OFFICE_COLORS[oi%HC_OFFICE_COLORS.length];
+      const ly=padT+oi*20;
+      svg.innerHTML+=`<rect x="${W-padR+10}" y="${ly}" width="11" height="11" rx="3" fill="${color}" opacity="0.8"/>`;
+      svg.innerHTML+=`<text x="${W-padR+25}" y="${ly+9}" fill="#2c2a35" font-family="DM Sans" font-size="11">${office}</text>`;
+    });
+
+    const roleLabel=_hcRoles.size===4?"All Roles":[..._hcRoles].join("+");
+    document.getElementById("hc-trend-subtitle").textContent=`(${roleLabel} · ${selectedOffices.length} Offices — Stacked)`;
+  }
+
+  // Scroll to most recent (rightmost)
+  const wrap = inner.parentElement;
+  if (wrap) requestAnimationFrame(()=>{ wrap.scrollLeft = wrap.scrollWidth; });
+}
+
+// ── Role button wiring (multi-select + double-click isolate) ──
+document.addEventListener("DOMContentLoaded", () => {
+  // Client dropdown
+  const clientSel = document.getElementById("hc-client-select");
+  if (clientSel) {
+    clientSel.addEventListener("change", () => {
+      _hcClient = clientSel.value;
+      renderHeadcount();
+    });
+  }
+  const roleContainer = document.getElementById("hc-role-btns");
+  if (!roleContainer) return;
+
+  const allRoles = ["JMC","SMC","MM","GM"];
+
+  roleContainer.querySelectorAll(".hc-pill").forEach(btn => {
+    const role = btn.dataset.role;
+    let clickTimer = null;
+
+    btn.addEventListener("click", () => {
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+      clickTimer = setTimeout(() => {
+        if (role === "all") {
+          _hcRoles = new Set(allRoles);
+          roleContainer.querySelectorAll(".hc-pill").forEach(b => b.classList.add("active"));
+        } else {
+          if (_hcRoles.has(role)) {
+            if (_hcRoles.size > 1) {
+              _hcRoles.delete(role);
+              btn.classList.remove("active");
+              roleContainer.querySelector('.hc-pill[data-role="all"]').classList.remove("active");
+            }
+          } else {
+            _hcRoles.add(role);
+            btn.classList.add("active");
+            if (_hcRoles.size === 4) roleContainer.querySelector('.hc-pill[data-role="all"]').classList.add("active");
+          }
+        }
+        renderHeadcount();
+        clickTimer = null;
+      }, 220);
+    });
+
+    btn.addEventListener("dblclick", () => {
+      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
+      if (role === "all") {
+        _hcRoles = new Set(allRoles);
+        roleContainer.querySelectorAll(".hc-pill").forEach(b => b.classList.add("active"));
+      } else {
+        // Isolate to just this role
+        _hcRoles = new Set([role]);
+        roleContainer.querySelectorAll(".hc-pill").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+      }
+      renderHeadcount();
+    });
+  });
+});
+// ════════════════════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════════════════════
+fetchData();
+fetchHeadcount();
+setInterval(fetchData, REFRESH_INTERVAL);
+setInterval(fetchHeadcount, REFRESH_INTERVAL);
+
+</script>
+
+<!--
+═══════════════════════════════════════════════════════════
+  SETUP GUIDE
+═══════════════════════════════════════════════════════════
+
+  1. GOOGLE CLOUD PROJECT
+     → https://console.cloud.google.com
+     → Create a new project (or use an existing one)
+
+  2. ENABLE SHEETS API
+     → APIs & Services → Library → search "Google Sheets API" → Enable
+
+  3. CREATE API KEY
+     → APIs & Services → Credentials → Create Credentials → API key
+     → Restrict it to "Google Sheets API" under API restrictions
+
+  4. SHARE YOUR SHEET
+     → Open the spreadsheet → Share → "Anyone with the link" → Viewer
+     (The API key only works on public/shared sheets)
+
+  5. PASTE YOUR KEY
+     → In this file, replace YOUR_GOOGLE_API_KEY_HERE with your key
+     → The Sheet ID is already filled in
+
+  6. OPEN IN BROWSER
+     → Open this .html file directly in Chrome/Edge/Safari
+     → Data auto-refreshes every 5 minutes
+
+═══════════════════════════════════════════════════════════
+-->
+</body>
+</html>
