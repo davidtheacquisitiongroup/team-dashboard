@@ -1435,6 +1435,7 @@
             <div class="hc-pill-group" id="or-metric-pills">
               <button class="hc-pill active" data-metric="all">All</button>
               <button class="hc-pill active" data-metric="booked">Booked</button>
+              <button class="hc-pill active" data-metric="completed">Completed</button>
               <button class="hc-pill active" data-metric="attended">Attended</button>
               <button class="hc-pill active" data-metric="sec_booked">Sec. Booked</button>
               <button class="hc-pill active" data-metric="sec_attended">Sec. Attended</button>
@@ -3303,7 +3304,7 @@ function normalizeClient(raw) {
 
 // Active filter state
 let _orClient        = "all";
-let _orMetrics       = new Set(["booked","attended","sec_booked","sec_attended","hired","day1"]);
+let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
 let _orRecruiterFilter = "all";
 let _orICIFilter       = "all";
 let _orWeek            = "all";
@@ -3417,7 +3418,7 @@ function orSetClient(c) {
 
 // Metric pill wiring — single click toggles, double-click isolates (same as headcount)
 function orInitMetricPills() {
-  const allMets = ["booked","attended","sec_booked","sec_attended","hired","day1"];
+  const allMets = ["booked","completed","attended","sec_booked","sec_attended","hired","day1"];
   const container = document.getElementById("or-metric-pills");
   if (!container || container.dataset.wired) return;
   container.dataset.wired = "1";
@@ -3632,6 +3633,7 @@ function applyOverallFilters() {
   // attended % = attended / completed (not booked)
   const METRIC_CFG = {
     booked:      { label: "Booked",       pctOf: null },
+    completed:   { label: "Completed",    pctOf: "booked" },
     attended:    { label: "Attended",     pctOf: "completed" },
     sec_booked:  { label: "Sec. Booked",  pctOf: "attended" },
     sec_attended:{ label: "Sec. Att.",    pctOf: "sec_booked" },
@@ -3639,15 +3641,16 @@ function applyOverallFilters() {
     day1:        { label: "Day 1",        pctOf: "hired" },
   };
 
-  const ALL_METRIC_KEYS = ["booked","attended","sec_booked","sec_attended","hired","day1"];
+  const ALL_METRIC_KEYS = ["booked","completed","attended","sec_booked","sec_attended","hired","day1"];
   const activeMetrics = ALL_METRIC_KEYS.filter(m => _orMetrics.has(m));
 
-  // Find adjacent pair for % — show % when the metric's pctOf is active, or is "completed" (always available)
+  // Find adjacent pair for % — show % when the metric's pctOf is active, or is "completed"/"booked" (always in vals)
   function getPct(m, vals, activeSet) {
     const denom = METRIC_CFG[m].pctOf;
     if (!denom) return null;
-    // "completed" is always available as a denom even though it's not a displayed metric
-    if (denom !== "completed" && !activeSet.has(denom)) return null;
+    // "completed" and "booked" are always available in vals regardless of whether their column is toggled on
+    const alwaysAvail = denom === "completed" || denom === "booked";
+    if (!alwaysAvail && !activeSet.has(denom)) return null;
     const d = vals[denom];
     if (!d) return null;
     return Math.round((vals[m] / d) * 100);
@@ -3667,8 +3670,7 @@ function applyOverallFilters() {
       const pending = pendingKey ? totals[pendingKey] : null;
       const chip = document.createElement("div");
       chip.className = "or-kpi-chip";
-      // For "booked" show completed as sub-note since it drives the Attended %
-      const bookedSub = m === "booked" ? `<span style="font-size:0.6rem;color:var(--muted);min-height:1em;display:block;">${totals.completed} completed</span>` : `<span style="font-size:0.6rem;color:var(--muted);min-height:1em;display:block;">${pending !== null && pending > 0 ? pending + " pending" : ""}</span>`;
+      const bookedSub = `<span style="font-size:0.6rem;color:var(--muted);min-height:1em;display:block;">${pending !== null && pending > 0 ? pending + " pending" : ""}</span>`;
       chip.innerHTML = `
         <span class="or-kpi-val">${val}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;color:var(--accent3);min-height:1.1em;display:block;">${pct !== null ? pct + "%" : ""}</span>
