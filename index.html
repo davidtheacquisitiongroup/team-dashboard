@@ -1221,6 +1221,119 @@
     #or-kpi-strip { gap: 8px; }
     #or-kpi-strip .or-kpi-chip { min-width: 80px; padding: 8px 12px; }
   }
+
+  /* ── ICI CONVERSION PAGE ── */
+  #page-ici { display: none; }
+  #page-ici.active {
+    display: grid; grid-column: 1 / -1; grid-template-columns: subgrid;
+  }
+  #page-ici.active #ici-wrap { grid-column: 1 / -1; }
+
+  /* Spreadsheet-style grid: gridlines, header row, monospace cells, row-band shading */
+  .ici-sheet-wrap {
+    background: #fff;
+    border: 1px solid #c8c3ba;
+    border-radius: 8px;
+    overflow: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .ici-sheet {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .ici-sheet th, .ici-sheet td {
+    border: 1px solid #dcd8cf;
+    padding: 0;
+  }
+
+  /* Column header row (A/B/C-style bar) */
+  .ici-sheet thead tr.ici-sheet-colrow th {
+    background: #f1efe9;
+    color: #8a8599;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
+    padding: 3px 4px;
+    height: 20px;
+  }
+
+  /* Field label header row */
+  .ici-sheet thead tr.ici-sheet-labelrow th {
+    background: #eef0f5;
+    color: #2c2a35;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 9px 10px;
+    white-space: nowrap;
+  }
+  .ici-sheet thead tr.ici-sheet-labelrow th:first-child { text-align: left; background: #e4e2db; }
+  .ici-sheet thead tr.ici-sheet-labelrow th.ici-col-selected { background: rgba(160,72,122,0.14); color: var(--accent4); }
+  .ici-sheet thead tr.ici-sheet-labelrow th.ici-col-rest     { background: rgba(74,173,168,0.14); color: #1f7a75; }
+  .ici-sheet thead tr.ici-sheet-labelrow th.ici-col-delta    { background: #f1efe9; }
+
+  /* Row header (metric name) acts like column A */
+  .ici-sheet tbody th {
+    background: #f1efe9;
+    color: #2c2a35;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: left;
+    padding: 9px 12px;
+    white-space: nowrap;
+  }
+
+  .ici-sheet tbody tr:nth-child(even) td,
+  .ici-sheet tbody tr:nth-child(even) th { background: #fbfaf7; }
+  .ici-sheet tbody tr:nth-child(odd) td,
+  .ici-sheet tbody tr:nth-child(odd) th  { background: #ffffff; }
+
+  .ici-sheet tbody tr:hover td { background: #eaf2fb; }
+  .ici-sheet tbody tr:hover th { background: #eaf2fb; }
+
+  .ici-cell {
+    display: flex; align-items: baseline; justify-content: flex-end; gap: 6px;
+    padding: 9px 12px;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  .ici-cell .ici-cell-pct {
+    font-size: 0.7rem; font-weight: 700; color: #6b7a99;
+    min-width: 40px; text-align: right;
+  }
+  .ici-cell .ici-cell-pct.na { color: #b7b3a8; }
+
+  td.ici-td-selected { background: rgba(160,72,122,0.055); }
+  td.ici-td-rest      { background: rgba(74,173,168,0.05); }
+
+  .ici-cell-delta {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    padding: 9px 10px;
+    font-size: 0.78rem; font-weight: 700;
+  }
+  .ici-cell-delta.up   { color: #1a8f5a; }
+  .ici-cell-delta.down { color: #c0392b; }
+  .ici-cell-delta.flat { color: #8a8599; }
+
+  .ici-sheet-caption {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--muted);
+    padding: 10px 4px 12px;
+  }
+
+  @media (max-width: 900px) {
+    #page-ici.active { display: block; }
+    #ici-wrap { padding: 0; }
+  }
 </style>
 </head>
 <body>
@@ -1246,6 +1359,9 @@
     </button>
     <button class="nav-btn" id="nav-overall" onclick="showPage('overall')">
       <span class="nav-icon">📋</span> Overall Recruitment
+    </button>
+    <button class="nav-btn" id="nav-ici" onclick="showPage('ici')">
+      <span class="nav-icon">⚖️</span> ICI Conversion
     </button>
   </div>
   <div class="sidebar-footer">Auto-refreshes every 5 min</div>
@@ -1533,6 +1649,23 @@
         </div>
       </div>
 
+    </section>
+  </div>
+
+  <!-- PAGE 5: ICI CONVERSION -->
+  <div class="page" id="page-ici">
+    <section id="ici-wrap" style="grid-column:1/-1;">
+      <div class="section-label">⚖️ ICI Conversion — Jan 1 – Jul 31, 2026 (TELUS)</div>
+
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:20px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <span class="hc-toolbar-label" style="min-width:auto;">ICI Office</span>
+        <div class="hc-pill-group" id="ici-pill-group"></div>
+      </div>
+
+      <div class="ici-sheet-wrap">
+        <table class="ici-sheet" id="ici-sheet-table"></table>
+      </div>
+      <div class="ici-sheet-caption" id="ici-sheet-caption"></div>
     </section>
   </div>
 
@@ -3455,8 +3588,124 @@ async function fetchOverall() {
     populateDashboardWeekFilter();
     renderDashboardFromRaw();
 
+    // ICI Conversion tab
+    buildIciPills();
+    renderIciComparison();
+
   } catch(e) {
     console.warn("fetchOverall error:", e);
+  }
+}
+
+// ════════════════════════════════════════════════════════
+//  ICI CONVERSION — per-office vs rest-of-company, Jan–Jul 2026
+// ════════════════════════════════════════════════════════
+const ICI_LIST = ["035","029","018","026","021","025","013","002","030"];
+let _iciSelected = ICI_LIST[0];
+const ICI_RANGE = { start: new Date(2026, 0, 1), end: new Date(2026, 6, 31, 23, 59, 59) };
+
+function iciNum(iciStr) {
+  const m = (iciStr || "").match(/(\d+)/);
+  return m ? m[1] : "";
+}
+
+function buildIciPills() {
+  const container = document.getElementById("ici-pill-group");
+  if (!container) return;
+  container.innerHTML = "";
+  ICI_LIST.forEach(num => {
+    const btn = document.createElement("button");
+    btn.className = "hc-pill" + (num === _iciSelected ? " active" : "");
+    btn.textContent = "ICI " + num;
+    btn.onclick = () => {
+      _iciSelected = num;
+      container.querySelectorAll(".hc-pill").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderIciComparison();
+    };
+    container.appendChild(btn);
+  });
+}
+
+function iciCalcMetrics(rs) {
+  const booked      = rs.length;
+  const completed   = rs.filter(r => r.prelim !== "").length;
+  const attended    = rs.filter(r => r.prelim === "Attended" || r.prelim === "Secondary").length;
+  const sec_booked  = rs.filter(r => r.prelim === "Secondary").length;
+  const sec_attended= rs.filter(r => r.secondary === "Attended").length;
+  const hired       = rs.filter(r => r.hired === "Hired").length;
+  const day1        = rs.filter(r => r.day1 === "Attended").length;
+  return { booked, completed, attended, sec_booked, sec_attended, hired, day1 };
+}
+
+const ICI_METRIC_CFG = [
+  { key: "booked",       label: "Prelim Booked",    pctOf: null },
+  { key: "attended",     label: "Prelim Attended",  pctOf: "completed" },
+  { key: "sec_booked",   label: "Secondary Booked", pctOf: "attended" },
+  { key: "sec_attended", label: "Secondary Attended", pctOf: "sec_booked" },
+  { key: "hired",        label: "Hired",            pctOf: "sec_attended" },
+  { key: "day1",         label: "Day 1",            pctOf: "hired" },
+];
+
+function iciPct(m, key, denomKey) {
+  if (!denomKey) return null;
+  const d = m[denomKey];
+  if (!d) return null;
+  return Math.round((m[key] / d) * 100);
+}
+
+// Spreadsheet-style A/B/C/D/E column bar, sized to match the 4 data columns
+const ICI_COL_LETTERS = ["", "B", "C", "D", "E"];
+
+function renderIciComparison() {
+  const table = document.getElementById("ici-sheet-table");
+  const caption = document.getElementById("ici-sheet-caption");
+  if (!table || !_orAllRows.length) return;
+
+  const inRange = r => {
+    if (r.client !== "TELUS") return false;
+    const d = orParseRowDate(r.date);
+    if (!d) return false;
+    return d >= ICI_RANGE.start && d <= ICI_RANGE.end;
+  };
+
+  const iciRows  = _orAllRows.filter(r => inRange(r) && iciNum(r.ici) === _iciSelected);
+  const restRows = _orAllRows.filter(r => inRange(r) && iciNum(r.ici) !== _iciSelected && iciNum(r.ici) !== "");
+
+  const iciM  = iciCalcMetrics(iciRows);
+  const restM = iciCalcMetrics(restRows);
+
+  // Header: spreadsheet column-letter bar
+  let thead = `<thead>
+    <tr class="ici-sheet-colrow">
+      <th>A</th><th>${ICI_COL_LETTERS[1]}</th><th>${ICI_COL_LETTERS[2]}</th><th>${ICI_COL_LETTERS[3]}</th><th>${ICI_COL_LETTERS[4]}</th>
+    </tr>
+    <tr class="ici-sheet-labelrow">
+      <th>Metric</th>
+      <th class="ici-col-selected">ICI ${_iciSelected}</th>
+      <th class="ici-col-selected">%</th>
+      <th class="ici-col-rest">Company (excl. ${_iciSelected})</th>
+      <th class="ici-col-rest">%</th>
+    </tr>
+  </thead>`;
+
+  let tbody = "<tbody>";
+  ICI_METRIC_CFG.forEach(({ key, label, pctOf }) => {
+    const aPct = iciPct(iciM, key, pctOf);
+    const bPct = iciPct(restM, key, pctOf);
+    tbody += `<tr>
+      <th>${label}</th>
+      <td class="ici-td-selected"><div class="ici-cell">${iciM[key]}</div></td>
+      <td class="ici-td-selected"><div class="ici-cell">${aPct === null ? '<span class="ici-cell-pct na">—</span>' : aPct + '%'}</div></td>
+      <td class="ici-td-rest"><div class="ici-cell">${restM[key]}</div></td>
+      <td class="ici-td-rest"><div class="ici-cell">${bPct === null ? '<span class="ici-cell-pct na">—</span>' : bPct + '%'}</div></td>
+    </tr>`;
+  });
+  tbody += "</tbody>";
+
+  table.innerHTML = thead + tbody;
+  if (caption) {
+    caption.textContent = `ICI ${_iciSelected}: ${iciM.booked} candidates  ·  Company excl. ICI ${_iciSelected}: ${restM.booked} candidates  ·  Jan 1 – Jul 31, 2026`;
   }
 }
 
