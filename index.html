@@ -3845,29 +3845,27 @@ function resultsPrevWeekStart(weekStartStr) {
   return `${dt.getFullYear()}-${resultsPad(dt.getMonth()+1)}-${resultsPad(dt.getDate())}`;
 }
 
+const RESULTS_GROUPS = [
+  { client: "TELUS",          groups: ICI_LIST,                                key: r => iciNum(r.ici), label: n => "ICI " + n },
+  { client: "Empire Telecom", groups: ["Atlanta", "Orlando", "Seattle", "Tampa"], key: r => (r.ici || "").trim(), label: n => n },
+];
+
 function populateResultsWeekSelector() {
   const sel = document.getElementById("results-week-select");
   if (!sel || !_orAllRows.length) return;
-  const telusWeeks = [...new Set(_orAllRows.filter(r => r.client === "TELUS" && r.weekStart).map(r => r.weekStart))].sort();
+  const clients = RESULTS_GROUPS.map(g => g.client);
+  const weeks = [...new Set(_orAllRows.filter(r => clients.includes(r.client) && r.weekStart).map(r => r.weekStart))].sort();
   const prevVal = sel.value;
   sel.innerHTML = "";
-  telusWeeks.forEach(w => {
+  weeks.forEach(w => {
     const opt = document.createElement("option");
     opt.value = w;
     const dates = resultsWeekDates(w);
     opt.textContent = `Week of ${resultsFmtDate(dates[0].date)} – ${resultsFmtDate(dates[4].date)}`;
     sel.appendChild(opt);
   });
-  sel.value = telusWeeks.includes(prevVal) ? prevVal : (telusWeeks[telusWeeks.length - 1] || "");
+  sel.value = weeks.includes(prevVal) ? prevVal : (weeks[weeks.length - 1] || "");
   sel.onchange = renderResultsView;
-}
-
-function resultsMostCommonRecruiter(rows) {
-  const counts = {};
-  rows.forEach(r => { if (r.recruiter) counts[r.recruiter] = (counts[r.recruiter] || 0) + 1; });
-  let best = "", bestN = 0;
-  Object.entries(counts).forEach(([name, n]) => { if (n > bestN) { best = name; bestN = n; } });
-  return best;
 }
 
 function resultsSecAttPct(rows) {
@@ -3884,9 +3882,8 @@ const RESULTS_METRIC_DEFS = [
   { label: "SECONDARIES ATTENDED",shade: "res-shade4", calc: rs => rs.filter(r => r.secondary === "Attended").length },
 ];
 
-function resultsBuildBlock(iciNumStr, weekStart, weekRows, prevWeekRows) {
+function resultsBuildBlock(groupLabel, weekStart, weekRows, prevWeekRows) {
   const dates = resultsWeekDates(weekStart);
-  const recruiter = resultsMostCommonRecruiter(weekRows);
 
   const byDay = {};
   dates.forEach(d => { byDay[d.key] = []; });
@@ -3902,12 +3899,12 @@ function resultsBuildBlock(iciNumStr, weekStart, weekRows, prevWeekRows) {
   const secAttPctPrev = resultsSecAttPct(prevWeekRows);
   const lift = (secAttPctThis !== null && secAttPctPrev !== null) ? (secAttPctThis - secAttPctPrev) : null;
   const liftCls = lift === null ? "res-lift-flat" : lift > 0 ? "res-lift-up" : lift < 0 ? "res-lift-down" : "res-lift-flat";
-  const liftTxt = lift === null ? "—" : (lift > 0 ? "+" : "") + lift + " pt" + (Math.abs(lift) === 1 ? "" : "s");
+  const liftTxt = lift === null ? "—" : (lift > 0 ? "+" : "") + lift + "%";
 
   let html = `<div class="res-block-wrap"><table class="res-sheet">`;
 
   html += `<tr>
-    <td class="res-head res-title">ICI ${iciNumStr}${recruiter ? " — " + recruiter : ""}</td>
+    <td class="res-head res-title">${groupLabel}</td>
     ${dates.map(d => `<td class="res-head">${d.name} ${resultsFmtDate(d.date)}</td>`).join("")}
     <td class="res-head">TOTAL</td>
     <td class="res-head">%</td>
@@ -3960,13 +3957,13 @@ function renderResultsView() {
   const weekStart = sel.value;
   const prevWeekStart = resultsPrevWeekStart(weekStart);
 
-  const isTelusWeek = (r, ws) => r.client === "TELUS" && r.weekStart === ws;
-
   let html = "";
-  ICI_LIST.forEach(num => {
-    const weekRows     = _orAllRows.filter(r => isTelusWeek(r, weekStart) && iciNum(r.ici) === num);
-    const prevWeekRows = _orAllRows.filter(r => isTelusWeek(r, prevWeekStart) && iciNum(r.ici) === num);
-    html += resultsBuildBlock(num, weekStart, weekRows, prevWeekRows);
+  RESULTS_GROUPS.forEach(({ client, groups, key, label }) => {
+    groups.forEach(g => {
+      const weekRows     = _orAllRows.filter(r => r.client === client && r.weekStart === weekStart && key(r) === g);
+      const prevWeekRows = _orAllRows.filter(r => r.client === client && r.weekStart === prevWeekStart && key(r) === g);
+      html += resultsBuildBlock(label(g), weekStart, weekRows, prevWeekRows);
+    });
   });
 
   container.innerHTML = html;
