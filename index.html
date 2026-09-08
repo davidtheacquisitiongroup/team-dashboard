@@ -1334,6 +1334,89 @@
     #page-ici.active { display: block; }
     #ici-wrap { padding: 0; }
   }
+
+  /* ── RESULTS VIEW PAGE ── */
+  #page-results { display: none; }
+  #page-results.active {
+    display: grid; grid-column: 1 / -1; grid-template-columns: subgrid;
+  }
+  #page-results.active #results-wrap { grid-column: 1 / -1; }
+
+  #results-blocks {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .res-block-wrap {
+    overflow-x: auto;
+    border: 2px solid #2c1a3d;
+    border-radius: 4px;
+  }
+
+  .res-sheet {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 760px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+  }
+
+  .res-sheet th, .res-sheet td {
+    border: 1px solid #6b4a86;
+    padding: 6px 10px;
+  }
+
+  /* Header row: ICI title + day dates */
+  .res-sheet .res-head {
+    background: #6a3f96;
+    color: #fff;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+  .res-sheet .res-head.res-title { text-align: left; }
+
+  /* Metric label column */
+  .res-sheet .res-label {
+    background: #d8c8e8;
+    color: #2c1a3d;
+    font-weight: 700;
+    white-space: nowrap;
+    text-align: left;
+  }
+  .res-sheet tr:nth-child(3) .res-label { background: #cbb6e0; }
+  .res-sheet tr:nth-child(5) .res-label { background: #cbb6e0; }
+  .res-sheet .res-label.res-pct-label { background: #b79cd6; }
+
+  .res-sheet .res-notes-row td { background: #cfe3c4; }
+  .res-sheet .res-notes-label { background: #b9d6a8; font-weight: 700; color: #2c1a3d; }
+
+  .res-sheet .res-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-align: center;
+    color: #2c1a3d;
+    background: #fff;
+  }
+  .res-sheet .res-total { background: #f1ecf7; }
+  .res-sheet .res-pctval { background: #f1ecf7; }
+
+  .res-sheet .res-label.res-shade1 { background: #e6dcf0; }
+  .res-sheet .res-label.res-shade2 { background: #d8c8e8; }
+  .res-sheet .res-label.res-shade3 { background: #c9b3de; }
+  .res-sheet .res-label.res-shade4 { background: #b79cd6; }
+
+  .res-sheet .res-boxed { border: 2px solid #2c1a3d; }
+
+  .res-sheet .res-lift-up   { color: #1a8f5a; }
+  .res-sheet .res-lift-down { color: #c0392b; }
+  .res-sheet .res-lift-flat { color: #6b6880; }
+
+  @media (max-width: 900px) {
+    #page-results.active { display: block; }
+    #results-wrap { padding: 0; }
+  }
 </style>
 </head>
 <body>
@@ -1362,6 +1445,9 @@
     </button>
     <button class="nav-btn" id="nav-ici" onclick="showPage('ici')">
       <span class="nav-icon">⚖️</span> ICI Conversion
+    </button>
+    <button class="nav-btn" id="nav-results" onclick="showPage('results')">
+      <span class="nav-icon">🧾</span> Results View
     </button>
   </div>
   <div class="sidebar-footer">Auto-refreshes every 5 min</div>
@@ -1666,6 +1752,21 @@
         <table class="ici-sheet" id="ici-sheet-table"></table>
       </div>
       <div class="ici-sheet-caption" id="ici-sheet-caption"></div>
+    </section>
+  </div>
+
+  <!-- PAGE 6: RESULTS VIEW -->
+  <div class="page" id="page-results">
+    <section id="results-wrap" style="grid-column:1/-1;">
+      <div class="section-label">🧾 Results View — per ICI, per day (TELUS)</div>
+
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <span class="hc-toolbar-label" style="min-width:auto;">Week</span>
+        <select id="results-week-select" class="hc-select" style="min-width:220px;"></select>
+        <span style="font-size:0.72rem;color:var(--muted);margin-left:auto;">Select a table below and copy (⌘/Ctrl+C) — paste directly into Excel.</span>
+      </div>
+
+      <div id="results-blocks"></div>
     </section>
   </div>
 
@@ -3592,6 +3693,10 @@ async function fetchOverall() {
     buildIciPills();
     renderIciComparison();
 
+    // Results View tab
+    populateResultsWeekSelector();
+    renderResultsView();
+
   } catch(e) {
     console.warn("fetchOverall error:", e);
   }
@@ -3707,6 +3812,164 @@ function renderIciComparison() {
   if (caption) {
     caption.textContent = `ICI ${_iciSelected}: ${iciM.booked} candidates  ·  Company excl. ICI ${_iciSelected}: ${restM.booked} candidates  ·  Jan 1 – Jul 31, 2026`;
   }
+}
+
+// ════════════════════════════════════════════════════════
+//  RESULTS VIEW — per-ICI, per-day breakdown + Secondary Attendance %
+//  lift vs previous week. Rendered as plain <table> blocks so a
+//  select-all + copy pastes cleanly into Excel/Sheets.
+// ════════════════════════════════════════════════════════
+const RESULTS_DAY_NAMES = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+
+function resultsPad(n) { return String(n).padStart(2, "0"); }
+
+function resultsWeekDates(weekStartStr) {
+  // weekStartStr e.g. "2026-01-05" — a Monday
+  const [y, m, d] = weekStartStr.split("-").map(Number);
+  const monday = new Date(y, m - 1, d);
+  return RESULTS_DAY_NAMES.map((name, i) => {
+    const dt = new Date(monday);
+    dt.setDate(monday.getDate() + i);
+    return { name, date: dt, key: `${dt.getFullYear()}-${resultsPad(dt.getMonth()+1)}-${resultsPad(dt.getDate())}` };
+  });
+}
+
+function resultsFmtDate(dt) {
+  return dt.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function resultsPrevWeekStart(weekStartStr) {
+  const [y, m, d] = weekStartStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  dt.setDate(dt.getDate() - 7);
+  return `${dt.getFullYear()}-${resultsPad(dt.getMonth()+1)}-${resultsPad(dt.getDate())}`;
+}
+
+function populateResultsWeekSelector() {
+  const sel = document.getElementById("results-week-select");
+  if (!sel || !_orAllRows.length) return;
+  const telusWeeks = [...new Set(_orAllRows.filter(r => r.client === "TELUS" && r.weekStart).map(r => r.weekStart))].sort();
+  const prevVal = sel.value;
+  sel.innerHTML = "";
+  telusWeeks.forEach(w => {
+    const opt = document.createElement("option");
+    opt.value = w;
+    const dates = resultsWeekDates(w);
+    opt.textContent = `Week of ${resultsFmtDate(dates[0].date)} – ${resultsFmtDate(dates[4].date)}`;
+    sel.appendChild(opt);
+  });
+  sel.value = telusWeeks.includes(prevVal) ? prevVal : (telusWeeks[telusWeeks.length - 1] || "");
+  sel.onchange = renderResultsView;
+}
+
+function resultsMostCommonRecruiter(rows) {
+  const counts = {};
+  rows.forEach(r => { if (r.recruiter) counts[r.recruiter] = (counts[r.recruiter] || 0) + 1; });
+  let best = "", bestN = 0;
+  Object.entries(counts).forEach(([name, n]) => { if (n > bestN) { best = name; bestN = n; } });
+  return best;
+}
+
+function resultsSecAttPct(rows) {
+  const secBooked = rows.filter(r => r.prelim === "Secondary").length;
+  const secAttended = rows.filter(r => r.secondary === "Attended").length;
+  if (!secBooked) return null;
+  return Math.round((secAttended / secBooked) * 100);
+}
+
+const RESULTS_METRIC_DEFS = [
+  { label: "INTERVIEWS BOOKED",   shade: "res-shade1", calc: rs => rs.length },
+  { label: "INTERVIEWS ATTENDED", shade: "res-shade2", calc: rs => rs.filter(r => r.prelim === "Attended" || r.prelim === "Secondary").length },
+  { label: "SECONDARIES BOOKED",  shade: "res-shade3", calc: rs => rs.filter(r => r.prelim === "Secondary").length },
+  { label: "SECONDARIES ATTENDED",shade: "res-shade4", calc: rs => rs.filter(r => r.secondary === "Attended").length },
+];
+
+function resultsBuildBlock(iciNumStr, weekStart, weekRows, prevWeekRows) {
+  const dates = resultsWeekDates(weekStart);
+  const recruiter = resultsMostCommonRecruiter(weekRows);
+
+  const byDay = {};
+  dates.forEach(d => { byDay[d.key] = []; });
+  weekRows.forEach(r => {
+    const rd = orParseRowDate(r.date);
+    if (!rd) return;
+    const key = `${rd.getFullYear()}-${resultsPad(rd.getMonth()+1)}-${resultsPad(rd.getDate())}`;
+    if (byDay[key]) byDay[key].push(r);
+  });
+  const dayCols = dates.map(d => byDay[d.key]);
+
+  const secAttPctThis = resultsSecAttPct(weekRows);
+  const secAttPctPrev = resultsSecAttPct(prevWeekRows);
+  const lift = (secAttPctThis !== null && secAttPctPrev !== null) ? (secAttPctThis - secAttPctPrev) : null;
+  const liftCls = lift === null ? "res-lift-flat" : lift > 0 ? "res-lift-up" : lift < 0 ? "res-lift-down" : "res-lift-flat";
+  const liftTxt = lift === null ? "—" : (lift > 0 ? "+" : "") + lift + " pt" + (Math.abs(lift) === 1 ? "" : "s");
+
+  let html = `<div class="res-block-wrap"><table class="res-sheet">`;
+
+  html += `<tr>
+    <td class="res-head res-title">ICI ${iciNumStr}${recruiter ? " — " + recruiter : ""}</td>
+    ${dates.map(d => `<td class="res-head">${d.name} ${resultsFmtDate(d.date)}</td>`).join("")}
+    <td class="res-head">TOTAL</td>
+    <td class="res-head">%</td>
+  </tr>`;
+
+  RESULTS_METRIC_DEFS.forEach(md => {
+    const total = dayCols.reduce((s, rs) => s + md.calc(rs), 0);
+    html += `<tr>
+      <td class="res-label ${md.shade}">${md.label}</td>
+      ${dayCols.map(rs => `<td class="res-val">${md.calc(rs)}</td>`).join("")}
+      <td class="res-val res-total">${total}</td>
+      <td class="res-val res-pctval"></td>
+    </tr>`;
+  });
+
+  html += `<tr>
+    <td class="res-label res-pct-label">SECONDARY ATTENDANCE %</td>
+    ${dayCols.map(() => `<td class="res-val"></td>`).join("")}
+    <td class="res-val res-total res-boxed">${secAttPctThis === null ? "—" : secAttPctThis + "%"}</td>
+    <td class="res-val res-pctval"></td>
+  </tr>`;
+
+  html += `<tr class="res-notes-row">
+    <td class="res-notes-label">NOTES</td>
+    ${dates.map(() => `<td></td>`).join("")}
+    <td></td><td></td>
+  </tr>`;
+
+  html += `<tr>
+    <td class="res-label ${liftCls}" style="text-align:right;" colspan="${1 + 5}">Base % (week of ${resultsFmtDate(resultsWeekDates(resultsPrevWeekStart(weekStart))[0].date)})</td>
+    <td class="res-val res-total res-boxed">${secAttPctPrev === null ? "—" : secAttPctPrev + "%"}</td>
+    <td class="res-val res-pctval"></td>
+  </tr>`;
+
+  html += `<tr>
+    <td class="res-label ${liftCls}" style="text-align:right;" colspan="${1 + 5}">Lift % vs previous week</td>
+    <td class="res-val res-total res-boxed ${liftCls}">${liftTxt}</td>
+    <td class="res-val res-pctval"></td>
+  </tr>`;
+
+  html += `</table></div>`;
+  return html;
+}
+
+function renderResultsView() {
+  const container = document.getElementById("results-blocks");
+  const sel = document.getElementById("results-week-select");
+  if (!container || !sel || !sel.value || !_orAllRows.length) return;
+
+  const weekStart = sel.value;
+  const prevWeekStart = resultsPrevWeekStart(weekStart);
+
+  const isTelusWeek = (r, ws) => r.client === "TELUS" && r.weekStart === ws;
+
+  let html = "";
+  ICI_LIST.forEach(num => {
+    const weekRows     = _orAllRows.filter(r => isTelusWeek(r, weekStart) && iciNum(r.ici) === num);
+    const prevWeekRows = _orAllRows.filter(r => isTelusWeek(r, prevWeekStart) && iciNum(r.ici) === num);
+    html += resultsBuildBlock(num, weekStart, weekRows, prevWeekRows);
+  });
+
+  container.innerHTML = html;
 }
 
 function orSetClient(c) {
