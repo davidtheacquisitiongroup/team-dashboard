@@ -3864,7 +3864,18 @@ function populateResultsWeekSelector() {
     opt.textContent = `Week of ${resultsFmtDate(dates[0].date)} – ${resultsFmtDate(dates[4].date)}`;
     sel.appendChild(opt);
   });
-  sel.value = weeks.includes(prevVal) ? prevVal : (weeks[weeks.length - 1] || "");
+  if (weeks.includes(prevVal)) {
+    sel.value = prevVal;
+  } else {
+    // Default to the most recent FULLY COMPLETED week (Friday already past),
+    // so an in-progress current week doesn't look empty/broken by default.
+    const today = new Date();
+    const completedWeeks = weeks.filter(w => {
+      const friday = resultsWeekDates(w)[4].date;
+      return friday < today;
+    });
+    sel.value = (completedWeeks[completedWeeks.length - 1]) || weeks[weeks.length - 1] || "";
+  }
   sel.onchange = renderResultsView;
 }
 
