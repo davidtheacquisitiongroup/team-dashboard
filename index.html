@@ -3705,13 +3705,34 @@ async function fetchOverall() {
 // ════════════════════════════════════════════════════════
 //  ICI CONVERSION — per-office vs rest-of-company, Jan–Jul 2026
 // ════════════════════════════════════════════════════════
-const ICI_LIST = ["035","029","018","026","021","025","013","002","030"];
+const ICI_LIST = ["035","029","018","018R","026","021","025","013","002","030","030/002","123"];
 let _iciSelected = ICI_LIST[0];
 const ICI_RANGE = { start: new Date(2026, 0, 1), end: new Date(2026, 6, 31, 23, 59, 59) };
 
 function iciNum(iciStr) {
-  const m = (iciStr || "").match(/(\d+)/);
-  return m ? m[1] : "";
+  // Preserve the full label after "ICI " (e.g. "018R", "030/002") rather than
+  // just digits, so distinct offices sharing a leading number don't collapse
+  // into one bucket (e.g. "ICI 018" vs "ICI 018R", "ICI 030" vs "ICI 030/002").
+  const m = (iciStr || "").match(/ICI\s*(\S+)/i);
+  return m ? m[1] : (iciStr || "").trim();
+}
+
+// Some rows (e.g. ICI 123) have malformed date strings missing the year
+// ("Mon, 5 Jan  "), which orParseRowDate can't parse. weekStart ("YYYY-MM-DD",
+// always a Monday) is reliable, so reconstruct the exact date from that plus
+// the weekday abbreviation embedded in the date string.
+const RESULTS_WEEKDAY_OFFSET = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
+function resultsRowDate(r) {
+  if (r.weekStart) {
+    const m = (r.date || "").match(/^(Mon|Tue|Wed|Thu|Fri|Sat|Sun)/);
+    if (m) {
+      const [y, mo, d] = r.weekStart.split("-").map(Number);
+      const dt = new Date(y, mo - 1, d);
+      dt.setDate(dt.getDate() + RESULTS_WEEKDAY_OFFSET[m[1]]);
+      return dt;
+    }
+  }
+  return orParseRowDate(r.date);
 }
 
 function buildIciPills() {
@@ -3769,7 +3790,7 @@ function renderIciComparison() {
 
   const inRange = r => {
     if (r.client !== "TELUS") return false;
-    const d = orParseRowDate(r.date);
+    const d = resultsRowDate(r);
     if (!d) return false;
     return d >= ICI_RANGE.start && d <= ICI_RANGE.end;
   };
@@ -3899,7 +3920,7 @@ function resultsBuildBlock(groupLabel, weekStart, weekRows, prevWeekRows) {
   const byDay = {};
   dates.forEach(d => { byDay[d.key] = []; });
   weekRows.forEach(r => {
-    const rd = orParseRowDate(r.date);
+    const rd = resultsRowDate(r);
     if (!rd) return;
     const key = `${rd.getFullYear()}-${resultsPad(rd.getMonth()+1)}-${resultsPad(rd.getDate())}`;
     if (byDay[key]) byDay[key].push(r);
