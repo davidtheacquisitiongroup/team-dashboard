@@ -3583,6 +3583,20 @@ function normalizeClient(raw) {
   return raw;
 }
 
+// Canonical spellings for result-field values, keyed by lowercase — data entry is
+// manual and inconsistently cased (e.g. "secondary" vs "Secondary"), which broke
+// exact-match comparisons throughout the dashboard.
+const RESULT_VALUE_CANONICAL = {
+  "not attended": "Not Attended",
+  "secondary":    "Secondary",
+  "attended":     "Attended",
+  "rescheduled":  "Rescheduled",
+  "cancelled":    "Cancelled",
+  "n/a":          "N/A",
+  "hired":        "Hired",
+  "not hired":    "Not Hired",
+};
+
 // Active filter state
 let _orClient        = "all";
 let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
@@ -3613,16 +3627,27 @@ async function fetchOverall() {
 
         // Normalize all result fields — treat undefined/null as blank string
         const norm = v => (v === undefined || v === null) ? "" : String(v).trim();
+        // Result-field values (Prelim/Secondary/Hired/Day1) are manually typed and
+        // sometimes inconsistently cased (e.g. "secondary" vs "Secondary"), which
+        // broke exact-match comparisons downstream (undercounted Secondary Booked,
+        // producing impossible "attended > booked" results for some ICIs). Canonicalize
+        // known values case-insensitively so every comparison site sees one spelling.
+        const normResult = v => {
+          const s = norm(v);
+          if (!s) return "";
+          const canon = RESULT_VALUE_CANONICAL[s.toLowerCase()];
+          return canon || s;
+        };
 
         _orAllRows.push({
           ici:       norm(r[0]),
           date:      norm(r[1]),
           candidate,
           recruiter,
-          prelim:    norm(r[4]),   // E: Prelim_Result
-          secondary: norm(r[5]),   // F: Secondary_Result
-          hired:     norm(r[6]),   // G: Hired_Result
-          day1:      norm(r[7]),   // H: Day1_Result
+          prelim:    normResult(r[4]),   // E: Prelim_Result
+          secondary: normResult(r[5]),   // F: Secondary_Result
+          hired:     normResult(r[6]),   // G: Hired_Result
+          day1:      normResult(r[7]),   // H: Day1_Result
           backfill:  norm(r[8]),   // I: Backfill
           weekStart: norm(r[9]),   // J: Week_Start
           client,
