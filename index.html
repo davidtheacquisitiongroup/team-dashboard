@@ -3563,13 +3563,8 @@ document.addEventListener("DOMContentLoaded", () => {
 //  OVERALL RECRUITMENT
 // ════════════════════════════════════════════════════════
 
-// Excluded recruiter names (case-insensitive match)
-const OR_EXCLUDED_RECRUITERS = ["akshie","tee","mehak","amaan","gagan","emilio","sean","minah"];
-
 function orExcluded(name) {
-  if (!name) return true;
-  const n = name.toLowerCase().trim();
-  return OR_EXCLUDED_RECRUITERS.some(ex => n.includes(ex));
+  return !name;
 }
 
 // Raw data store
