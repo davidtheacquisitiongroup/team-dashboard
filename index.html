@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Team Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- Google Analytics GA4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PK0JPF7399"></script>
@@ -55,7 +55,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
     overflow-x: hidden;
     overflow-y: auto;
@@ -661,7 +661,7 @@
     border: none;
     background: transparent;
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
     font-weight: 500;
     cursor: pointer;
@@ -712,7 +712,7 @@
     color: var(--accent4);
     background: rgba(160,72,122,0.08);
     border: 1.5px solid rgba(160,72,122,0.35);
-    border-radius: 20px;
+    border-radius: 8px;
     padding: 5px 28px 5px 14px;
     cursor: pointer; outline: none;
     appearance: none; -webkit-appearance: none;
@@ -788,7 +788,7 @@
 
   .or-period-footer { padding-top: 10px; border-top: 1px dashed var(--border); }
   .or-period-clear-btn {
-    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
+    width: 100%; font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600;
     color: var(--muted); background: none; border: none; cursor: pointer;
     padding: 4px; text-align: center; transition: color 0.15s;
   }
@@ -812,11 +812,18 @@
   .or-ici-option.or-ici-all { font-weight: 700; border-bottom: 1px dashed var(--border); margin-bottom: 4px; padding-bottom: 8px; }
 
   /* ── SPECIAL / DERIVED RATIO METRICS ── */
-  .or-ratio-section { margin-bottom: 20px; }
+  .or-ratio-section {
+    display: flex; flex-direction: column;
+    padding-left: 20px; border-left: 1px dashed var(--border);
+  }
   .or-ratio-label {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 0.8rem; letter-spacing: 0.18em; color: var(--accent3);
-    margin-bottom: 10px;
+    font-size: 0.7rem; letter-spacing: 0.18em; color: var(--accent3);
+    margin-bottom: 10px; white-space: nowrap;
+  }
+
+  @media (max-width: 700px) {
+    .or-ratio-section { padding-left: 0; border-left: none; padding-top: 14px; border-top: 1px dashed var(--border); width: 100%; }
   }
   .or-ratio-chip {
     background: rgba(74,173,168,0.06); border: 1.5px solid rgba(74,173,168,0.3); border-radius: 10px;
@@ -1055,8 +1062,8 @@
   /* Pills */
   .hc-pill-group { display: flex; gap: 4px; flex-wrap: wrap; }
   .hc-pill {
-    font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
-    padding: 3px 10px; border-radius: 20px;
+    font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600;
+    padding: 4px 11px; border-radius: 7px;
     border: 1px solid var(--border); background: transparent; color: var(--muted);
     cursor: pointer; transition: all 0.15s; white-space: nowrap; user-select: none;
   }
@@ -1094,7 +1101,7 @@
   .hc-charts { display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
   .hc-chart-panel { display: flex; flex-direction: column; gap: 10px; }
   .hc-chart-title { font-family: 'Bebas Neue', sans-serif; font-size: 0.85rem; letter-spacing: 0.18em; color: var(--muted); }
-  .hc-chart-subtitle { font-family: 'DM Sans', sans-serif; font-size: 0.68rem; font-weight: 500; color: var(--muted); text-transform: none; }
+  .hc-chart-subtitle { font-family: 'Inter', sans-serif; font-size: 0.68rem; font-weight: 500; color: var(--muted); text-transform: none; }
 
   /* Vertical bar chart — taller, thinner bars via padding */
   .hc-vbar-chart {
@@ -1143,7 +1150,7 @@
   }
   .hc-client-select-wrap { position: relative; }
   .hc-client-select {
-    font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 600;
+    font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600;
     color: var(--accent4); background: var(--surface);
     border: 1.5px solid var(--accent1); border-radius: 8px;
     padding: 6px 28px 6px 12px; cursor: pointer; outline: none;
@@ -1336,7 +1343,7 @@
   .ici-sheet thead tr.ici-sheet-colrow th {
     background: #f1efe9;
     color: #8a8599;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -1349,7 +1356,7 @@
   .ici-sheet thead tr.ici-sheet-labelrow th {
     background: #eef0f5;
     color: #2c2a35;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.76rem;
     font-weight: 700;
     text-align: center;
@@ -1365,7 +1372,7 @@
   .ici-sheet tbody th {
     background: #f1efe9;
     color: #2c2a35;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.8rem;
     font-weight: 600;
     text-align: left;
@@ -1440,7 +1447,7 @@
     border-collapse: collapse;
     width: 100%;
     min-width: 760px;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', sans-serif;
     font-size: 0.82rem;
   }
 
@@ -1805,13 +1812,13 @@
 
       </div>
 
-      <!-- SUMMARY KPI CHIPS -->
-      <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;"></div>
-
-      <!-- SPECIAL / DERIVED RATIO METRICS -->
-      <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
-        <div class="or-ratio-label">⚡ Special Metrics</div>
-        <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
+      <!-- SUMMARY KPI CHIPS + SPECIAL / DERIVED RATIO METRICS, side by side -->
+      <div id="or-metrics-row" style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;margin-bottom:20px;">
+        <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"></div>
+        <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
+          <div class="or-ratio-label">⚡ Special</div>
+          <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
+        </div>
       </div>
 
       <!-- DATA TABLE -->
@@ -2730,7 +2737,7 @@ function renderHeadcountBlank() {
   if (barContainer) barContainer.innerHTML = `
     <div style="width:100%;display:flex;align-items:center;justify-content:center;height:200px;flex-direction:column;gap:10px;opacity:0.45;">
       <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:0.2em;color:var(--muted);">${label}</div>
-      <div style="font-family:'DM Sans',sans-serif;font-size:0.82rem;color:var(--muted);">Data coming soon</div>
+      <div style="font-family:'Inter',sans-serif;font-size:0.82rem;color:var(--muted);">Data coming soon</div>
     </div>`;
   const pieSvg = document.getElementById("hc-pie-svg");
   if (pieSvg) {
@@ -2893,7 +2900,7 @@ function renderHcYTDEmpire() {
   if (points.length < 2) {
     inner.style.width = "100%";
     svg.setAttribute("viewBox","0 0 400 150"); svg.setAttribute("width","400"); svg.setAttribute("height","150");
-    svg.innerHTML = `<text x="200" y="75" text-anchor="middle" fill="#8a8599" font-family="DM Sans" font-size="12">Need more weeks of data</text>`;
+    svg.innerHTML = `<text x="200" y="75" text-anchor="middle" fill="#8a8599" font-family="Inter" font-size="12">Need more weeks of data</text>`;
     return;
   }
 
@@ -3028,7 +3035,7 @@ function renderHcPieEmpire(syntheticRows) {
   }
 
   const total=slices.reduce((s,r)=>s+r.val,0);
-  if(!total){ const t=document.createElementNS(ns,"text"); t.setAttribute("x",cx);t.setAttribute("y",cy);t.setAttribute("text-anchor","middle");t.setAttribute("fill","#8a8599");t.setAttribute("font-family","DM Sans");t.setAttribute("font-size",14);t.textContent="No data";svg.appendChild(t);return; }
+  if(!total){ const t=document.createElementNS(ns,"text"); t.setAttribute("x",cx);t.setAttribute("y",cy);t.setAttribute("text-anchor","middle");t.setAttribute("fill","#8a8599");t.setAttribute("font-family","Inter");t.setAttribute("font-size",14);t.textContent="No data";svg.appendChild(t);return; }
 
   let angle=-Math.PI/2;
   slices.forEach(s=>{
@@ -3265,7 +3272,7 @@ function renderHcPie(allWeekRows) {
   if (total === 0) {
     const t = document.createElementNS(ns, "text");
     t.setAttribute("x", cx); t.setAttribute("y", cy); t.setAttribute("text-anchor", "middle");
-    t.setAttribute("fill", "#8a8599"); t.setAttribute("font-family", "DM Sans"); t.setAttribute("font-size", 14);
+    t.setAttribute("fill", "#8a8599"); t.setAttribute("font-family", "Inter"); t.setAttribute("font-size", 14);
     t.textContent = "No data"; svg.appendChild(t); return;
   }
 
@@ -3417,7 +3424,7 @@ function renderHcYTD() {
   if (points.length < 2) {
     inner.style.width="100%";
     svg.setAttribute("viewBox","0 0 400 150"); svg.setAttribute("width","400"); svg.setAttribute("height","150");
-    svg.innerHTML=`<text x="200" y="75" text-anchor="middle" fill="#8a8599" font-family="DM Sans" font-size="12">Need more weeks of data</text>`;
+    svg.innerHTML=`<text x="200" y="75" text-anchor="middle" fill="#8a8599" font-family="Inter" font-size="12">Need more weeks of data</text>`;
     return;
   }
 
@@ -3486,7 +3493,7 @@ function renderHcLine() {
   if (allWeeks.length < 2) {
     inner.style.width = "100%";
     svg.setAttribute("viewBox","0 0 400 160"); svg.setAttribute("width","400"); svg.setAttribute("height","160");
-    svg.innerHTML = `<text x="200" y="80" text-anchor="middle" fill="#8a8599" font-family="DM Sans" font-size="13">Need at least 2 weeks of data</text>`;
+    svg.innerHTML = `<text x="200" y="80" text-anchor="middle" fill="#8a8599" font-family="Inter" font-size="13">Need at least 2 weeks of data</text>`;
     return;
   }
 
@@ -3606,7 +3613,7 @@ function renderHcLine() {
       const color=officeColorMap[office]||HC_OFFICE_COLORS[oi%HC_OFFICE_COLORS.length];
       const ly=padT+oi*20;
       svg.innerHTML+=`<rect x="${W-padR+10}" y="${ly}" width="11" height="11" rx="3" fill="${color}" opacity="0.8"/>`;
-      svg.innerHTML+=`<text x="${W-padR+25}" y="${ly+9}" fill="#2c2a35" font-family="DM Sans" font-size="11">${office}</text>`;
+      svg.innerHTML+=`<text x="${W-padR+25}" y="${ly+9}" fill="#2c2a35" font-family="Inter" font-size="11">${office}</text>`;
     });
 
     const roleLabel=_hcRoles.size===4?"All Roles":[..._hcRoles].join("+");
@@ -4655,7 +4662,7 @@ function applyOverallFilters() {
   if (ratioStrip && ratioSection) {
     const attToHired = totals.attended ? Math.round((totals.hired / totals.attended) * 100) : null;
     const attToDay1  = totals.attended ? Math.round((totals.day1  / totals.attended) * 100) : null;
-    ratioSection.style.display = "block";
+    ratioSection.style.display = "flex";
     ratioStrip.innerHTML = `
       <div class="or-ratio-chip">
         <span class="or-ratio-val">${attToHired !== null ? attToHired + "%" : "—"}</span>
