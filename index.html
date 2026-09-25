@@ -726,32 +726,102 @@
     box-shadow: 0 0 0 3px rgba(160,72,122,0.12);
   }
 
-  /* ── PERIOD TOGGLE (Month / Quarter / YTD) ── */
-  #or-period-toggle {
-    display: none;
-    gap: 4px;
-    align-items: center;
+  /* ── CONSOLIDATED PERIOD SELECTOR (Months / Quarter / YTD) ── */
+  .or-period-wrap { position: relative; display: none; }
+
+  .or-period-panel {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    padding: 14px; z-index: 50; width: 280px;
   }
-  .or-period-btn {
+
+  .or-period-section { margin-bottom: 12px; }
+  .or-period-section:last-of-type { margin-bottom: 0; }
+
+  .or-period-section-label {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px;
+  }
+
+  .or-period-month-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+  }
+
+  .or-period-month-btn, .or-period-quarter-btn, .or-period-ytd-btn {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.7rem; font-weight: 700;
+    font-size: 0.68rem; font-weight: 700;
     color: var(--muted);
     background: var(--surface2);
     border: 1.5px solid var(--border);
-    border-radius: 14px;
-    padding: 4px 12px;
+    border-radius: 8px;
+    padding: 6px 4px;
     cursor: pointer;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.03em;
     transition: all 0.15s;
+    text-align: center;
   }
-  .or-period-btn:hover {
-    border-color: var(--accent2);
-    color: var(--accent2);
+  .or-period-month-btn:hover, .or-period-quarter-btn:hover, .or-period-ytd-btn:hover {
+    border-color: var(--accent2); color: var(--accent2);
   }
-  .or-period-btn.active {
+  .or-period-month-btn.active, .or-period-quarter-btn.active, .or-period-ytd-btn.active {
     background: rgba(160,72,122,0.12);
     border-color: var(--accent1);
     color: var(--accent4);
+  }
+
+  .or-period-quarter-row { display: flex; gap: 5px; }
+  .or-period-quarter-row .or-period-quarter-btn { flex: 1; padding: 6px 2px; }
+  .or-period-ytd-btn { width: 100%; padding: 8px; }
+
+  .or-period-footer { padding-top: 10px; border-top: 1px dashed var(--border); }
+  .or-period-clear-btn {
+    width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
+    color: var(--muted); background: none; border: none; cursor: pointer;
+    padding: 4px; text-align: center; transition: color 0.15s;
+  }
+  .or-period-clear-btn:hover { color: var(--accent1); }
+
+  /* ── ICI MULTI-SELECT PANEL ── */
+  .or-ici-wrap { position: relative; }
+  .or-ici-panel {
+    position: absolute; top: calc(100% + 6px); left: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    padding: 8px; z-index: 50; min-width: 200px; max-height: 320px; overflow-y: auto;
+  }
+  .or-ici-option {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; border-radius: 6px; cursor: pointer;
+    font-size: 0.8rem; color: var(--text); transition: background 0.15s;
+  }
+  .or-ici-option:hover { background: var(--surface2); }
+  .or-ici-option input { accent-color: var(--accent1); cursor: pointer; }
+  .or-ici-option.or-ici-all { font-weight: 700; border-bottom: 1px dashed var(--border); margin-bottom: 4px; padding-bottom: 8px; }
+
+  /* ── SPECIAL / DERIVED RATIO METRICS ── */
+  .or-ratio-section { margin-bottom: 20px; }
+  .or-ratio-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.8rem; letter-spacing: 0.18em; color: var(--accent3);
+    margin-bottom: 10px;
+  }
+  .or-ratio-chip {
+    background: rgba(74,173,168,0.06); border: 1.5px solid rgba(74,173,168,0.3); border-radius: 10px;
+    padding: 10px 18px; display: flex; flex-direction: column; align-items: center;
+    min-width: 140px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    animation: fadeUp 0.4s ease both;
+  }
+  .or-ratio-val {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700;
+    color: var(--accent3); line-height: 1;
+  }
+  .or-ratio-lbl {
+    font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--muted); margin-top: 4px; text-align: center;
+  }
+  .or-ratio-sub {
+    font-size: 0.65rem; color: var(--muted); margin-top: 2px;
   }
 
   .live-dot {
@@ -1467,26 +1537,24 @@
   <div class="header-right">
     <select id="dashboard-week-filter" class="header-week-select" style="display:none;" onchange="onDashboardWeekChange()"><option value="all">All Weeks</option></select>
     <select id="overall-week-filter" class="header-week-select" style="display:none;" onchange="applyOverallFilters()"><option value="all">All Weeks</option></select>
-    <div id="or-period-toggle" style="display:none;gap:6px;align-items:center;">
-      <button class="or-period-btn" data-period="month" onclick="orTogglePeriodMode('month')" title="Filter by Month">Month</button>
-      <select id="or-month-select" class="header-week-select" style="display:none;min-width:110px;" onchange="orSetPeriod('month')">
-        <option value="">— pick month —</option>
-        <option value="0">January</option><option value="1">February</option>
-        <option value="2">March</option><option value="3">April</option>
-        <option value="4">May</option><option value="5">June</option>
-        <option value="6">July</option><option value="7">August</option>
-        <option value="8">September</option><option value="9">October</option>
-        <option value="10">November</option><option value="11">December</option>
-      </select>
-      <button class="or-period-btn" data-period="quarter" onclick="orTogglePeriodMode('quarter')" title="Filter by Quarter">Quarter</button>
-      <select id="or-quarter-select" class="header-week-select" style="display:none;min-width:80px;" onchange="orSetPeriod('quarter')">
-        <option value="">— pick —</option>
-        <option value="0">Q1 (Jan–Mar)</option>
-        <option value="1">Q2 (Apr–Jun)</option>
-        <option value="2">Q3 (Jul–Sep)</option>
-        <option value="3">Q4 (Oct–Dec)</option>
-      </select>
-      <button class="or-period-btn" data-period="ytd" onclick="orSetPeriod('ytd')" title="Year to Date">YTD</button>
+    <div class="or-period-wrap" id="or-period-wrap" style="display:none;">
+      <button class="header-week-select" id="or-period-btn" onclick="orTogglePeriodPanel(event)">All Time ▾</button>
+      <div class="or-period-panel" id="or-period-panel" hidden>
+        <div class="or-period-section">
+          <div class="or-period-section-label">Months (select multiple)</div>
+          <div class="or-period-month-grid" id="or-period-months"></div>
+        </div>
+        <div class="or-period-section">
+          <div class="or-period-section-label">Quarter</div>
+          <div class="or-period-quarter-row" id="or-period-quarters"></div>
+        </div>
+        <div class="or-period-section">
+          <button class="or-period-ytd-btn" id="or-period-ytd-btn" onclick="orSetYTD()">Year to Date</button>
+        </div>
+        <div class="or-period-footer">
+          <button class="or-period-clear-btn" onclick="orClearPeriod()">Clear — All Time</button>
+        </div>
+      </div>
     </div>
     <select id="or-day-filter-header" class="header-week-select" style="display:none;" onchange="applyOverallFilters()"><option value="all">All Days</option></select>
     <select id="hc-week-select-header" class="header-week-select" style="display:none;"><option value="">Loading…</option></select>
@@ -1707,16 +1775,23 @@
           <div class="hc-toolbar-divider"></div>
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;">
             <span class="hc-toolbar-label">ICI</span>
-            <select id="or-ici-filter" class="hc-select" style="min-width:160px;" onchange="applyOverallFilters()">
-              <option value="all">All ICIs</option>
-            </select>
+            <div class="or-ici-wrap" id="or-ici-wrap">
+              <button class="hc-select" id="or-ici-btn" style="min-width:160px;text-align:left;" onclick="orToggleICIPanel(event)">All ICIs ▾</button>
+              <div class="or-ici-panel" id="or-ici-panel" hidden></div>
+            </div>
           </div>
         </div>
 
       </div>
 
       <!-- SUMMARY KPI CHIPS -->
-      <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;"></div>
+      <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px;"></div>
+
+      <!-- SPECIAL / DERIVED RATIO METRICS -->
+      <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
+        <div class="or-ratio-label">⚡ Special Metrics</div>
+        <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
+      </div>
 
       <!-- DATA TABLE -->
       <div class="card" style="padding:0;overflow:hidden;">
@@ -1803,7 +1878,7 @@ function showPage(name) {
   // Show the right header control per page, hide others
   const ids = ["dashboard-week-filter","overall-week-filter","or-day-filter-header","hc-week-select-header"];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
-  const periodToggle = document.getElementById("or-period-toggle");
+  const periodToggle = document.getElementById("or-period-wrap");
   if (periodToggle) periodToggle.style.display = "none";
 
   if (name === "overview") {
@@ -1813,7 +1888,7 @@ function showPage(name) {
   } else if (name === "overall") {
     const el = document.getElementById("overall-week-filter"); if (el) el.style.display = "";
     const el2 = document.getElementById("or-day-filter-header"); if (el2) el2.style.display = "";
-    if (periodToggle) periodToggle.style.display = "flex";
+    if (periodToggle) periodToggle.style.display = "inline-block";
   } else if (name === "recruiter") {
     const el = document.getElementById("dashboard-week-filter"); if (el) el.style.display = "";
   }
@@ -3601,7 +3676,7 @@ const RESULT_VALUE_CANONICAL = {
 let _orClient        = "all";
 let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
 let _orRecruiterFilter = "all";
-let _orICIFilter       = "all";
+let _orICIFilter       = new Set(); // empty = "All ICIs"
 let _orWeek            = "all";
 
 async function fetchOverall() {
@@ -4080,9 +4155,45 @@ function orInitMetricPills() {
   });
 }
 
+function orToggleICIPanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById("or-ici-panel");
+  if (!panel) return;
+  const periodPanel = document.getElementById("or-period-panel");
+  if (periodPanel) periodPanel.hidden = true;
+  panel.hidden = !panel.hidden;
+}
+
+function orToggleICI(ici) {
+  if (_orICIFilter.has(ici)) _orICIFilter.delete(ici);
+  else _orICIFilter.add(ici);
+  _syncICIUI();
+  applyOverallFilters();
+}
+
+function orClearICI() {
+  _orICIFilter.clear();
+  _syncICIUI();
+  applyOverallFilters();
+}
+
+function _syncICIUI() {
+  document.querySelectorAll(".or-ici-option input[data-ici]").forEach(cb => {
+    cb.checked = _orICIFilter.has(cb.dataset.ici);
+  });
+  const allCb = document.getElementById("or-ici-all-cb");
+  if (allCb) allCb.checked = _orICIFilter.size === 0;
+  const btn = document.getElementById("or-ici-btn");
+  if (btn) {
+    if (_orICIFilter.size === 0) btn.textContent = "All ICIs ▾";
+    else if (_orICIFilter.size === 1) btn.textContent = [..._orICIFilter][0] + " ▾";
+    else btn.textContent = _orICIFilter.size + " ICIs ▾";
+  }
+}
+
 function orUpdateFilterDropdowns() {
   const recSel = document.getElementById("or-recruiter-filter");
-  const iciSel = document.getElementById("or-ici-filter");
+  const iciPanel = document.getElementById("or-ici-panel");
 
   if (recSel) {
     const prev = recSel.value;
@@ -4096,16 +4207,24 @@ function orUpdateFilterDropdowns() {
     _orRecruiterFilter = recSel.value;
   }
 
-  if (iciSel) {
-    const prev = iciSel.value;
-    iciSel.innerHTML = `<option value="all">All ICIs</option>`;
+  if (iciPanel) {
+    // Drop any previously selected ICIs that no longer exist in the data
+    [..._orICIFilter].forEach(i => { if (!_orICIs.includes(i)) _orICIFilter.delete(i); });
+
+    iciPanel.innerHTML = `
+      <label class="or-ici-option or-ici-all">
+        <input type="checkbox" id="or-ici-all-cb" onclick="orClearICI()">
+        All ICIs
+      </label>
+    `;
     _orICIs.forEach(i => {
-      const opt = document.createElement("option");
-      opt.value = i; opt.textContent = i;
-      iciSel.appendChild(opt);
+      const label = document.createElement("label");
+      label.className = "or-ici-option";
+      label.innerHTML = `<input type="checkbox" data-ici="${i}"> ${i}`;
+      label.querySelector("input").addEventListener("click", () => orToggleICI(i));
+      iciPanel.appendChild(label);
     });
-    iciSel.value = _orICIs.includes(prev) ? prev : "all";
-    _orICIFilter = iciSel.value;
+    _syncICIUI();
   }
 }
 
@@ -4124,123 +4243,141 @@ function orSort(col) {
 }
 
 let _orDay = "all";
-let _orPeriod = ""; // "month" | "quarter" | "ytd" | ""
-let _orPeriodMode = ""; // which button is "open": "month" | "quarter" | ""
-let _orMonthVal = -1;  // 0–11, or -1 = none
-let _orQuarterVal = -1; // 0–3 (Q1–Q4), or -1 = none
+let _orPeriod = "";           // "months" | "quarter" | "ytd" | ""
+let _orMonths = new Set();    // selected month indices (0–11) when _orPeriod === "months"
+let _orQuarterVal = -1;       // 0–3 (Q1–Q4), or -1 = none
 
-// Toggle sub-selector open/closed for month or quarter
-function orTogglePeriodMode(mode) {
-  const monthSel   = document.getElementById("or-month-select");
-  const quarterSel = document.getElementById("or-quarter-select");
+const OR_MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const OR_QUARTER_LABELS = ["Q1","Q2","Q3","Q4"];
 
-  if (_orPeriodMode === mode) {
-    // Close — deactivate everything
-    _orPeriodMode = "";
-    _orPeriod = "";
-    _orMonthVal = -1;
-    _orQuarterVal = -1;
-    if (monthSel)   { monthSel.style.display = "none";   monthSel.value = ""; }
-    if (quarterSel) { quarterSel.style.display = "none"; quarterSel.value = ""; }
-  } else {
-    // Switch to this mode
-    _orPeriodMode = mode;
-    _orPeriod = "";
-    _orMonthVal = -1;
-    _orQuarterVal = -1;
-    if (mode === "month") {
-      if (monthSel)   { monthSel.style.display = "";     monthSel.value = ""; }
-      if (quarterSel) { quarterSel.style.display = "none"; quarterSel.value = ""; }
-      // Clear YTD
-    } else if (mode === "quarter") {
-      if (quarterSel) { quarterSel.style.display = "";   quarterSel.value = ""; }
-      if (monthSel)   { monthSel.style.display = "none"; monthSel.value = ""; }
-    }
-    // Clear YTD active state if switching away
-    if (_orPeriod === "ytd") _orPeriod = "";
+function orBuildPeriodPanel() {
+  const monthGrid = document.getElementById("or-period-months");
+  const quarterRow = document.getElementById("or-period-quarters");
+  if (monthGrid && !monthGrid.dataset.built) {
+    monthGrid.dataset.built = "1";
+    OR_MONTH_ABBR.forEach((label, i) => {
+      const btn = document.createElement("button");
+      btn.className = "or-period-month-btn";
+      btn.textContent = label;
+      btn.onclick = () => orToggleMonth(i);
+      monthGrid.appendChild(btn);
+    });
   }
+  if (quarterRow && !quarterRow.dataset.built) {
+    quarterRow.dataset.built = "1";
+    OR_QUARTER_LABELS.forEach((label, i) => {
+      const btn = document.createElement("button");
+      btn.className = "or-period-quarter-btn";
+      btn.textContent = label;
+      btn.onclick = () => orSetQuarter(i);
+      quarterRow.appendChild(btn);
+    });
+  }
+}
 
-  // Sync button styles
-  _syncPeriodBtns();
-  // Clear week filter
+function orTogglePeriodPanel(e) {
+  if (e) e.stopPropagation();
+  orBuildPeriodPanel();
+  const panel = document.getElementById("or-period-panel");
+  if (!panel) return;
+  const iciPanel = document.getElementById("or-ici-panel");
+  if (iciPanel) iciPanel.hidden = true;
+  panel.hidden = !panel.hidden;
+}
+
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("or-period-panel");
+  const wrap = document.getElementById("or-period-wrap");
+  if (panel && !panel.hidden && wrap && !wrap.contains(e.target)) panel.hidden = true;
+  const iciPanel = document.getElementById("or-ici-panel");
+  const iciWrap = document.getElementById("or-ici-wrap");
+  if (iciPanel && !iciPanel.hidden && iciWrap && !iciWrap.contains(e.target)) iciPanel.hidden = true;
+});
+
+function _orPeriodClearWeekDay() {
   const weekSel = document.getElementById("overall-week-filter");
   if (weekSel) weekSel.value = "all";
+  const daySel = document.getElementById("or-day-filter-header");
+  if (daySel) daySel.value = "all";
+}
+
+function orToggleMonth(m) {
+  if (_orMonths.has(m)) _orMonths.delete(m);
+  else _orMonths.add(m);
+  _orPeriod = _orMonths.size > 0 ? "months" : "";
+  _orQuarterVal = -1;
+  if (_orPeriod) _orPeriodClearWeekDay();
+  _syncPeriodUI();
   applyOverallFilters();
 }
 
-// Called when a sub-select changes value, or directly for YTD
-function orSetPeriod(period) {
-  const monthSel   = document.getElementById("or-month-select");
-  const quarterSel = document.getElementById("or-quarter-select");
-
-  if (period === "ytd") {
-    // Toggle YTD on/off
-    if (_orPeriod === "ytd") {
-      _orPeriod = "";
-    } else {
-      _orPeriod = "ytd";
-      _orPeriodMode = "";
-      _orMonthVal = -1;
-      _orQuarterVal = -1;
-      if (monthSel)   { monthSel.style.display = "none"; monthSel.value = ""; }
-      if (quarterSel) { quarterSel.style.display = "none"; quarterSel.value = ""; }
-    }
-  } else if (period === "month") {
-    const v = monthSel ? parseInt(monthSel.value) : -1;
-    if (!isNaN(v) && v >= 0) {
-      _orMonthVal = v;
-      _orPeriod = "month";
-    } else {
-      _orPeriod = "";
-    }
-  } else if (period === "quarter") {
-    const v = quarterSel ? parseInt(quarterSel.value) : -1;
-    if (!isNaN(v) && v >= 0) {
-      _orQuarterVal = v;
-      _orPeriod = "quarter";
-    } else {
-      _orPeriod = "";
-    }
-  }
-
-  // Clear week when any period is active
-  if (_orPeriod) {
-    const weekSel = document.getElementById("overall-week-filter");
-    if (weekSel) weekSel.value = "all";
-    const daySel = document.getElementById("or-day-filter-header");
-    if (daySel) daySel.value = "all";
-  }
-
-  _syncPeriodBtns();
+function orSetQuarter(q) {
+  _orQuarterVal = (_orQuarterVal === q) ? -1 : q;
+  _orPeriod = _orQuarterVal >= 0 ? "quarter" : "";
+  _orMonths.clear();
+  if (_orPeriod) _orPeriodClearWeekDay();
+  _syncPeriodUI();
   applyOverallFilters();
 }
 
-function _syncPeriodBtns() {
-  document.querySelectorAll(".or-period-btn").forEach(btn => {
-    const p = btn.dataset.period;
-    if (p === "ytd") {
-      btn.classList.toggle("active", _orPeriod === "ytd");
-    } else if (p === "month") {
-      btn.classList.toggle("active", _orPeriodMode === "month" || _orPeriod === "month");
-    } else if (p === "quarter") {
-      btn.classList.toggle("active", _orPeriodMode === "quarter" || _orPeriod === "quarter");
-    }
+function orSetYTD() {
+  _orPeriod = (_orPeriod === "ytd") ? "" : "ytd";
+  _orMonths.clear();
+  _orQuarterVal = -1;
+  if (_orPeriod) _orPeriodClearWeekDay();
+  _syncPeriodUI();
+  applyOverallFilters();
+}
+
+function orClearPeriod() {
+  _orPeriod = "";
+  _orMonths.clear();
+  _orQuarterVal = -1;
+  _syncPeriodUI();
+  applyOverallFilters();
+}
+
+function _syncPeriodUI() {
+  document.querySelectorAll(".or-period-month-btn").forEach((btn, i) => {
+    btn.classList.toggle("active", _orMonths.has(i));
   });
+  document.querySelectorAll(".or-period-quarter-btn").forEach((btn, i) => {
+    btn.classList.toggle("active", _orPeriod === "quarter" && _orQuarterVal === i);
+  });
+  const ytdBtn = document.getElementById("or-period-ytd-btn");
+  if (ytdBtn) ytdBtn.classList.toggle("active", _orPeriod === "ytd");
+
+  const periodBtn = document.getElementById("or-period-btn");
+  if (periodBtn) {
+    let label = "All Time";
+    if (_orPeriod === "months" && _orMonths.size) {
+      label = [..._orMonths].sort((a,b)=>a-b).map(i => OR_MONTH_ABBR[i]).join(", ");
+    } else if (_orPeriod === "quarter" && _orQuarterVal >= 0) {
+      label = OR_QUARTER_LABELS[_orQuarterVal];
+    } else if (_orPeriod === "ytd") {
+      label = "YTD";
+    }
+    periodBtn.textContent = label + " ▾";
+  }
 }
 
-// Returns {start: Date, end: Date} for the active period, or null if no period active
-function orPeriodDateRange() {
+// Returns an array of {start: Date, end: Date} ranges for the active period (empty = no filter)
+function orPeriodDateRanges() {
   const now = new Date();
   const y = now.getFullYear();
-  if (_orPeriod === "month" && _orMonthVal >= 0) {
-    return { start: new Date(y, _orMonthVal, 1), end: new Date(y, _orMonthVal + 1, 0) };
+  if (_orPeriod === "months" && _orMonths.size) {
+    return [..._orMonths].sort((a,b)=>a-b).map(m => ({ start: new Date(y, m, 1), end: new Date(y, m + 1, 0) }));
   } else if (_orPeriod === "quarter" && _orQuarterVal >= 0) {
     const qStart = _orQuarterVal * 3;
-    return { start: new Date(y, qStart, 1), end: new Date(y, qStart + 3, 0) };
+    return [{ start: new Date(y, qStart, 1), end: new Date(y, qStart + 3, 0) }];
   } else if (_orPeriod === "ytd") {
-    return { start: new Date(y, 0, 1), end: now };
+    return [{ start: new Date(y, 0, 1), end: now }];
   }
-  return null;
+  return [];
+}
+
+function orDateInPeriod(d, ranges) {
+  return ranges.some(rg => d >= rg.start && d <= rg.end);
 }
 
 // Parse a date string from the sheet (e.g. "5 Jun 2025" or "2025-06-05") → Date | null
@@ -4260,13 +4397,11 @@ function orParseRowDate(dateStr) {
 }
 
 function applyOverallFilters() {
-  // Sync from DOM
+  // Sync from DOM (ICI filter is panel-driven, synced directly by orToggleICI/orClearICI)
   const recSel  = document.getElementById("or-recruiter-filter");
-  const iciSel  = document.getElementById("or-ici-filter");
   const weekSel = document.getElementById("overall-week-filter");
   const daySel  = document.getElementById("or-day-filter-header");
   if (recSel)  _orRecruiterFilter = recSel.value;
-  if (iciSel)  _orICIFilter       = iciSel.value;
   if (weekSel) _orWeek            = weekSel.value;
 
   // Parse date string to {key: YYYY-MM-DD, weekday: 0-6} safely without timezone shift
@@ -4292,17 +4427,17 @@ function applyOverallFilters() {
     const prevDay = daySel.value;
     let baseRows = _orAllRows;
     if (_orClient !== "all")          baseRows = baseRows.filter(r => r.client === _orClient);
-    const _baseRange = orPeriodDateRange();
-    if (_baseRange) {
+    const _baseRanges = orPeriodDateRanges();
+    if (_baseRanges.length) {
       baseRows = baseRows.filter(r => {
         const d = orParseRowDate(r.date);
-        return d && d >= _baseRange.start && d <= _baseRange.end;
+        return d && orDateInPeriod(d, _baseRanges);
       });
     } else if (_orWeek !== "all") {
       baseRows = baseRows.filter(r => r.weekStart === _orWeek);
     }
     if (_orRecruiterFilter !== "all") baseRows = baseRows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
-    if (_orICIFilter !== "all")       baseRows = baseRows.filter(r => r.ici.trim().toLowerCase() === _orICIFilter.trim().toLowerCase());
+    if (_orICIFilter.size > 0)        baseRows = baseRows.filter(r => _orICIFilter.has(r.ici.trim()));
 
     const dayMap = new Map();
     baseRows.forEach(r => {
@@ -4326,18 +4461,18 @@ function applyOverallFilters() {
   let rows = _orAllRows;
   if (_orClient !== "all")           rows = rows.filter(r => r.client === _orClient);
   // Period filter takes priority over week filter when active
-  const _periodRange = orPeriodDateRange();
-  if (_periodRange) {
+  const _periodRanges = orPeriodDateRanges();
+  if (_periodRanges.length) {
     rows = rows.filter(r => {
       const d = orParseRowDate(r.date);
       if (!d) return false;
-      return d >= _periodRange.start && d <= _periodRange.end;
+      return orDateInPeriod(d, _periodRanges);
     });
   } else if (_orWeek !== "all") {
     rows = rows.filter(r => r.weekStart === _orWeek);
   }
   if (_orRecruiterFilter !== "all")  rows = rows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
-  if (_orICIFilter !== "all")        rows = rows.filter(r => r.ici.trim().toLowerCase() === _orICIFilter.trim().toLowerCase());
+  if (_orICIFilter.size > 0)         rows = rows.filter(r => _orICIFilter.has(r.ici.trim()));
   if (_orDay !== "all")              rows = rows.filter(r => {
     const parsed = parseDateKey(r.date);
     return parsed && parsed.key === _orDay;
@@ -4345,10 +4480,10 @@ function applyOverallFilters() {
 
   // Determine table grouping:
   // If a specific recruiter is selected → group by ICI (to show their offices)
-  // If a specific ICI is selected → group by recruiter
+  // If specific ICIs are selected → group by recruiter
   // Otherwise → group by recruiter
   let groupKey = "recruiter";
-  if (_orRecruiterFilter !== "all" && _orICIFilter === "all") groupKey = "ici";
+  if (_orRecruiterFilter !== "all" && _orICIFilter.size === 0) groupKey = "ici";
 
   const groups = {};
   rows.forEach(r => {
@@ -4444,6 +4579,29 @@ function applyOverallFilters() {
       `;
       kpiStrip.appendChild(chip);
     });
+  }
+
+  // Special / derived ratio metrics — always computed from the same fully-filtered
+  // `rows`/`totals` as the KPI strip above, so they respect every active filter
+  // (client, period, recruiter, ICI, day) automatically.
+  const ratioSection = document.getElementById("or-ratio-section");
+  const ratioStrip = document.getElementById("or-ratio-strip");
+  if (ratioStrip && ratioSection) {
+    const attToHired = totals.attended ? Math.round((totals.hired / totals.attended) * 100) : null;
+    const attToDay1  = totals.attended ? Math.round((totals.day1  / totals.attended) * 100) : null;
+    ratioSection.style.display = "block";
+    ratioStrip.innerHTML = `
+      <div class="or-ratio-chip">
+        <span class="or-ratio-val">${attToHired !== null ? attToHired + "%" : "—"}</span>
+        <span class="or-ratio-lbl">Attended → Hired</span>
+        <span class="or-ratio-sub">${totals.hired} of ${totals.attended} attended</span>
+      </div>
+      <div class="or-ratio-chip">
+        <span class="or-ratio-val">${attToDay1 !== null ? attToDay1 + "%" : "—"}</span>
+        <span class="or-ratio-lbl">Attended → Day 1</span>
+        <span class="or-ratio-sub">${totals.day1} of ${totals.attended} attended</span>
+      </div>
+    `;
   }
 
   // Table header — sortable
@@ -4557,8 +4715,6 @@ document.addEventListener("DOMContentLoaded", () => {
   orInitMetricPills();
   const recSel = document.getElementById("or-recruiter-filter");
   if (recSel) recSel.addEventListener("change", applyOverallFilters);
-  const iciSel = document.getElementById("or-ici-filter");
-  if (iciSel) iciSel.addEventListener("change", applyOverallFilters);
   const weekSel = document.getElementById("overall-week-filter");
   if (weekSel) weekSel.addEventListener("change", applyOverallFilters);
   const daySel = document.getElementById("or-day-filter-header");
