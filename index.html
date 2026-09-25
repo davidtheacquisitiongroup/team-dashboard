@@ -774,6 +774,18 @@
   .or-period-quarter-row .or-period-quarter-btn { flex: 1; padding: 6px 2px; }
   .or-period-ytd-btn { width: 100%; padding: 8px; }
 
+  .or-period-custom-row { display: flex; align-items: center; gap: 6px; }
+  .or-period-date-input {
+    flex: 1; min-width: 0;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+    color: var(--text); background: var(--surface2);
+    border: 1.5px solid var(--border); border-radius: 8px;
+    padding: 5px 6px; cursor: pointer;
+  }
+  .or-period-date-input:focus { border-color: var(--accent1); outline: none; }
+  .or-period-custom-dash { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
+  .or-period-custom-hint { font-size: 0.6rem; color: var(--muted); margin-top: 5px; }
+
   .or-period-footer { padding-top: 10px; border-top: 1px dashed var(--border); }
   .or-period-clear-btn {
     width: 100%; font-family: 'DM Sans', sans-serif; font-size: 0.72rem; font-weight: 600;
@@ -1550,6 +1562,15 @@
         </div>
         <div class="or-period-section">
           <button class="or-period-ytd-btn" id="or-period-ytd-btn" onclick="orSetYTD()">Year to Date</button>
+        </div>
+        <div class="or-period-section">
+          <div class="or-period-section-label">Specific Date(s)</div>
+          <div class="or-period-custom-row">
+            <input type="date" id="or-period-custom-start" class="or-period-date-input" onchange="orSetCustomRange()">
+            <span class="or-period-custom-dash">–</span>
+            <input type="date" id="or-period-custom-end" class="or-period-date-input" onchange="orSetCustomRange()">
+          </div>
+          <div class="or-period-custom-hint">Leave end blank for a single day</div>
         </div>
         <div class="or-period-footer">
           <button class="or-period-clear-btn" onclick="orClearPeriod()">Clear — All Time</button>
@@ -4243,9 +4264,11 @@ function orSort(col) {
 }
 
 let _orDay = "all";
-let _orPeriod = "";           // "months" | "quarter" | "ytd" | ""
+let _orPeriod = "";           // "months" | "quarter" | "ytd" | "custom" | ""
 let _orMonths = new Set();    // selected month indices (0–11) when _orPeriod === "months"
 let _orQuarterVal = -1;       // 0–3 (Q1–Q4), or -1 = none
+let _orCustomStart = "";      // "YYYY-MM-DD" when _orPeriod === "custom"
+let _orCustomEnd = "";        // "YYYY-MM-DD"; blank = single day (same as start)
 
 const OR_MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const OR_QUARTER_LABELS = ["Q1","Q2","Q3","Q4"];
@@ -4301,11 +4324,20 @@ function _orPeriodClearWeekDay() {
   if (daySel) daySel.value = "all";
 }
 
+function _orPeriodClearCustom() {
+  _orCustomStart = ""; _orCustomEnd = "";
+  const s = document.getElementById("or-period-custom-start");
+  const e = document.getElementById("or-period-custom-end");
+  if (s) s.value = "";
+  if (e) e.value = "";
+}
+
 function orToggleMonth(m) {
   if (_orMonths.has(m)) _orMonths.delete(m);
   else _orMonths.add(m);
   _orPeriod = _orMonths.size > 0 ? "months" : "";
   _orQuarterVal = -1;
+  _orPeriodClearCustom();
   if (_orPeriod) _orPeriodClearWeekDay();
   _syncPeriodUI();
   applyOverallFilters();
@@ -4315,6 +4347,7 @@ function orSetQuarter(q) {
   _orQuarterVal = (_orQuarterVal === q) ? -1 : q;
   _orPeriod = _orQuarterVal >= 0 ? "quarter" : "";
   _orMonths.clear();
+  _orPeriodClearCustom();
   if (_orPeriod) _orPeriodClearWeekDay();
   _syncPeriodUI();
   applyOverallFilters();
@@ -4324,7 +4357,31 @@ function orSetYTD() {
   _orPeriod = (_orPeriod === "ytd") ? "" : "ytd";
   _orMonths.clear();
   _orQuarterVal = -1;
+  _orPeriodClearCustom();
   if (_orPeriod) _orPeriodClearWeekDay();
+  _syncPeriodUI();
+  applyOverallFilters();
+}
+
+// Called on change of either date input. A start with no end = single day.
+function orSetCustomRange() {
+  const s = document.getElementById("or-period-custom-start");
+  const e = document.getElementById("or-period-custom-end");
+  const startVal = s ? s.value : "";
+  const endVal = e ? e.value : "";
+  if (!startVal) {
+    _orPeriod = _orPeriod === "custom" ? "" : _orPeriod;
+    _orCustomStart = ""; _orCustomEnd = "";
+    _syncPeriodUI();
+    applyOverallFilters();
+    return;
+  }
+  _orCustomStart = startVal;
+  _orCustomEnd = endVal || startVal;
+  _orPeriod = "custom";
+  _orMonths.clear();
+  _orQuarterVal = -1;
+  _orPeriodClearWeekDay();
   _syncPeriodUI();
   applyOverallFilters();
 }
@@ -4333,6 +4390,7 @@ function orClearPeriod() {
   _orPeriod = "";
   _orMonths.clear();
   _orQuarterVal = -1;
+  _orPeriodClearCustom();
   _syncPeriodUI();
   applyOverallFilters();
 }
@@ -4356,6 +4414,8 @@ function _syncPeriodUI() {
       label = OR_QUARTER_LABELS[_orQuarterVal];
     } else if (_orPeriod === "ytd") {
       label = "YTD";
+    } else if (_orPeriod === "custom" && _orCustomStart) {
+      label = (_orCustomStart === _orCustomEnd) ? _orCustomStart : `${_orCustomStart} – ${_orCustomEnd}`;
     }
     periodBtn.textContent = label + " ▾";
   }
@@ -4372,6 +4432,12 @@ function orPeriodDateRanges() {
     return [{ start: new Date(y, qStart, 1), end: new Date(y, qStart + 3, 0) }];
   } else if (_orPeriod === "ytd") {
     return [{ start: new Date(y, 0, 1), end: now }];
+  } else if (_orPeriod === "custom" && _orCustomStart) {
+    const [sy,sm,sd] = _orCustomStart.split("-").map(Number);
+    const [ey,em,ed] = (_orCustomEnd || _orCustomStart).split("-").map(Number);
+    const start = new Date(sy, sm-1, sd);
+    const end = new Date(ey, em-1, ed, 23, 59, 59);
+    return [{ start: start <= end ? start : end, end: start <= end ? end : start }];
   }
   return [];
 }
