@@ -31,7 +31,7 @@
     --bg:         #f4f4f6;   /* clean cool near-white background */
     --surface:    #ffffff;
     --surface2:   #f7f7f9;   /* near-white for row fills */
-    --border:     #dcdce2;   /* soft cool-gray border */
+    --border:     #c7c8d1;   /* cool-gray border, stronger contrast against the near-white bg */
     --text:       #2c2a35;
     --muted:      #8a8599;
     --accent1:    #a0487a;   /* muted company purple */
@@ -727,7 +727,15 @@
   }
 
   /* ── CONSOLIDATED PERIOD SELECTOR (Months / Quarter / YTD) ── */
-  .or-period-wrap { position: relative; display: none; }
+  .or-period-wrap { position: relative; }
+
+  .header-ctrl-group {
+    display: none; flex-direction: column; align-items: flex-start; gap: 3px;
+  }
+  .header-ctrl-label {
+    font-size: 0.58rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.12em; color: var(--muted); padding-left: 2px;
+  }
 
   .or-period-panel {
     position: absolute; top: calc(100% + 6px); left: 0;
@@ -842,7 +850,7 @@
   }
   .or-ratio-lbl {
     font-size: 0.62rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.1em; color: var(--muted); margin-top: 4px; text-align: center;
+    letter-spacing: 0.1em; color: var(--muted); margin-bottom: 4px; text-align: center;
   }
   .or-ratio-sub {
     font-size: 0.65rem; color: var(--muted); margin-top: 2px;
@@ -1298,11 +1306,11 @@
   }
   .or-kpi-val {
     font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700;
-    color: var(--accent4); line-height: 1;
+    color: var(--accent4); line-height: 1; margin-top: 4px;
   }
   .or-kpi-lbl {
     font-size: 0.6rem; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.14em; color: var(--muted); margin-top: 4px; text-align: center;
+    letter-spacing: 0.14em; color: var(--muted); text-align: center;
   }
 
   @media (max-width: 900px) {
@@ -1563,7 +1571,9 @@
   </div>
   <div class="header-right">
     <select id="dashboard-week-filter" class="header-week-select" style="display:none;" onchange="onDashboardWeekChange()"><option value="all">All Weeks</option></select>
-    <div class="or-period-wrap" id="or-period-wrap" style="display:none;">
+    <div class="header-ctrl-group" id="or-period-group" style="display:none;">
+      <span class="header-ctrl-label">Time Range</span>
+    <div class="or-period-wrap" id="or-period-wrap">
       <button class="header-week-select" id="or-period-btn" onclick="orTogglePeriodPanel(event)">All Time ▾</button>
       <div class="or-period-panel" id="or-period-panel" hidden>
         <div class="or-period-section">
@@ -1591,9 +1601,16 @@
         </div>
       </div>
     </div>
+    </div>
     <div class="header-divider" id="or-header-divider" style="display:none;"></div>
-    <select id="overall-week-filter" class="header-week-select" style="display:none;" onchange="applyOverallFilters()"><option value="all">All Weeks</option></select>
-    <select id="or-day-filter-header" class="header-week-select" style="display:none;" onchange="applyOverallFilters()"><option value="all">All Days</option></select>
+    <div class="header-ctrl-group" id="or-week-group" style="display:none;">
+      <span class="header-ctrl-label">Week</span>
+      <select id="overall-week-filter" class="header-week-select" onchange="applyOverallFilters()"><option value="all">All Weeks</option></select>
+    </div>
+    <div class="header-ctrl-group" id="or-day-group" style="display:none;">
+      <span class="header-ctrl-label">Day</span>
+      <select id="or-day-filter-header" class="header-week-select" onchange="applyOverallFilters()"><option value="all">All Days</option></select>
+    </div>
     <select id="hc-week-select-header" class="header-week-select" style="display:none;"><option value="">Loading…</option></select>
     <div class="live-dot">Live</div>
     <button class="refresh-btn" id="refresh-btn" onclick="fetchData(); fetchHeadcount(); fetchOverall()">↻ Refresh</button>
@@ -1913,20 +1930,18 @@ function showPage(name) {
   trackEvent('page_view_dashboard', { page: name });
 
   // Show the right header control per page, hide others
-  const ids = ["dashboard-week-filter","overall-week-filter","or-day-filter-header","hc-week-select-header","or-header-divider"];
+  const ids = ["dashboard-week-filter","or-week-group","or-day-group","hc-week-select-header","or-header-divider","or-period-group"];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
-  const periodToggle = document.getElementById("or-period-wrap");
-  if (periodToggle) periodToggle.style.display = "none";
 
   if (name === "overview") {
     const el = document.getElementById("dashboard-week-filter"); if (el) el.style.display = "";
   } else if (name === "headcount") {
     const el = document.getElementById("hc-week-select-header"); if (el) el.style.display = "";
   } else if (name === "overall") {
-    const el = document.getElementById("overall-week-filter"); if (el) el.style.display = "";
-    const el2 = document.getElementById("or-day-filter-header"); if (el2) el2.style.display = "";
+    const el = document.getElementById("or-week-group"); if (el) el.style.display = "inline-flex";
+    const el2 = document.getElementById("or-day-group"); if (el2) el2.style.display = "inline-flex";
     const el3 = document.getElementById("or-header-divider"); if (el3) el3.style.display = "";
-    if (periodToggle) periodToggle.style.display = "inline-block";
+    const el4 = document.getElementById("or-period-group"); if (el4) el4.style.display = "inline-flex";
   } else if (name === "recruiter") {
     const el = document.getElementById("dashboard-week-filter"); if (el) el.style.display = "";
   }
@@ -4655,9 +4670,9 @@ function applyOverallFilters() {
       chip.className = "or-kpi-chip";
       const bookedSub = `<span style="font-size:0.6rem;color:var(--muted);min-height:1em;display:block;">${pending !== null && pending > 0 ? pending + " pending" : ""}</span>`;
       chip.innerHTML = `
+        <span class="or-kpi-lbl">${METRIC_CFG[m].label}</span>
         <span class="or-kpi-val">${val}</span>
         <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;color:var(--accent3);min-height:1.1em;display:block;">${pct !== null ? pct + "%" : ""}</span>
-        <span class="or-kpi-lbl">${METRIC_CFG[m].label}</span>
         ${bookedSub}
       `;
       kpiStrip.appendChild(chip);
@@ -4675,13 +4690,13 @@ function applyOverallFilters() {
     ratioSection.style.display = "flex";
     ratioStrip.innerHTML = `
       <div class="or-ratio-chip">
-        <span class="or-ratio-val">${attToHired !== null ? attToHired + "%" : "—"}</span>
         <span class="or-ratio-lbl">Attended → Hired</span>
+        <span class="or-ratio-val">${attToHired !== null ? attToHired + "%" : "—"}</span>
         <span class="or-ratio-sub">${totals.hired} of ${totals.attended} attended</span>
       </div>
       <div class="or-ratio-chip">
-        <span class="or-ratio-val">${attToDay1 !== null ? attToDay1 + "%" : "—"}</span>
         <span class="or-ratio-lbl">Attended → Day 1</span>
+        <span class="or-ratio-val">${attToDay1 !== null ? attToDay1 + "%" : "—"}</span>
         <span class="or-ratio-sub">${totals.day1} of ${totals.attended} attended</span>
       </div>
     `;
