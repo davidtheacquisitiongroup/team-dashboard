@@ -4670,8 +4670,8 @@ function applyOverallFilters() {
   const ratioSection = document.getElementById("or-ratio-section");
   const ratioStrip = document.getElementById("or-ratio-strip");
   if (ratioStrip && ratioSection) {
-    const attToHired = totals.attended ? Math.round((totals.hired / totals.attended) * 100) : null;
-    const attToDay1  = totals.attended ? Math.round((totals.day1  / totals.attended) * 100) : null;
+    const attToHired = totals.attended ? ((totals.hired / totals.attended) * 100).toFixed(2) : null;
+    const attToDay1  = totals.attended ? ((totals.day1  / totals.attended) * 100).toFixed(2) : null;
     ratioSection.style.display = "flex";
     ratioStrip.innerHTML = `
       <div class="or-ratio-chip">
