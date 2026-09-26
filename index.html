@@ -118,7 +118,7 @@
     max-width: 1920px; margin: 0 auto;
     padding: 32px 48px;
     display: grid;
-    grid-template-columns: 1fr 340px 260px;
+    grid-template-columns: minmax(0, 1fr) 340px 260px;
     grid-template-rows: 1fr auto;
     gap: 28px;
     margin-left: 220px;
@@ -913,7 +913,7 @@
 
   /* ── RESPONSIVE ── */
   @media (max-width: 1100px) {
-    main { grid-template-columns: 1fr 300px 260px; padding: 20px; gap: 20px; }
+    main { grid-template-columns: minmax(0, 1fr) 300px 260px; padding: 20px; gap: 20px; }
   }
 
   @media (max-width: 900px) {
@@ -957,7 +957,10 @@
     }
 
     main {
-      grid-template-columns: 1fr;
+      /* minmax(0, 1fr), not 1fr: a plain 1fr track's minimum is "auto", which lets
+         a wide descendant (e.g. a table with a large min-width) grow the track
+         itself instead of scrolling inside its own overflow-x:auto wrapper. */
+      grid-template-columns: minmax(0, 1fr);
       grid-template-rows: auto auto auto auto;
       padding: 16px;
       margin-left: 0;
@@ -4702,6 +4705,18 @@ function applyOverallFilters() {
         thead.innerHTML += `<th data-or-col="${m}" style="text-align:center;padding:14px 12px;font-size:0.7rem;letter-spacing:0.1em;white-space:nowrap;cursor:pointer;user-select:none;" onclick="orSort('${m}')">${METRIC_CFG[m].label} <span style="color:var(--muted);font-size:0.65rem;" id="or-sort-${m}"></span></th>`;
       }
     });
+
+    // table-layout:fixed divides the table's actual width evenly across columns --
+    // if that width is too small for the number of active metrics, "Label | %"
+    // headers overflow into neighbouring cells instead of wrapping (nowrap) or
+    // scrolling. Size the table's min-width to the real column count so columns
+    // always have enough room; the wrapper's overflow-x:auto handles the rest.
+    const orTable = document.getElementById("or-table");
+    if (orTable) {
+      const perMetricWidth = 120; // enough for the widest "Sec. Attended | %" header
+      const nameColWidth = 200;
+      orTable.style.minWidth = (nameColWidth + activeMetrics.length * perMetricWidth) + "px";
+    }
   }
 
   // Sort groups — supports both raw metric and metric_pct keys
