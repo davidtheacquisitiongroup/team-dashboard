@@ -53,7 +53,8 @@
   html { overflow-x: hidden; }
 
   body {
-    background: var(--bg);
+    background: linear-gradient(135deg, #faf4fb 0%, #f5f4f7 45%, #eff9f8 100%);
+    background-attachment: fixed;
     color: var(--text);
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
@@ -142,7 +143,7 @@
     border-radius: 16px;
     padding: 28px;
     position: relative; overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(160,72,122,0.08), 0 1px 2px rgba(160,72,122,0.05);
   }
 
   /* ── LEADERBOARD ── */
@@ -161,7 +162,7 @@
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(160,72,122,0.07);
     transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
     animation: slideIn 0.4s ease both;
     flex: 1;
@@ -226,7 +227,7 @@
     border-radius: 12px;
     border: 1px solid var(--border);
     background: var(--surface);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(160,72,122,0.07);
     display: grid; grid-template-columns: 1fr auto;
     align-items: center; gap: 12px;
     animation: fadeUp 0.5s ease both;
@@ -311,7 +312,7 @@
     background: var(--surface);
     overflow: visible;
     animation: fadeUp 0.6s 0.3s ease both;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    box-shadow: 0 1px 4px rgba(160,72,122,0.07);
     display: flex;
     flex-direction: column;
   }
@@ -497,11 +498,11 @@
   .recruiter-table tbody tr {
     background: var(--surface);
     border: 1px solid var(--border);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    box-shadow: 0 1px 3px rgba(160,72,122,0.06);
     transition: background 0.15s, box-shadow 0.15s;
     animation: fadeUp 0.4s ease both;
   }
-  .recruiter-table tbody tr:hover { background: var(--surface2); box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
+  .recruiter-table tbody tr:hover { background: var(--surface2); box-shadow: 0 2px 6px rgba(160,72,122,0.09); }
 
   .recruiter-table tbody td {
     padding: 18px 24px;
@@ -602,7 +603,7 @@
     display: flex;
     flex-direction: column;
     padding: 0;
-    box-shadow: 2px 0 12px rgba(0,0,0,0.06);
+    box-shadow: 2px 0 12px rgba(160,72,122,0.07);
   }
 
   .sidebar-logo {
@@ -841,7 +842,7 @@
   .or-ratio-chip {
     background: rgba(74,173,168,0.06); border: 1.5px solid rgba(74,173,168,0.3); border-radius: 10px;
     padding: 10px 18px; display: flex; flex-direction: column; align-items: center;
-    min-width: 140px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    min-width: 140px; box-shadow: 0 1px 4px rgba(74,173,168,0.08);
     animation: fadeUp 0.4s ease both;
   }
   .or-ratio-val {
@@ -1301,7 +1302,7 @@
   .or-kpi-chip {
     background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
     padding: 10px 18px; display: flex; flex-direction: column; align-items: center;
-    min-width: 110px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    min-width: 110px; box-shadow: 0 1px 4px rgba(160,72,122,0.07);
     animation: fadeUp 0.4s ease both;
   }
   .or-kpi-val {
@@ -1340,7 +1341,7 @@
     border: 1px solid #dcdce2;
     border-radius: 8px;
     overflow: auto;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px rgba(160,72,122,0.07);
   }
 
   .ici-sheet {
