@@ -28,10 +28,10 @@
     --api-key:  "configured";
 
     /* Palette — TAG brand: purple + teal, muted light theme */
-    --bg:         #ece9e4;   /* deeper warm beige background */
+    --bg:         #f4f4f6;   /* clean cool near-white background */
     --surface:    #ffffff;
-    --surface2:   #faf9f7;   /* near-white for row fills */
-    --border:     #c8c3ba;   /* noticeably darker border */
+    --surface2:   #f7f7f9;   /* near-white for row fills */
+    --border:     #dcdce2;   /* soft cool-gray border */
     --text:       #2c2a35;
     --muted:      #8a8599;
     --accent1:    #a0487a;   /* muted company purple */
@@ -1321,7 +1321,7 @@
   /* Spreadsheet-style grid: gridlines, header row, monospace cells, row-band shading */
   .ici-sheet-wrap {
     background: #fff;
-    border: 1px solid #c8c3ba;
+    border: 1px solid #dcdce2;
     border-radius: 8px;
     overflow: auto;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
@@ -2746,7 +2746,7 @@ function renderHeadcountBlank() {
     pieSvg.setAttribute("viewBox","0 0 400 360");
     const t = document.createElementNS(ns,"text");
     t.setAttribute("x","200"); t.setAttribute("y","180"); t.setAttribute("text-anchor","middle");
-    t.setAttribute("fill","#c8c3ba"); t.setAttribute("font-family","Bebas Neue"); t.setAttribute("font-size","22");
+    t.setAttribute("fill","#dcdce2"); t.setAttribute("font-family","Bebas Neue"); t.setAttribute("font-size","22");
     t.setAttribute("letter-spacing","0.15em"); t.textContent = "Coming Soon";
     pieSvg.appendChild(t);
   }
@@ -2926,7 +2926,7 @@ function renderHcYTDEmpire() {
   const color="#c47a3a"; // Empire amber
 
   svg.innerHTML+=`<defs><linearGradient id="empYtdGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.28"/><stop offset="100%" stop-color="${color}" stop-opacity="0.02"/></linearGradient></defs>`;
-  [0,0.5,1].forEach(f=>{ const v=minV+rangeV*f,y=py(v); svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.4"/><text x="${padL-5}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`; });
+  [0,0.5,1].forEach(f=>{ const v=minV+rangeV*f,y=py(v); svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#dcdce2" stroke-width="1" opacity="0.4"/><text x="${padL-5}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`; });
   const area=`M${px(0)},${py(points[0].val)} `+points.slice(1).map((p,i)=>`L${px(i+1)},${py(p.val)}`).join(" ")+` L${px(points.length-1)},${padT+cH} L${padL},${padT+cH} Z`;
   svg.innerHTML+=`<path d="${area}" fill="url(#empYtdGrad)"/>`;
   svg.innerHTML+=`<path d="M${points.map((p,i)=>`${px(i)},${py(p.val)}`).join(" L")}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`;
@@ -3454,7 +3454,7 @@ function renderHcYTD() {
   // Grid lines
   [0, 0.5, 1].forEach(f => {
     const v=minV+rangeV*f, y=py(v);
-    svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.4"/>`;
+    svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#dcdce2" stroke-width="1" opacity="0.4"/>`;
     svg.innerHTML+=`<text x="${padL-5}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`;
   });
 
@@ -3539,7 +3539,7 @@ function renderHcLine() {
 
     for (let i=0;i<=4;i++) {
       const v=minV+(rangeV/4)*i, y=py(v);
-      svg.innerHTML += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.5"/>`;
+      svg.innerHTML += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#dcdce2" stroke-width="1" opacity="0.5"/>`;
       svg.innerHTML += `<text x="${padL-6}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`;
     }
     points.forEach((p,i)=>{
@@ -3593,7 +3593,7 @@ function renderHcLine() {
 
     for (let i=0;i<=4;i++){
       const v=(maxTotal/4)*i, y=py(v);
-      svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#c8c3ba" stroke-width="1" opacity="0.4"/>`;
+      svg.innerHTML+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#dcdce2" stroke-width="1" opacity="0.4"/>`;
       svg.innerHTML+=`<text x="${padL-6}" y="${y+4}" text-anchor="end" fill="#6b6880" font-family="JetBrains Mono" font-size="10" font-weight="700">${Math.round(v)}</text>`;
     }
     allWeeks.forEach((w,i)=>{
