@@ -1640,18 +1640,18 @@
 
         <div id="or-pane-week">
           <div class="or-period-section">
-            <div class="or-period-section-label">Week starting</div>
+            <div class="or-period-section-label">Week starting (select multiple)</div>
             <div class="or-week-list" id="or-week-list"></div>
           </div>
           <div class="or-period-section" id="or-day-section">
-            <div class="or-period-section-label">Day</div>
-            <div class="or-day-row" id="or-day-row"></div>
+            <div class="or-period-section-label">Day (select multiple)</div>
+            <div class="or-week-list" id="or-day-row"></div>
           </div>
         </div>
 
         <div id="or-pane-period" hidden>
           <div class="or-period-section">
-            <div class="or-period-section-label">Months (select multiple)</div>
+            <div class="or-period-section-label">Months</div>
             <div class="or-period-month-grid" id="or-period-months"></div>
           </div>
           <div class="or-period-section">
@@ -1673,11 +1673,6 @@
         </div>
       </div>
     </div>
-    </div>
-    <!-- State holders for the Time Range panel (week/day values are read by the filter logic) -->
-    <div id="or-week-day-state" style="display:none;">
-      <select id="overall-week-filter"><option value="all">All Weeks</option></select>
-      <select id="or-day-filter-header"><option value="all">All Days</option></select>
     </div>
     <select id="hc-week-select-header" class="header-week-select" style="display:none;"><option value="">Loading…</option></select>
     <div class="live-dot">Live</div>
@@ -3798,7 +3793,10 @@ let _orClient        = "all";
 let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
 let _orRecruiterFilter = "all";
 let _orICIFilter       = new Set(); // empty = "All ICIs"
-let _orWeek            = "all";
+const _orWeekSel       = new Set(); // selected week-start values (empty = no week filter)
+const _orDaySel        = new Set(); // selected day keys YYYY-MM-DD (empty = all days in selected weeks)
+let _orDayOptions      = [];        // [{key,lbl}] days available in the selected weeks
+let _orWeeksInit       = false;
 
 async function fetchOverall() {
   try {
@@ -3876,25 +3874,11 @@ async function fetchOverall() {
       r.recruiter = recruiterCanonical.get(key);
     });
 
-    // Populate week dropdown — default to most recent week
-    const weekSel = document.getElementById("overall-week-filter");
-    if (weekSel) {
-      const currentVal = weekSel.value;
-      weekSel.innerHTML = `<option value="all">All Weeks</option>`;
-      _orWeeks.forEach(w => {
-        const opt = document.createElement("option");
-        opt.value = w; opt.textContent = w;
-        weekSel.appendChild(opt);
-      });
-      // If no prior selection, default to most recent week
-      if (!currentVal || currentVal === "all" || !_orWeeks.includes(currentVal)) {
-        const mostRecent = _orWeeks[_orWeeks.length - 1];
-        weekSel.value = mostRecent || "all";
-        _orWeek = weekSel.value;
-      } else {
-        weekSel.value = currentVal;
-        _orWeek = currentVal;
-      }
+    // Default to the most recent week on first load only; afterwards keep the user's selection
+    [..._orWeekSel].forEach(w => { if (!_orWeeks.includes(w)) _orWeekSel.delete(w); });
+    if (!_orWeeksInit) {
+      _orWeeksInit = true;
+      if (_orWeeks.length) _orWeekSel.add(_orWeeks[_orWeeks.length - 1]);
     }
 
     // Populate recruiter & ICI dropdowns
@@ -4384,7 +4368,6 @@ function orSort(col) {
   applyOverallFilters();
 }
 
-let _orDay = "all";
 let _orPeriod = "";           // "months" | "quarter" | "ytd" | "custom" | ""
 let _orMonths = new Set();    // selected month indices (0–11) when _orPeriod === "months"
 let _orQuarterVal = -1;       // 0–3 (Q1–Q4), or -1 = none
@@ -4423,8 +4406,7 @@ let _orTimeTab = "week";
 
 function orTimeMode() {
   if (_orPeriod) return "period";
-  const w = document.getElementById("overall-week-filter");
-  return (w && w.value !== "all") ? "week" : "all";
+  return _orWeekSel.size ? "week" : "all";
 }
 
 function orSetTimeTab(tab) {
@@ -4434,25 +4416,25 @@ function orSetTimeTab(tab) {
 }
 
 function orPickWeek(w) {
-  _orPeriod = ""; _orMonths.clear(); _orQuarterVal = -1; _orPeriodClearCustom();
-  document.getElementById("overall-week-filter").value = w;
-  document.getElementById("or-day-filter-header").value = "all";
-  _syncPeriodUI();
+  // Switching from a period into week mode starts a fresh week selection
+  if (_orPeriod) { _orPeriod = ""; _orMonths.clear(); _orQuarterVal = -1; _orPeriodClearCustom(); _orWeekSel.clear(); }
+  if (_orWeekSel.has(w)) _orWeekSel.delete(w); else _orWeekSel.add(w);
+  _orDaySel.clear();
   applyOverallFilters();
 }
 
 function orPickDay(d) {
-  document.getElementById("or-day-filter-header").value = d;
+  if (d === "all") _orDaySel.clear();
+  else if (_orDaySel.has(d)) _orDaySel.delete(d);
+  else _orDaySel.add(d);
   applyOverallFilters();
 }
 
 // Single source of truth for the Time Range button + panel: reflects whichever of
 // week/day or month/quarter/YTD/custom is actually being applied.
 function orSyncTimeUI() {
-  const weekSel = document.getElementById("overall-week-filter");
-  const daySel = document.getElementById("or-day-filter-header");
   const btn = document.getElementById("or-period-btn");
-  if (!weekSel || !daySel || !btn) return;
+  if (!btn) return;
   const mode = orTimeMode();
 
   let label = "All Time";
@@ -4462,8 +4444,12 @@ function orSyncTimeUI() {
     else if (_orPeriod === "ytd") label = "YTD";
     else if (_orPeriod === "custom" && _orCustomStart) label = (_orCustomStart === _orCustomEnd) ? _orCustomStart : `${_orCustomStart} – ${_orCustomEnd}`;
   } else if (mode === "week") {
-    label = "Wk " + weekSel.value;
-    if (daySel.value !== "all") label += " · " + (daySel.selectedOptions[0] ? daySel.selectedOptions[0].textContent : daySel.value);
+    const ws = [..._orWeekSel].sort();
+    label = ws.length === 1 ? "Wk " + ws[0] : ws.length + " weeks";
+    if (_orDaySel.size) {
+      const lbls = _orDayOptions.filter(o => _orDaySel.has(o.key)).map(o => o.lbl);
+      label += " · " + (lbls.length === 1 ? lbls[0] : lbls.length + " days");
+    }
   }
   btn.textContent = label;
   btn.classList.toggle("all-time", mode === "all");
@@ -4477,22 +4463,22 @@ function orSyncTimeUI() {
 
   const list = document.getElementById("or-week-list");
   list.innerHTML = "";
-  [...weekSel.options].filter(o => o.value !== "all").reverse().forEach(o => {
+  [..._orWeeks].reverse().forEach(w => {
     const b = document.createElement("button");
-    b.textContent = o.textContent;
-    b.classList.toggle("active", mode === "week" && weekSel.value === o.value);
-    b.onclick = () => orPickWeek(o.value);
+    b.textContent = w;
+    b.classList.toggle("active", mode === "week" && _orWeekSel.has(w));
+    b.onclick = () => orPickWeek(w);
     list.appendChild(b);
   });
   const row = document.getElementById("or-day-row");
   row.innerHTML = "";
-  const daySec = document.getElementById("or-day-section");
-  daySec.style.display = mode === "week" ? "" : "none";
-  [...daySel.options].forEach(o => {
+  document.getElementById("or-day-section").style.display = mode === "week" ? "" : "none";
+  const opts = [{ key: "all", lbl: "All Days" }, ..._orDayOptions];
+  opts.forEach(o => {
     const b = document.createElement("button");
-    b.textContent = o.value === "all" ? "All Days" : o.textContent;
-    b.classList.toggle("active", daySel.value === o.value);
-    b.onclick = () => orPickDay(o.value);
+    b.textContent = o.lbl;
+    b.classList.toggle("active", o.key === "all" ? _orDaySel.size === 0 : _orDaySel.has(o.key));
+    b.onclick = () => orPickDay(o.key);
     row.appendChild(b);
   });
 }
@@ -4521,10 +4507,8 @@ document.addEventListener("click", (e) => {
 });
 
 function _orPeriodClearWeekDay() {
-  const weekSel = document.getElementById("overall-week-filter");
-  if (weekSel) weekSel.value = "all";
-  const daySel = document.getElementById("or-day-filter-header");
-  if (daySel) daySel.value = "all";
+  _orWeekSel.clear();
+  _orDaySel.clear();
 }
 
 function _orPeriodClearCustom() {
@@ -4590,8 +4574,8 @@ function orSetCustomRange() {
 }
 
 function orClearPeriod() {
-  const w = document.getElementById("overall-week-filter"); if (w) w.value = "all";
-  const d = document.getElementById("or-day-filter-header"); if (d) d.value = "all";
+  _orWeekSel.clear();
+  _orDaySel.clear();
   _orPeriod = "";
   _orMonths.clear();
   _orQuarterVal = -1;
@@ -4657,10 +4641,7 @@ function orParseRowDate(dateStr) {
 function applyOverallFilters() {
   // Sync from DOM (ICI filter is panel-driven, synced directly by orToggleICI/orClearICI)
   const recSel  = document.getElementById("or-recruiter-filter");
-  const weekSel = document.getElementById("overall-week-filter");
-  const daySel  = document.getElementById("or-day-filter-header");
   if (recSel)  _orRecruiterFilter = recSel.value;
-  if (weekSel) _orWeek            = weekSel.value;
 
   // Parse date string to {key: YYYY-MM-DD, weekday: 0-6} safely without timezone shift
   function parseDateKey(dateStr) {
@@ -4681,8 +4662,7 @@ function applyOverallFilters() {
   }
 
   // Populate day dropdown based on current week + client + recruiter + ICI filters
-  if (daySel) {
-    const prevDay = daySel.value;
+  {
     let baseRows = _orAllRows;
     if (_orClient !== "all")          baseRows = baseRows.filter(r => r.client === _orClient);
     const _baseRanges = orPeriodDateRanges();
@@ -4691,8 +4671,8 @@ function applyOverallFilters() {
         const d = orParseRowDate(r.date);
         return d && orDateInPeriod(d, _baseRanges);
       });
-    } else if (_orWeek !== "all") {
-      baseRows = baseRows.filter(r => r.weekStart === _orWeek);
+    } else if (_orWeekSel.size) {
+      baseRows = baseRows.filter(r => _orWeekSel.has(r.weekStart));
     }
     if (_orRecruiterFilter !== "all") baseRows = baseRows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
     if (_orICIFilter.size > 0)        baseRows = baseRows.filter(r => _orICIFilter.has(r.ici.trim()));
@@ -4705,14 +4685,9 @@ function applyOverallFilters() {
       if (!dayMap.has(parsed.key)) dayMap.set(parsed.key, parsed.lbl);
     });
     const sortedDays = [...dayMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-    daySel.innerHTML = `<option value="all">All Days</option>`;
-    sortedDays.forEach(([key, lbl]) => {
-      const opt = document.createElement("option");
-      opt.value = key; opt.textContent = lbl;
-      daySel.appendChild(opt);
-    });
-    daySel.value = dayMap.has(prevDay) ? prevDay : "all";
-    _orDay = daySel.value;
+    _orDayOptions = sortedDays.map(([key, lbl]) => ({ key, lbl }));
+    // Drop selected days that are no longer available under the current filters
+    [..._orDaySel].forEach(k => { if (!dayMap.has(k)) _orDaySel.delete(k); });
   }
 
   // Filter rows
@@ -4726,14 +4701,14 @@ function applyOverallFilters() {
       if (!d) return false;
       return orDateInPeriod(d, _periodRanges);
     });
-  } else if (_orWeek !== "all") {
-    rows = rows.filter(r => r.weekStart === _orWeek);
+  } else if (_orWeekSel.size) {
+    rows = rows.filter(r => _orWeekSel.has(r.weekStart));
   }
   if (_orRecruiterFilter !== "all")  rows = rows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
   if (_orICIFilter.size > 0)         rows = rows.filter(r => _orICIFilter.has(r.ici.trim()));
-  if (_orDay !== "all")              rows = rows.filter(r => {
+  if (_orDaySel.size)                rows = rows.filter(r => {
     const parsed = parseDateKey(r.date);
-    return parsed && parsed.key === _orDay;
+    return parsed && _orDaySel.has(parsed.key);
   });
 
   // Determine table grouping:
@@ -4986,10 +4961,6 @@ document.addEventListener("DOMContentLoaded", () => {
   orInitMetricPills();
   const recSel = document.getElementById("or-recruiter-filter");
   if (recSel) recSel.addEventListener("change", applyOverallFilters);
-  const weekSel = document.getElementById("overall-week-filter");
-  if (weekSel) weekSel.addEventListener("change", applyOverallFilters);
-  const daySel = document.getElementById("or-day-filter-header");
-  if (daySel) daySel.addEventListener("change", applyOverallFilters);
 });
 
 
