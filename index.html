@@ -750,6 +750,35 @@
     background: var(--border);
   }
 
+  .or-time-btn { white-space: nowrap; max-width: 320px; }
+  .or-time-btn.all-time {
+    color: var(--muted); background: var(--surface2); border-color: var(--border);
+  }
+  .or-time-tabs {
+    display: flex; gap: 2px; padding: 3px; margin-bottom: 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 9px;
+  }
+  .or-time-tabs button {
+    flex: 1; padding: 6px 4px; border: none; border-radius: 7px; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 600;
+    color: var(--muted); background: transparent; transition: all 0.15s;
+  }
+  .or-time-tabs button:hover { color: var(--accent1); }
+  .or-time-tabs button.viewing { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(160,72,122,0.15); }
+  .or-time-tabs button.applied { color: var(--accent4); }
+  .or-time-tabs button.applied::after { content: ' ●'; font-size: 0.5rem; vertical-align: middle; color: var(--accent1); }
+  .or-week-list { display: flex; flex-direction: column; gap: 3px; max-height: 190px; overflow-y: auto; }
+  .or-week-list button, .or-day-row button {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 700; text-align: left;
+    color: var(--muted); background: var(--surface2); border: 1.5px solid var(--border);
+    border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: all 0.15s;
+  }
+  .or-day-row { display: flex; flex-wrap: wrap; gap: 5px; }
+  .or-day-row button { text-align: center; padding: 6px 9px; }
+  .or-week-list button:hover, .or-day-row button:hover { border-color: var(--accent2); color: var(--accent2); }
+  .or-week-list button.active, .or-day-row button.active {
+    background: rgba(160,72,122,0.12); border-color: var(--accent1); color: var(--accent4);
+  }
   .or-period-section { margin-bottom: 12px; }
   .or-period-section:last-of-type { margin-bottom: 0; }
 
@@ -1601,42 +1630,54 @@
     <div class="header-ctrl-group" id="or-period-group" style="display:none;">
       <span class="header-ctrl-label">Time Range</span>
     <div class="or-period-wrap" id="or-period-wrap">
-      <button class="header-week-select" id="or-period-btn" onclick="orTogglePeriodPanel(event)">All Time ▾</button>
+      <button class="header-week-select or-time-btn" id="or-period-btn" onclick="orTogglePeriodPanel(event)">All Time</button>
       <div class="or-period-panel" id="or-period-panel" hidden>
-        <div class="or-period-section">
-          <div class="or-period-section-label">Months (select multiple)</div>
-          <div class="or-period-month-grid" id="or-period-months"></div>
+        <div class="or-time-tabs" id="or-time-tabs">
+          <button data-tab="week" onclick="orSetTimeTab('week')">Week</button>
+          <button data-tab="period" onclick="orSetTimeTab('period')">Period</button>
+          <button data-tab="all" onclick="orSetTimeTab('all')">All Time</button>
         </div>
-        <div class="or-period-section">
-          <div class="or-period-section-label">Quarter</div>
-          <div class="or-period-quarter-row" id="or-period-quarters"></div>
-        </div>
-        <div class="or-period-section">
-          <button class="or-period-ytd-btn" id="or-period-ytd-btn" onclick="orSetYTD()">Year to Date</button>
-        </div>
-        <div class="or-period-section">
-          <div class="or-period-section-label">Specific Date(s)</div>
-          <div class="or-period-custom-row">
-            <input type="date" id="or-period-custom-start" class="or-period-date-input" onchange="orSetCustomRange()">
-            <span class="or-period-custom-dash">–</span>
-            <input type="date" id="or-period-custom-end" class="or-period-date-input" onchange="orSetCustomRange()">
+
+        <div id="or-pane-week">
+          <div class="or-period-section">
+            <div class="or-period-section-label">Week starting</div>
+            <div class="or-week-list" id="or-week-list"></div>
           </div>
-          <div class="or-period-custom-hint">Leave end blank for a single day</div>
+          <div class="or-period-section" id="or-day-section">
+            <div class="or-period-section-label">Day</div>
+            <div class="or-day-row" id="or-day-row"></div>
+          </div>
         </div>
-        <div class="or-period-footer">
-          <button class="or-period-clear-btn" onclick="orClearPeriod()">Clear — All Time</button>
+
+        <div id="or-pane-period" hidden>
+          <div class="or-period-section">
+            <div class="or-period-section-label">Months (select multiple)</div>
+            <div class="or-period-month-grid" id="or-period-months"></div>
+          </div>
+          <div class="or-period-section">
+            <div class="or-period-section-label">Quarter</div>
+            <div class="or-period-quarter-row" id="or-period-quarters"></div>
+          </div>
+          <div class="or-period-section">
+            <button class="or-period-ytd-btn" id="or-period-ytd-btn" onclick="orSetYTD()">Year to Date</button>
+          </div>
+          <div class="or-period-section">
+            <div class="or-period-section-label">Specific Date(s)</div>
+            <div class="or-period-custom-row">
+              <input type="date" id="or-period-custom-start" class="or-period-date-input" onchange="orSetCustomRange()">
+              <span class="or-period-custom-dash">–</span>
+              <input type="date" id="or-period-custom-end" class="or-period-date-input" onchange="orSetCustomRange()">
+            </div>
+            <div class="or-period-custom-hint">Leave end blank for a single day</div>
+          </div>
         </div>
       </div>
     </div>
     </div>
-    <div class="header-divider" id="or-header-divider" style="display:none;"></div>
-    <div class="header-ctrl-group" id="or-week-group" style="display:none;">
-      <span class="header-ctrl-label">Week</span>
-      <select id="overall-week-filter" class="header-week-select" onchange="applyOverallFilters()"><option value="all">All Weeks</option></select>
-    </div>
-    <div class="header-ctrl-group" id="or-day-group" style="display:none;">
-      <span class="header-ctrl-label">Day</span>
-      <select id="or-day-filter-header" class="header-week-select" onchange="applyOverallFilters()"><option value="all">All Days</option></select>
+    <!-- State holders for the Time Range panel (week/day values are read by the filter logic) -->
+    <div id="or-week-day-state" style="display:none;">
+      <select id="overall-week-filter"><option value="all">All Weeks</option></select>
+      <select id="or-day-filter-header"><option value="all">All Days</option></select>
     </div>
     <select id="hc-week-select-header" class="header-week-select" style="display:none;"><option value="">Loading…</option></select>
     <div class="live-dot">Live</div>
@@ -4378,9 +4419,90 @@ function orBuildPeriodPanel() {
   }
 }
 
+let _orTimeTab = "week";
+
+function orTimeMode() {
+  if (_orPeriod) return "period";
+  const w = document.getElementById("overall-week-filter");
+  return (w && w.value !== "all") ? "week" : "all";
+}
+
+function orSetTimeTab(tab) {
+  if (tab === "all") { orClearPeriod(); const p = document.getElementById("or-period-panel"); if (p) p.hidden = true; return; }
+  _orTimeTab = tab;
+  orSyncTimeUI();
+}
+
+function orPickWeek(w) {
+  _orPeriod = ""; _orMonths.clear(); _orQuarterVal = -1; _orPeriodClearCustom();
+  document.getElementById("overall-week-filter").value = w;
+  document.getElementById("or-day-filter-header").value = "all";
+  _syncPeriodUI();
+  applyOverallFilters();
+}
+
+function orPickDay(d) {
+  document.getElementById("or-day-filter-header").value = d;
+  applyOverallFilters();
+}
+
+// Single source of truth for the Time Range button + panel: reflects whichever of
+// week/day or month/quarter/YTD/custom is actually being applied.
+function orSyncTimeUI() {
+  const weekSel = document.getElementById("overall-week-filter");
+  const daySel = document.getElementById("or-day-filter-header");
+  const btn = document.getElementById("or-period-btn");
+  if (!weekSel || !daySel || !btn) return;
+  const mode = orTimeMode();
+
+  let label = "All Time";
+  if (mode === "period") {
+    if (_orPeriod === "months" && _orMonths.size) label = [..._orMonths].sort((a,b)=>a-b).map(i => OR_MONTH_ABBR[i]).join(", ");
+    else if (_orPeriod === "quarter" && _orQuarterVal >= 0) label = OR_QUARTER_LABELS[_orQuarterVal];
+    else if (_orPeriod === "ytd") label = "YTD";
+    else if (_orPeriod === "custom" && _orCustomStart) label = (_orCustomStart === _orCustomEnd) ? _orCustomStart : `${_orCustomStart} – ${_orCustomEnd}`;
+  } else if (mode === "week") {
+    label = "Wk " + weekSel.value;
+    if (daySel.value !== "all") label += " · " + (daySel.selectedOptions[0] ? daySel.selectedOptions[0].textContent : daySel.value);
+  }
+  btn.textContent = label;
+  btn.classList.toggle("all-time", mode === "all");
+
+  document.querySelectorAll("#or-time-tabs button").forEach(b => {
+    b.classList.toggle("viewing", b.dataset.tab === _orTimeTab);
+    b.classList.toggle("applied", b.dataset.tab === mode);
+  });
+  document.getElementById("or-pane-week").hidden = _orTimeTab !== "week";
+  document.getElementById("or-pane-period").hidden = _orTimeTab !== "period";
+
+  const list = document.getElementById("or-week-list");
+  list.innerHTML = "";
+  [...weekSel.options].filter(o => o.value !== "all").reverse().forEach(o => {
+    const b = document.createElement("button");
+    b.textContent = o.textContent;
+    b.classList.toggle("active", mode === "week" && weekSel.value === o.value);
+    b.onclick = () => orPickWeek(o.value);
+    list.appendChild(b);
+  });
+  const row = document.getElementById("or-day-row");
+  row.innerHTML = "";
+  const daySec = document.getElementById("or-day-section");
+  daySec.style.display = mode === "week" ? "" : "none";
+  [...daySel.options].forEach(o => {
+    const b = document.createElement("button");
+    b.textContent = o.value === "all" ? "All Days" : o.textContent;
+    b.classList.toggle("active", daySel.value === o.value);
+    b.onclick = () => orPickDay(o.value);
+    row.appendChild(b);
+  });
+}
+
 function orTogglePeriodPanel(e) {
   if (e) e.stopPropagation();
   orBuildPeriodPanel();
+  const m = orTimeMode();
+  _orTimeTab = m === "period" ? "period" : "week";
+  orSyncTimeUI();
   const panel = document.getElementById("or-period-panel");
   if (!panel) return;
   const iciPanel = document.getElementById("or-ici-panel");
@@ -4391,7 +4513,8 @@ function orTogglePeriodPanel(e) {
 document.addEventListener("click", (e) => {
   const panel = document.getElementById("or-period-panel");
   const wrap = document.getElementById("or-period-wrap");
-  if (panel && !panel.hidden && wrap && !wrap.contains(e.target)) panel.hidden = true;
+  // Ignore clicks on buttons that were re-rendered (detached) by the click itself
+  if (panel && !panel.hidden && wrap && e.target.isConnected && !wrap.contains(e.target)) panel.hidden = true;
   const iciPanel = document.getElementById("or-ici-panel");
   const iciWrap = document.getElementById("or-ici-wrap");
   if (iciPanel && !iciPanel.hidden && iciWrap && !iciWrap.contains(e.target)) iciPanel.hidden = true;
@@ -4467,6 +4590,8 @@ function orSetCustomRange() {
 }
 
 function orClearPeriod() {
+  const w = document.getElementById("overall-week-filter"); if (w) w.value = "all";
+  const d = document.getElementById("or-day-filter-header"); if (d) d.value = "all";
   _orPeriod = "";
   _orMonths.clear();
   _orQuarterVal = -1;
@@ -4485,20 +4610,7 @@ function _syncPeriodUI() {
   const ytdBtn = document.getElementById("or-period-ytd-btn");
   if (ytdBtn) ytdBtn.classList.toggle("active", _orPeriod === "ytd");
 
-  const periodBtn = document.getElementById("or-period-btn");
-  if (periodBtn) {
-    let label = "All Time";
-    if (_orPeriod === "months" && _orMonths.size) {
-      label = [..._orMonths].sort((a,b)=>a-b).map(i => OR_MONTH_ABBR[i]).join(", ");
-    } else if (_orPeriod === "quarter" && _orQuarterVal >= 0) {
-      label = OR_QUARTER_LABELS[_orQuarterVal];
-    } else if (_orPeriod === "ytd") {
-      label = "YTD";
-    } else if (_orPeriod === "custom" && _orCustomStart) {
-      label = (_orCustomStart === _orCustomEnd) ? _orCustomStart : `${_orCustomStart} – ${_orCustomEnd}`;
-    }
-    periodBtn.textContent = label + " ▾";
-  }
+  orSyncTimeUI();
 }
 
 // Returns an array of {start: Date, end: Date} ranges for the active period (empty = no filter)
@@ -4849,6 +4961,7 @@ function applyOverallFilters() {
       tbody.appendChild(tr);
     }
   }
+  orSyncTimeUI();
 }
 
 // Shared cell renderer — number always centered, pipe + % to its right, pending below without shifting number
