@@ -814,8 +814,34 @@
     position: absolute; top: calc(100% + 6px); left: 0;
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.14);
-    padding: 8px; z-index: 50; min-width: 200px; max-height: 320px; overflow-y: auto;
+    padding: 8px; z-index: 50; width: 440px; max-width: calc(100vw - 48px); max-height: 340px; overflow-y: auto;
   }
+  .or-ici-btn {
+    display: inline-flex; align-items: center; gap: 10px; min-width: 130px; justify-content: space-between; text-align: left;
+  }
+  .or-ici-btn::after {
+    content: ''; width: 6px; height: 6px; margin-top: -3px;
+    border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted); transform: rotate(45deg);
+  }
+  .or-ici-search {
+    width: 100%; box-sizing: border-box; margin-bottom: 8px; padding: 7px 10px;
+    font-family: 'Inter', sans-serif; font-size: 0.8rem; color: var(--text);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; outline: none;
+  }
+  .or-ici-search:focus { border-color: var(--accent1); }
+  .or-ici-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 2px; }
+  .or-ici-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .or-ici-tag {
+    display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600;
+    color: var(--accent4); background: rgba(160,72,122,0.08); border: 1px solid rgba(160,72,122,0.35);
+    border-radius: 7px;
+  }
+  .or-ici-tag button {
+    border: none; background: none; cursor: pointer; color: var(--accent1);
+    font-size: 0.9rem; line-height: 1; padding: 0 3px; border-radius: 4px;
+  }
+  .or-ici-tag button:hover { background: rgba(160,72,122,0.18); }
   .or-ici-option {
     display: flex; align-items: center; gap: 8px;
     padding: 6px 8px; border-radius: 6px; cursor: pointer;
@@ -823,7 +849,7 @@
   }
   .or-ici-option:hover { background: var(--surface2); }
   .or-ici-option input { accent-color: var(--accent1); cursor: pointer; }
-  .or-ici-option.or-ici-all { font-weight: 700; border-bottom: 1px dashed var(--border); margin-bottom: 4px; padding-bottom: 8px; }
+  .or-ici-option.or-ici-all { font-weight: 700; border-bottom: 1px dashed var(--border); margin-bottom: 6px; padding-bottom: 8px; border-radius: 6px 6px 0 0; }
 
   /* ── SPECIAL / DERIVED RATIO METRICS ── */
   .or-ratio-section {
@@ -1828,12 +1854,13 @@
             </select>
           </div>
           <div class="hc-toolbar-divider"></div>
-          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;">
+          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;flex:1;min-width:0;">
             <span class="hc-toolbar-label">ICI</span>
             <div class="or-ici-wrap" id="or-ici-wrap">
-              <button class="hc-select" id="or-ici-btn" style="min-width:160px;text-align:left;" onclick="orToggleICIPanel(event)">All ICIs ▾</button>
+              <button class="hc-select or-ici-btn" id="or-ici-btn" onclick="orToggleICIPanel(event)">All ICIs</button>
               <div class="or-ici-panel" id="or-ici-panel" hidden></div>
             </div>
+            <div class="or-ici-tags" id="or-ici-tags"></div>
           </div>
         </div>
 
@@ -1843,7 +1870,6 @@
       <div id="or-metrics-row" style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;margin-bottom:20px;">
         <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"></div>
         <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
-          <div class="or-ratio-label">⚡ Special</div>
           <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
         </div>
       </div>
@@ -4239,9 +4265,21 @@ function _syncICIUI() {
   if (allCb) allCb.checked = _orICIFilter.size === 0;
   const btn = document.getElementById("or-ici-btn");
   if (btn) {
-    if (_orICIFilter.size === 0) btn.textContent = "All ICIs ▾";
-    else if (_orICIFilter.size === 1) btn.textContent = [..._orICIFilter][0] + " ▾";
-    else btn.textContent = _orICIFilter.size + " ICIs ▾";
+    btn.textContent = _orICIFilter.size === 0 ? "All ICIs" : _orICIFilter.size + " selected";
+  }
+  const tags = document.getElementById("or-ici-tags");
+  if (tags) {
+    tags.innerHTML = "";
+    [..._orICIFilter].forEach(i => {
+      const t = document.createElement("span");
+      t.className = "or-ici-tag";
+      t.appendChild(document.createTextNode(i));
+      const x = document.createElement("button");
+      x.type = "button"; x.title = "Remove"; x.textContent = "×";
+      x.addEventListener("click", () => orToggleICI(i));
+      t.appendChild(x);
+      tags.appendChild(t);
+    });
   }
 }
 
@@ -4266,17 +4304,26 @@ function orUpdateFilterDropdowns() {
     [..._orICIFilter].forEach(i => { if (!_orICIs.includes(i)) _orICIFilter.delete(i); });
 
     iciPanel.innerHTML = `
+      <input type="text" class="or-ici-search" id="or-ici-search" placeholder="Search ICIs…" autocomplete="off">
       <label class="or-ici-option or-ici-all">
         <input type="checkbox" id="or-ici-all-cb" onclick="orClearICI()">
         All ICIs
       </label>
+      <div class="or-ici-grid" id="or-ici-grid"></div>
     `;
+    const grid = iciPanel.querySelector("#or-ici-grid");
     _orICIs.forEach(i => {
       const label = document.createElement("label");
       label.className = "or-ici-option";
       label.innerHTML = `<input type="checkbox" data-ici="${i}"> ${i}`;
       label.querySelector("input").addEventListener("click", () => orToggleICI(i));
-      iciPanel.appendChild(label);
+      grid.appendChild(label);
+    });
+    iciPanel.querySelector("#or-ici-search").addEventListener("input", (ev) => {
+      const q = ev.target.value.trim().toLowerCase();
+      grid.querySelectorAll(".or-ici-option").forEach(l => {
+        l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none";
+      });
     });
     _syncICIUI();
   }
