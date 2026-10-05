@@ -775,6 +775,17 @@
     color: var(--muted); background: var(--surface2); border: 1.5px solid var(--border);
     border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: all 0.15s;
   }
+  .or-week-list button, .or-day-row button { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .or-strip-check {
+    width: 16px; height: 16px; flex-shrink: 0; box-sizing: border-box; border-radius: 4px;
+    border: 1.5px solid var(--border); background: var(--surface); position: relative; transition: all 0.15s;
+  }
+  .or-strip-check:hover { border-color: var(--accent1); }
+  .or-strip-check.on { background: var(--accent1); border-color: var(--accent1); }
+  .or-strip-check.on::after {
+    content: ''; position: absolute; left: 4px; top: 0px; width: 4px; height: 9px;
+    border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+  }
   .or-day-row { display: flex; flex-wrap: wrap; gap: 5px; }
   .or-day-row button { text-align: center; padding: 6px 9px; }
   .or-week-list button:hover, .or-day-row button:hover { border-color: var(--accent2); color: var(--accent2); }
@@ -1642,11 +1653,11 @@
 
         <div id="or-pane-week">
           <div class="or-period-section">
-            <div class="or-period-section-label">Week starting (select multiple)</div>
+            <div class="or-period-section-label">Week starting</div>
             <div class="or-week-list" id="or-week-list"></div>
           </div>
           <div class="or-period-section" id="or-day-section">
-            <div class="or-period-section-label">Day (select multiple)</div>
+            <div class="or-period-section-label">Day</div>
             <div class="or-week-list" id="or-day-row"></div>
           </div>
         </div>
@@ -4417,19 +4428,46 @@ function orSetTimeTab(tab) {
   orSyncTimeUI();
 }
 
-function orPickWeek(w) {
+// multi = true (checkbox, or ⌘/Ctrl-click) toggles one item in the selection;
+// a plain click solos it.
+function orPickWeek(w, multi) {
   // Switching from a period into week mode starts a fresh week selection
   if (_orPeriod) { _orPeriod = ""; _orMonths.clear(); _orQuarterVal = -1; _orPeriodClearCustom(); _orWeekSel.clear(); }
-  if (_orWeekSel.has(w)) _orWeekSel.delete(w); else _orWeekSel.add(w);
+  if (multi) {
+    if (_orWeekSel.has(w)) _orWeekSel.delete(w); else _orWeekSel.add(w);
+  } else {
+    _orWeekSel.clear(); _orWeekSel.add(w);
+  }
   _orDaySel.clear();
   applyOverallFilters();
 }
 
-function orPickDay(d) {
+function orPickDay(d, multi) {
   if (d === "all") _orDaySel.clear();
-  else if (_orDaySel.has(d)) _orDaySel.delete(d);
-  else _orDaySel.add(d);
+  else if (multi) {
+    if (_orDaySel.has(d)) _orDaySel.delete(d); else _orDaySel.add(d);
+  } else {
+    _orDaySel.clear(); _orDaySel.add(d);
+  }
   applyOverallFilters();
+}
+
+// A list strip: label on the left, multi-select checkbox on the right
+function orMakeStrip(text, active, onPick, withCheck) {
+  const b = document.createElement("button");
+  b.classList.toggle("active", active);
+  const t = document.createElement("span");
+  t.textContent = text;
+  b.appendChild(t);
+  if (withCheck) {
+    const c = document.createElement("span");
+    c.className = "or-strip-check" + (active ? " on" : "");
+    c.title = "Add to / remove from selection";
+    c.addEventListener("click", (e) => { e.stopPropagation(); onPick(true); });
+    b.appendChild(c);
+  }
+  b.addEventListener("click", (e) => onPick(e.metaKey || e.ctrlKey));
+  return b;
 }
 
 // Single source of truth for the Time Range button + panel: reflects whichever of
@@ -4466,22 +4504,15 @@ function orSyncTimeUI() {
   const list = document.getElementById("or-week-list");
   list.innerHTML = "";
   [..._orWeeks].reverse().forEach(w => {
-    const b = document.createElement("button");
-    b.textContent = w;
-    b.classList.toggle("active", mode === "week" && _orWeekSel.has(w));
-    b.onclick = () => orPickWeek(w);
-    list.appendChild(b);
+    list.appendChild(orMakeStrip(w, mode === "week" && _orWeekSel.has(w), (multi) => orPickWeek(w, multi), true));
   });
   const row = document.getElementById("or-day-row");
   row.innerHTML = "";
   document.getElementById("or-day-section").style.display = mode === "week" ? "" : "none";
   const opts = [{ key: "all", lbl: "All Days" }, ..._orDayOptions];
   opts.forEach(o => {
-    const b = document.createElement("button");
-    b.textContent = o.lbl;
-    b.classList.toggle("active", o.key === "all" ? _orDaySel.size === 0 : _orDaySel.has(o.key));
-    b.onclick = () => orPickDay(o.key);
-    row.appendChild(b);
+    const isAll = o.key === "all";
+    row.appendChild(orMakeStrip(o.lbl, isAll ? _orDaySel.size === 0 : _orDaySel.has(o.key), (multi) => orPickDay(o.key, multi), !isAll));
   });
 }
 
