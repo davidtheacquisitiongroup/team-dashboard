@@ -2582,6 +2582,8 @@ function weekRange(wNum) {
 function empActiveForWeek(wNum) {
   const range = weekRange(wNum);
   if (!range) return [];
+  // Future weeks have no real data — don't carry today's roster forward into them
+  if (range.start > new Date()) return [];
   return _empRoster.filter(p => {
     if (!p.start) return false;
     if (p.start > range.end) return false;       // started after week ended
