@@ -3823,7 +3823,8 @@ async function fetchOverall() {
         const candidate = (r[2] || "").trim();
         if (!candidate) return;                // no candidate = skip
         const recruiter = (r[3] || "").trim();
-        if (orExcluded(recruiter)) return;
+        if (orExcluded(recruiter)) return;     // no recruiter = skip
+        if (!(r[1] || "").trim()) return;      // no date = skip (a row only counts if it has candidate + date + recruiter)
         const clientRaw = (r[10] || "").trim();
         const client = normalizeClient(clientRaw) || clientTags[idx];
 
