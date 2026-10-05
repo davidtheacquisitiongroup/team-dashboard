@@ -2617,13 +2617,52 @@ function empBuildWeeklyData() {
   return result;
 }
 
+// Parse one headcount block (first row = header) into [week, office, city, JMC, SMC, MM, GM]
+// with office normalised to "ICI 035". Roles missing from the block are null (unknown), not 0.
+function hcParseBlock(values) {
+  if (!values || !values.length) return [];
+  const hdr = values[0].map(h => (h || "").trim().toUpperCase());
+  const idx = k => hdr.indexOf(k);
+  const iWeek = 0, iOff = 1, iCity = 2;
+  const num = (r, i) => i < 0 ? null : (parseInt(r[i]) || 0);
+  return values.slice(1)
+    .filter(r => parseInt(r[iWeek]) && r[iOff])
+    .map(r => {
+      const office = String(r[iOff]).trim().replace(/^ICI\s*-?\s*/i, "ICI ");
+      return [String(parseInt(r[iWeek])), office, (r[iCity] || "").trim(),
+              num(r, idx("JMC")), num(r, idx("SMC")), num(r, idx("MM")), num(r, idx("GM"))];
+    });
+}
+
+// For weeks present in the new agent-list report, use it; otherwise fall back to the original
+// report. The new report has no GM column, so GM comes from the original report's row for the
+// same week + office when one exists.
+function hcMergeBlocks(newRows, oldRows) {
+  const newWeeks = new Set(newRows.map(r => r[0]));
+  const oldByKey = new Map(oldRows.map(r => [r[0] + "|" + r[1], r]));
+  const merged = [];
+  oldRows.forEach(r => { if (!newWeeks.has(r[0])) merged.push(r); });
+  newRows.forEach(r => {
+    const o = oldByKey.get(r[0] + "|" + r[1]);
+    const gm = r[6] !== null ? r[6] : (o && o[6] !== null ? o[6] : 0);
+    merged.push([r[0], r[1], r[2], r[3] ?? 0, r[4] ?? 0, r[5] ?? 0, gm]);
+  });
+  // Old rows can also carry nulls if a role column is ever dropped
+  return merged.map(r => r.map((v, i) => (i >= 3 && v === null) ? 0 : v));
+}
+
 async function fetchHeadcount() {
   try {
-    const [telRows, empRows] = await Promise.all([
-      getRange("Headcount!A2:G"),
-      getRange("Headcount!R2:W"),
+    // Headcount tab has three blocks (columns can be re-labelled, so roles are read by header name):
+    //   A:F  new agent-list report  (Week #, ICI Code "ICI - 035", City, MM, SMC, JMC) — weeks 1026+
+    //   H:N  original weekly report (Week #, Office "ICI 035", City, SMC, JMC, MM, GM) — weeks 998+
+    //   Y:AD Empire roster
+    const [newBlock, oldBlock, empRows] = await Promise.all([
+      getRange("Headcount!A1:F"),
+      getRange("Headcount!H1:N"),
+      getRange("Headcount!Y2:AD"),
     ]);
-    _hcAllRows = telRows.filter(r => r[0] && r[1]);
+    _hcAllRows = hcMergeBlocks(hcParseBlock(newBlock), hcParseBlock(oldBlock));
 
     // Parse Empire roster
     _empRoster = empRows
