@@ -1639,8 +1639,7 @@
     <div class="logo-sub">Recruitment Intelligence</div>
   </div>
   <div class="header-right">
-    <select id="dashboard-week-filter" class="header-week-select" style="display:none;" onchange="onDashboardWeekChange()"><option value="all">All Weeks</option></select>
-    <div class="header-ctrl-group" id="or-period-group" style="display:none;">
+    <div class="header-ctrl-group" id="or-period-group" style="display:inline-flex;">
       <span class="header-ctrl-label">Time Range</span>
     <div class="or-period-wrap" id="or-period-wrap">
       <button class="header-week-select or-time-btn" id="or-period-btn" onclick="orTogglePeriodPanel(event)">All Time</button>
@@ -2006,20 +2005,17 @@ function showPage(name) {
   trackEvent('page_view_dashboard', { page: name });
 
   // Show the right header control per page, hide others
-  const ids = ["dashboard-week-filter","or-week-group","or-day-group","hc-week-select-header","or-header-divider","or-period-group"];
+  const ids = ["hc-week-select-header","or-period-group"];
   ids.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; });
 
   if (name === "overview") {
-    const el = document.getElementById("dashboard-week-filter"); if (el) el.style.display = "";
+    const el = document.getElementById("or-period-group"); if (el) el.style.display = "inline-flex";
+    if (_orAllRows.length) renderDashboardFromRaw();
   } else if (name === "headcount") {
     const el = document.getElementById("hc-week-select-header"); if (el) el.style.display = "";
   } else if (name === "overall") {
-    const el = document.getElementById("or-week-group"); if (el) el.style.display = "inline-flex";
-    const el2 = document.getElementById("or-day-group"); if (el2) el2.style.display = "inline-flex";
-    const el3 = document.getElementById("or-header-divider"); if (el3) el3.style.display = "";
     const el4 = document.getElementById("or-period-group"); if (el4) el4.style.display = "inline-flex";
-  } else if (name === "recruiter") {
-    const el = document.getElementById("dashboard-week-filter"); if (el) el.style.display = "";
+    if (_orAllRows.length) applyOverallFilters();
   }
 }
 
@@ -3898,8 +3894,7 @@ async function fetchOverall() {
     orUpdateFilterDropdowns();
     applyOverallFilters();
 
-    // Populate dashboard week filter and render dashboard from raw data
-    populateDashboardWeekFilter();
+    // Render dashboard from raw data (shares the Time Range with Overall Recruitment)
     renderDashboardFromRaw();
 
     // ICI Conversion tab
@@ -4428,6 +4423,37 @@ function orSetTimeTab(tab) {
   orSyncTimeUI();
 }
 
+// Day strips offered in the Time Range panel: weekdays present in baseRows.
+// Also drops selected days that are no longer available.
+function orSetDayOptions(baseRows) {
+  const dayMap = new Map();
+  baseRows.forEach(r => {
+    const parsed = orParseDateKey(r.date);
+    if (!parsed) return;
+    if (parsed.weekday === 0 || parsed.weekday === 6) return; // skip Sun & Sat
+    if (!dayMap.has(parsed.key)) dayMap.set(parsed.key, parsed.lbl);
+  });
+  _orDayOptions = [...dayMap.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([key, lbl]) => ({ key, lbl }));
+  [..._orDaySel].forEach(k => { if (!dayMap.has(k)) _orDaySel.delete(k); });
+}
+
+// Rows narrowed by the shared Time Range (period, else weeks) — day filter excluded
+function orTimeScopedRows(rows) {
+  const ranges = orPeriodDateRanges();
+  if (ranges.length) {
+    return rows.filter(r => { const d = orParseRowDate(r.date); return d && orDateInPeriod(d, ranges); });
+  }
+  if (_orWeekSel.size) return rows.filter(r => _orWeekSel.has(r.weekStart));
+  return rows;
+}
+
+// The Time Range control is shared by Team Leaderboard and Overall Recruitment
+function orTimeChanged() {
+  const active = document.querySelector(".page.active");
+  if (active && active.id === "page-overview") renderDashboardFromRaw();
+  else applyOverallFilters();
+}
+
 // multi = true (checkbox, or ⌘/Ctrl-click) toggles one item in the selection;
 // a plain click solos it.
 function orPickWeek(w, multi) {
@@ -4439,7 +4465,7 @@ function orPickWeek(w, multi) {
     _orWeekSel.clear(); _orWeekSel.add(w);
   }
   _orDaySel.clear();
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 function orPickDay(d, multi) {
@@ -4449,7 +4475,7 @@ function orPickDay(d, multi) {
   } else {
     _orDaySel.clear(); _orDaySel.add(d);
   }
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 // A list strip: label on the left, multi-select checkbox on the right
@@ -4560,7 +4586,7 @@ function orToggleMonth(m) {
   _orPeriodClearCustom();
   if (_orPeriod) _orPeriodClearWeekDay();
   _syncPeriodUI();
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 function orSetQuarter(q) {
@@ -4570,7 +4596,7 @@ function orSetQuarter(q) {
   _orPeriodClearCustom();
   if (_orPeriod) _orPeriodClearWeekDay();
   _syncPeriodUI();
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 function orSetYTD() {
@@ -4580,7 +4606,7 @@ function orSetYTD() {
   _orPeriodClearCustom();
   if (_orPeriod) _orPeriodClearWeekDay();
   _syncPeriodUI();
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 // Called on change of either date input. A start with no end = single day.
@@ -4593,7 +4619,7 @@ function orSetCustomRange() {
     _orPeriod = _orPeriod === "custom" ? "" : _orPeriod;
     _orCustomStart = ""; _orCustomEnd = "";
     _syncPeriodUI();
-    applyOverallFilters();
+    orTimeChanged();
     return;
   }
   _orCustomStart = startVal;
@@ -4603,7 +4629,7 @@ function orSetCustomRange() {
   _orQuarterVal = -1;
   _orPeriodClearWeekDay();
   _syncPeriodUI();
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 function orClearPeriod() {
@@ -4614,7 +4640,7 @@ function orClearPeriod() {
   _orQuarterVal = -1;
   _orPeriodClearCustom();
   _syncPeriodUI();
-  applyOverallFilters();
+  orTimeChanged();
 }
 
 function _syncPeriodUI() {
@@ -4671,28 +4697,30 @@ function orParseRowDate(dateStr) {
   return null;
 }
 
+// Parse date string to {key: YYYY-MM-DD, weekday: 0-6} safely without timezone shift
+function orParseDateKey(dateStr) {
+  if (!dateStr) return null;
+  // Extract numeric day, month name, year — ignore any leading weekday text
+  const match = dateStr.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
+  if (!match) return null;
+  const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const day   = parseInt(match[1]);
+  const month = months[match[2]];
+  const year  = parseInt(match[3]);
+  if (month === undefined || isNaN(day) || isNaN(year)) return null;
+  const safe    = new Date(year, month, day); // local, no UTC shift
+  const weekday = safe.getDay(); // 0=Sun, 6=Sat
+  const key     = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const lbl     = safe.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  return { key, lbl, weekday };
+}
+
 function applyOverallFilters() {
   // Sync from DOM (ICI filter is panel-driven, synced directly by orToggleICI/orClearICI)
   const recSel  = document.getElementById("or-recruiter-filter");
   if (recSel)  _orRecruiterFilter = recSel.value;
 
-  // Parse date string to {key: YYYY-MM-DD, weekday: 0-6} safely without timezone shift
-  function parseDateKey(dateStr) {
-    if (!dateStr) return null;
-    // Extract numeric day, month name, year — ignore any leading weekday text
-    const match = dateStr.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
-    if (!match) return null;
-    const months = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
-    const day   = parseInt(match[1]);
-    const month = months[match[2]];
-    const year  = parseInt(match[3]);
-    if (month === undefined || isNaN(day) || isNaN(year)) return null;
-    const safe    = new Date(year, month, day); // local, no UTC shift
-    const weekday = safe.getDay(); // 0=Sun, 6=Sat
-    const key     = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-    const lbl     = safe.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-    return { key, lbl, weekday };
-  }
+  const parseDateKey = orParseDateKey;
 
   // Populate day dropdown based on current week + client + recruiter + ICI filters
   {
@@ -5002,41 +5030,12 @@ document.addEventListener("DOMContentLoaded", () => {
 //  DASHBOARD — CALCULATED FROM RAW DATA
 // ════════════════════════════════════════════════════════
 
-function populateDashboardWeekFilter() {
-  const sel = document.getElementById("dashboard-week-filter");
-  if (!sel || !_orAllRows.length) return;
-  const currentVal = sel.value;
-  sel.innerHTML = `<option value="all">All Weeks</option>`;
-  _orWeeks.forEach(w => {
-    const opt = document.createElement("option");
-    opt.value = w;
-    // Try to get a date range label from WEEK_DATES using numeric week number
-    const wNum = parseInt(w);
-    const d = WEEK_DATES[wNum];
-    opt.textContent = d ? `Wk ${wNum}  ·  ${d.start}–${d.end}` : w;
-    sel.appendChild(opt);
-  });
-  if (!currentVal || currentVal === "all" || !_orWeeks.includes(currentVal)) {
-    sel.value = _orWeeks[_orWeeks.length - 1] || "all";
-  } else {
-    sel.value = currentVal;
-  }
-  // Show immediately since overview is the default page
-  const activePage = document.querySelector('.page.active');
-  if (!activePage || activePage.id === 'page-overview') sel.style.display = "";
-  onDashboardWeekChange();
-}
-
-function onDashboardWeekChange() {
-  renderDashboardFromRaw();
-}
-
 function renderDashboardFromRaw() {
-  const sel = document.getElementById("dashboard-week-filter");
-  const selectedWeek = sel ? sel.value : "all";
-
-  let rows = _orAllRows;
-  if (selectedWeek !== "all") rows = rows.filter(r => r.weekStart === selectedWeek);
+  const scoped = orTimeScopedRows(_orAllRows);
+  orSetDayOptions(scoped);
+  let rows = scoped;
+  if (_orDaySel.size) rows = rows.filter(r => { const k = orParseDateKey(r.date); return k && _orDaySel.has(k.key); });
+  orSyncTimeUI();
 
   if (!rows.length) {
     // Clear displays
