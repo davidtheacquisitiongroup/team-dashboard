@@ -1897,13 +1897,22 @@
             </select>
           </div>
           <div class="hc-toolbar-divider"></div>
-          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;flex:1;min-width:0;">
+          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
             <span class="hc-toolbar-label">ICI</span>
             <div class="or-ici-wrap" id="or-ici-wrap">
               <button class="hc-select or-ici-btn" id="or-ici-btn" onclick="orToggleICIPanel(event)">All ICIs</button>
               <div class="or-ici-panel" id="or-ici-panel" hidden></div>
             </div>
             <div class="or-ici-tags" id="or-ici-tags"></div>
+          </div>
+          <div class="hc-toolbar-divider"></div>
+          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;flex:1;min-width:0;">
+            <span class="hc-toolbar-label">Source</span>
+            <div class="or-ici-wrap" id="or-source-wrap">
+              <button class="hc-select or-ici-btn" id="or-source-btn" onclick="orToggleSourcePanel(event)">All Sources</button>
+              <div class="or-ici-panel" id="or-source-panel" style="width:260px;" hidden></div>
+            </div>
+            <div class="or-ici-tags" id="or-source-tags"></div>
           </div>
         </div>
 
@@ -3830,6 +3839,8 @@ let _orAllRows    = [];
 let _orWeeks      = [];
 let _orRecruiters = [];
 let _orICIs       = [];
+let _orSources    = [];
+const OR_NO_SOURCE = "(No source)";
 
 // Client label normalizer
 function normalizeClient(raw) {
@@ -3860,6 +3871,7 @@ let _orClient        = "all";
 let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
 let _orRecruiterFilter = "all";
 let _orICIFilter       = new Set(); // empty = "All ICIs"
+let _orSourceFilter    = new Set(); // empty = "All Sources"
 const _orWeekSel       = new Set(); // selected week-start values (empty = no week filter)
 const _orDaySel        = new Set(); // selected day keys YYYY-MM-DD (empty = all days in selected weeks)
 let _orDayOptions      = [];        // [{key,lbl}] days available in the selected weeks
@@ -3868,14 +3880,33 @@ let _orWeeksInit       = false;
 async function fetchOverall() {
   try {
     const sheetNames = ["ImportTELUS", "ImportCG", "ImportEmpire"];
-    const allFetches = sheetNames.map(s => getRange(`'${s}'!A3:M`).catch(()=>[]));
+    // Row 1 = headers. Columns are read by header name because tabs get new columns inserted
+    // (e.g. ImportTELUS gained "Source"), which shifts everything after them.
+    const allFetches = sheetNames.map(s => getRange(`'${s}'!A1:T`).catch(()=>[]));
     const results = await Promise.all(allFetches);
 
     _orAllRows = [];
     const clientTags = ["TELUS", "Common Good", "Empire Telecom"];
-    results.forEach((rows, idx) => {
-      rows.forEach(r => {
-        // Skip header row or array-formula row at top
+    const HDR_KEYS = {
+      ici: ["ici","office"], date: ["date"], candidate: ["candidatename"], source: ["source"],
+      recruiter: ["recruiter"], prelim: ["prelimresult"], secondary: ["secondaryresult"],
+      hired: ["hiredresult"], day1: ["day1result"], backfill: ["backfill"],
+      weekStart: ["weekstart"], client: ["client"],
+    };
+    results.forEach((values, idx) => {
+      const hdr = (values[0] || []).map(h => String(h || "").toLowerCase().replace(/[^a-z0-9]/g, ""));
+      const col = {};
+      Object.entries(HDR_KEYS).forEach(([f, names]) => { col[f] = hdr.findIndex(h => names.includes(h)); });
+      if (col.ici < 0 || col.candidate < 0 || col.recruiter < 0) {
+        console.warn("fetchOverall: unexpected headers in", sheetNames[idx], values[0]);
+        return;
+      }
+      const cell = (r, f) => col[f] < 0 ? "" : (r[col[f]] || "");
+      values.slice(1).forEach(rr => {
+        // Remap the row to the legacy positional layout used below, so the rest is unchanged
+        const r = [cell(rr,"ici"), cell(rr,"date"), cell(rr,"candidate"), cell(rr,"recruiter"),
+                   cell(rr,"prelim"), cell(rr,"secondary"), cell(rr,"hired"), cell(rr,"day1"),
+                   cell(rr,"backfill"), cell(rr,"weekStart"), cell(rr,"client"), cell(rr,"source")];
         if (!r[0] && !r[2]) return;           // completely empty row
         if (r[0] === "ICI") return;            // header
         if (r[0] && r[0].startsWith('"')) return; // array formula row
@@ -3912,6 +3943,7 @@ async function fetchOverall() {
           day1:      normResult(r[7]),   // H: Day1_Result
           backfill:  norm(r[8]),   // I: Backfill
           weekStart: norm(r[9]),   // J: Week_Start
+          source:    norm(r[11]),   // Source (ImportTELUS only)
           client,
         });
       });
@@ -3928,6 +3960,17 @@ async function fetchOverall() {
         if (!recruiterMap.has(norm.toLowerCase())) recruiterMap.set(norm.toLowerCase(), norm);
       }
     });
+
+    // Sources: canonicalise case/spacing ("indeed" vs "Indeed"); blank -> "(No source)"
+    const sourceCanon = new Map();
+    _orAllRows.forEach(r => {
+      const raw = (r.source || "").trim().replace(/\s+/g, " ");
+      if (!raw) { r.source = OR_NO_SOURCE; return; }
+      const k = raw.toLowerCase();
+      if (!sourceCanon.has(k)) sourceCanon.set(k, raw);
+      r.source = sourceCanon.get(k);
+    });
+    _orSources = [...new Set(_orAllRows.map(r => r.source))].sort((a, b) => a === OR_NO_SOURCE ? 1 : b === OR_NO_SOURCE ? -1 : a.localeCompare(b));
 
     _orWeeks      = [...weekSet].sort();
     _orRecruiters = [...recruiterMap.values()].sort();
@@ -4327,12 +4370,81 @@ function orInitMetricPills() {
   });
 }
 
+function orToggleSourcePanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById("or-source-panel");
+  if (!panel) return;
+  ["or-period-panel", "or-ici-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  panel.hidden = !panel.hidden;
+}
+
+function orToggleSource(src) {
+  if (_orSourceFilter.has(src)) _orSourceFilter.delete(src);
+  else _orSourceFilter.add(src);
+  _syncSourceUI();
+  applyOverallFilters();
+}
+
+function orClearSource() {
+  _orSourceFilter.clear();
+  _syncSourceUI();
+  applyOverallFilters();
+}
+
+function _syncSourceUI() {
+  document.querySelectorAll("#or-source-panel input[data-source]").forEach(cb => {
+    cb.checked = _orSourceFilter.has(cb.dataset.source);
+  });
+  const allCb = document.getElementById("or-source-all-cb");
+  if (allCb) allCb.checked = _orSourceFilter.size === 0;
+  const btn = document.getElementById("or-source-btn");
+  if (btn) btn.textContent = _orSourceFilter.size === 0 ? "All Sources" : _orSourceFilter.size + " selected";
+  const tags = document.getElementById("or-source-tags");
+  if (tags) {
+    tags.innerHTML = "";
+    [..._orSourceFilter].forEach(sv => {
+      const t = document.createElement("span");
+      t.className = "or-ici-tag";
+      t.appendChild(document.createTextNode(sv));
+      const x = document.createElement("button");
+      x.type = "button"; x.title = "Remove"; x.textContent = "×";
+      x.addEventListener("click", () => orToggleSource(sv));
+      t.appendChild(x);
+      tags.appendChild(t);
+    });
+  }
+}
+
+function orBuildSourcePanel() {
+  const panel = document.getElementById("or-source-panel");
+  if (!panel) return;
+  [..._orSourceFilter].forEach(sv => { if (!_orSources.includes(sv)) _orSourceFilter.delete(sv); });
+  panel.innerHTML = `
+    <label class="or-ici-option or-ici-all">
+      <input type="checkbox" id="or-source-all-cb" onclick="orClearSource()">
+      All Sources
+    </label>
+    <div id="or-source-list"></div>
+  `;
+  const list = panel.querySelector("#or-source-list");
+  _orSources.forEach(sv => {
+    const label = document.createElement("label");
+    label.className = "or-ici-option";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.dataset.source = sv;
+    cb.addEventListener("click", () => orToggleSource(sv));
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" " + sv));
+    list.appendChild(label);
+  });
+  _syncSourceUI();
+}
+
 function orToggleICIPanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-ici-panel");
   if (!panel) return;
-  const periodPanel = document.getElementById("or-period-panel");
-  if (periodPanel) periodPanel.hidden = true;
+  ["or-period-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -4376,6 +4488,7 @@ function _syncICIUI() {
 }
 
 function orUpdateFilterDropdowns() {
+  orBuildSourcePanel();
   const recSel = document.getElementById("or-recruiter-filter");
   const iciPanel = document.getElementById("or-ici-panel");
 
@@ -4609,8 +4722,7 @@ function orTogglePeriodPanel(e) {
   orSyncTimeUI();
   const panel = document.getElementById("or-period-panel");
   if (!panel) return;
-  const iciPanel = document.getElementById("or-ici-panel");
-  if (iciPanel) iciPanel.hidden = true;
+  ["or-ici-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -4622,6 +4734,9 @@ document.addEventListener("click", (e) => {
   const iciPanel = document.getElementById("or-ici-panel");
   const iciWrap = document.getElementById("or-ici-wrap");
   if (iciPanel && !iciPanel.hidden && iciWrap && !iciWrap.contains(e.target)) iciPanel.hidden = true;
+  const srcPanel = document.getElementById("or-source-panel");
+  const srcWrap = document.getElementById("or-source-wrap");
+  if (srcPanel && !srcPanel.hidden && srcWrap && !srcWrap.contains(e.target)) srcPanel.hidden = true;
 });
 
 function _orPeriodClearWeekDay() {
@@ -4796,6 +4911,7 @@ function applyOverallFilters() {
     }
     if (_orRecruiterFilter !== "all") baseRows = baseRows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
     if (_orICIFilter.size > 0)        baseRows = baseRows.filter(r => _orICIFilter.has(r.ici.trim()));
+    if (_orSourceFilter.size > 0)     baseRows = baseRows.filter(r => _orSourceFilter.has(r.source));
 
     const dayMap = new Map();
     baseRows.forEach(r => {
@@ -4826,6 +4942,7 @@ function applyOverallFilters() {
   }
   if (_orRecruiterFilter !== "all")  rows = rows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
   if (_orICIFilter.size > 0)         rows = rows.filter(r => _orICIFilter.has(r.ici.trim()));
+  if (_orSourceFilter.size > 0)      rows = rows.filter(r => _orSourceFilter.has(r.source));
   if (_orDaySel.size)                rows = rows.filter(r => {
     const parsed = parseDateKey(r.date);
     return parsed && _orDaySel.has(parsed.key);
