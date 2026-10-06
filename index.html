@@ -2541,8 +2541,9 @@ let _empRoster = []; // { office, start, term, firstName, lastName, title }
 // Office/role config for Empire Telecom
 // Weeks from here on come from the Rehash agent list (A:F); earlier weeks from the Admin list (H:N).
 // The Rehash list has no GM column, so GM is unknown (shown as "—") for those weeks.
-const HC_REHASH_START_WEEK = 1026;
-const hcGmText = (week, gm) => week >= HC_REHASH_START_WEEK ? "—" : gm;
+const HC_REHASH_START_WEEK = 1032;
+let _hcRehashHasGM = false; // true if the Rehash block gains a GM column
+const hcGmText = (week, gm) => (week >= HC_REHASH_START_WEEK && !_hcRehashHasGM) ? "—" : gm;
 
 const EMP_OFFICES = {
   "ATL - GA": "Atlanta",
@@ -2636,23 +2637,13 @@ function hcParseBlock(values) {
 }
 
 // Weeks before HC_REHASH_START_WEEK come from the original (Admin) report, later weeks only
-// from the new (Rehash) agent list. ICI 002A is the same office as ICI 004; if both labels
-// land on the same week they are summed.
+// from the new (Rehash) agent list. ICI 002A was renamed ICI 004 (same office, never both in
+// one week), so it is simply relabelled.
 function hcMergeBlocks(newRows, oldRows) {
-  const picked = [
+  return [
     ...oldRows.filter(r => parseInt(r[0]) < HC_REHASH_START_WEEK),
     ...newRows.filter(r => parseInt(r[0]) >= HC_REHASH_START_WEEK),
-  ];
-  const byKey = new Map();
-  picked.forEach(r => {
-    const office = r[1] === "ICI 002A" ? "ICI 004" : r[1];
-    const row = [r[0], office, r[2], r[3] ?? 0, r[4] ?? 0, r[5] ?? 0, r[6] ?? 0];
-    const k = row[0] + "|" + office;
-    const ex = byKey.get(k);
-    if (ex) { for (let i = 3; i <= 6; i++) ex[i] += row[i]; }
-    else byKey.set(k, row);
-  });
-  return [...byKey.values()];
+  ].map(r => [r[0], r[1] === "ICI 002A" ? "ICI 004" : r[1], r[2], r[3] ?? 0, r[4] ?? 0, r[5] ?? 0, r[6] ?? 0]);
 }
 
 async function fetchHeadcount() {
@@ -2677,6 +2668,7 @@ async function fetchHeadcount() {
       throw new Error("Headcount headers not found (Week #/ICI Code, Week #/Office, Office Location)");
     }
     const empRows = blockAt(empStart).slice(1);
+    _hcRehashHasGM = blockAt(rehashStart)[0].some(h => (h || "").trim().toUpperCase() === "GM");
     _hcAllRows = hcMergeBlocks(hcParseBlock(blockAt(rehashStart)), hcParseBlock(blockAt(adminStart)));
 
     // Parse Empire roster
