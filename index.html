@@ -1820,10 +1820,6 @@
           <div class="hc-toolbar-divider"></div>
           <div class="hc-toolbar-right">
             <div class="hc-summary-grid">
-              <div class="hc-summary-item hc-summary-total">
-                <span class="hc-summary-val" id="hc-val-total">—</span>
-                <span class="hc-summary-lbl">Total</span>
-              </div>
               <div class="hc-summary-roles">
                 <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-jmc">—</span><span class="hc-summary-lbl">JMC</span></div>
                 <div class="hc-summary-item"><span class="hc-summary-val" id="hc-val-smc">—</span><span class="hc-summary-lbl">SMC</span></div>
@@ -2543,6 +2539,11 @@ function weekLabel(w) {
 let _empRoster = []; // { office, start, term, firstName, lastName, title }
 
 // Office/role config for Empire Telecom
+// Weeks from here on come from the Rehash agent list (A:F); earlier weeks from the Admin list (H:N).
+// The Rehash list has no GM column, so GM is unknown (shown as "—") for those weeks.
+const HC_REHASH_START_WEEK = 1026;
+const hcGmText = (week, gm) => week >= HC_REHASH_START_WEEK ? "—" : gm;
+
 const EMP_OFFICES = {
   "ATL - GA": "Atlanta",
   "ORL - FL": "Orlando",
@@ -2634,35 +2635,49 @@ function hcParseBlock(values) {
     });
 }
 
-// For weeks present in the new agent-list report, use it; otherwise fall back to the original
-// report. The new report has no GM column, so GM comes from the original report's row for the
-// same week + office when one exists.
+// Weeks before HC_REHASH_START_WEEK come from the original (Admin) report, later weeks only
+// from the new (Rehash) agent list. ICI 002A is the same office as ICI 004; if both labels
+// land on the same week they are summed.
 function hcMergeBlocks(newRows, oldRows) {
-  const newWeeks = new Set(newRows.map(r => r[0]));
-  const oldByKey = new Map(oldRows.map(r => [r[0] + "|" + r[1], r]));
-  const merged = [];
-  oldRows.forEach(r => { if (!newWeeks.has(r[0])) merged.push(r); });
-  newRows.forEach(r => {
-    const o = oldByKey.get(r[0] + "|" + r[1]);
-    const gm = r[6] !== null ? r[6] : (o && o[6] !== null ? o[6] : 0);
-    merged.push([r[0], r[1], r[2], r[3] ?? 0, r[4] ?? 0, r[5] ?? 0, gm]);
+  const picked = [
+    ...oldRows.filter(r => parseInt(r[0]) < HC_REHASH_START_WEEK),
+    ...newRows.filter(r => parseInt(r[0]) >= HC_REHASH_START_WEEK),
+  ];
+  const byKey = new Map();
+  picked.forEach(r => {
+    const office = r[1] === "ICI 002A" ? "ICI 004" : r[1];
+    const row = [r[0], office, r[2], r[3] ?? 0, r[4] ?? 0, r[5] ?? 0, r[6] ?? 0];
+    const k = row[0] + "|" + office;
+    const ex = byKey.get(k);
+    if (ex) { for (let i = 3; i <= 6; i++) ex[i] += row[i]; }
+    else byKey.set(k, row);
   });
-  // Old rows can also carry nulls if a role column is ever dropped
-  return merged.map(r => r.map((v, i) => (i >= 3 && v === null) ? 0 : v));
+  return [...byKey.values()];
 }
 
 async function fetchHeadcount() {
   try {
-    // Headcount tab has three blocks (columns can be re-labelled, so roles are read by header name):
-    //   A:F  new agent-list report  (Week #, ICI Code "ICI - 035", City, MM, SMC, JMC) — weeks 1026+
-    //   H:N  original weekly report (Week #, Office "ICI 035", City, SMC, JMC, MM, GM) — weeks 998+
-    //   Y:AD Empire roster
-    const [newBlock, oldBlock, empRows] = await Promise.all([
-      getRange("Headcount!A1:F"),
-      getRange("Headcount!H1:N"),
-      getRange("Headcount!Y2:AD"),
-    ]);
-    _hcAllRows = hcMergeBlocks(hcParseBlock(newBlock), hcParseBlock(oldBlock));
+    // The Headcount tab holds several side-by-side blocks. Columns get inserted/moved over time,
+    // so each block is located by its header text instead of fixed letters:
+    //   Rehash list : "Week #" followed by "ICI Code"  (Week #, ICI Code "ICI - 035", City, MM, SMC, JMC)
+    //   Admin list  : "Week #" followed by "Office"    (Week #, Office "ICI 035", City, SMC, JMC, MM, GM)
+    //   Empire      : starts at "Office Location"      (Office, Start, Term, First, Last, Title)
+    const sheet = await getRange("Headcount!A1:AZ");
+    const hdr = (sheet[0] || []).map(h => (h || "").trim());
+    const blockAt = (start) => {
+      let end = start;
+      while (end < hdr.length && hdr[end] !== "") end++;
+      return sheet.map(r => r.slice(start, end));
+    };
+    const weekCols = hdr.map((h, i) => h === "Week #" ? i : -1).filter(i => i >= 0);
+    const rehashStart = weekCols.find(i => hdr[i + 1] === "ICI Code");
+    const adminStart  = weekCols.find(i => hdr[i + 1] === "Office");
+    const empStart    = hdr.indexOf("Office Location");
+    if (rehashStart === undefined || adminStart === undefined || empStart < 0) {
+      throw new Error("Headcount headers not found (Week #/ICI Code, Week #/Office, Office Location)");
+    }
+    const empRows = blockAt(empStart).slice(1);
+    _hcAllRows = hcMergeBlocks(hcParseBlock(blockAt(rehashStart)), hcParseBlock(blockAt(adminStart)));
 
     // Parse Empire roster
     _empRoster = empRows
@@ -2917,11 +2932,11 @@ function renderHeadcountAll() {
     totMM  += parseInt(r[5])||0; totGM  += parseInt(r[6])||0;
   });
   const empTotal = Object.values(empByOffice).reduce((s,v)=>s+v,0);
-  document.getElementById("hc-val-total").textContent = totJMC+totSMC+totMM+totGM+empTotal;
+  { const t = document.getElementById("hc-val-total"); if (t) t.textContent = totJMC+totSMC+totMM+totGM+empTotal; }
   document.getElementById("hc-val-jmc").textContent   = totJMC;
   document.getElementById("hc-val-smc").textContent   = totSMC;
   document.getElementById("hc-val-mm").textContent    = totMM;
-  document.getElementById("hc-val-gm").textContent    = totGM;
+  document.getElementById("hc-val-gm").textContent    = hcGmText(_hcWeek, totGM);
 
   // Build combined bar data: TELUS rows + Empire rows
   // Pass to a combined bar renderer
@@ -2951,11 +2966,11 @@ function renderHeadcountTelus() {
     totMM  += parseInt(r[5])||0;
     totGM  += parseInt(r[6])||0;
   });
-  document.getElementById("hc-val-total").textContent = totJMC+totSMC+totMM+totGM;
+  { const t = document.getElementById("hc-val-total"); if (t) t.textContent = totJMC+totSMC+totMM+totGM; }
   document.getElementById("hc-val-jmc").textContent   = totJMC;
   document.getElementById("hc-val-smc").textContent   = totSMC;
   document.getElementById("hc-val-mm").textContent    = totMM;
-  document.getElementById("hc-val-gm").textContent    = totGM;
+  document.getElementById("hc-val-gm").textContent    = hcGmText(_hcWeek, totGM);
 
   renderHcYTD();
   renderHcBars(weekRows);
@@ -2990,7 +3005,7 @@ function renderHeadcountEmpire() {
   const grandTotal = EMP_ROLES.filter(r => _hcRoles.has(r)).reduce((s,r) => s + totals[r], 0);
 
   // Update summary chips — map Empire roles to chip IDs
-  document.getElementById("hc-val-total").textContent = grandTotal;
+  { const t = document.getElementById("hc-val-total"); if (t) t.textContent = grandTotal; }
   document.getElementById("hc-val-jmc").textContent   = totals["BSR"]  || 0;
   document.getElementById("hc-val-smc").textContent   = totals["TECH"] || 0;
   document.getElementById("hc-val-mm").textContent    = totals["GM"]   || 0;
@@ -3543,8 +3558,10 @@ function renderHcYTD() {
 
   const points = allWeeks.map(w => {
     const rows = _hcAllRows.filter(r => parseInt(r[0]) === w);
-    const val  = rows.reduce((s,r) => s+(parseInt(r[3])||0)+(parseInt(r[4])||0)+(parseInt(r[5])||0)+(parseInt(r[6])||0), 0);
-    return { w, val };
+    const telus = rows.reduce((s,r) => s+(parseInt(r[3])||0)+(parseInt(r[4])||0)+(parseInt(r[5])||0)+(parseInt(r[6])||0), 0);
+    // "All clients" headcount includes Empire (roster-based) so the tile matches the real total
+    const emp = _hcClient === "all" ? empActiveForWeek(w).length : 0;
+    return { w, val: telus + emp };
   });
 
   // Stat chips
@@ -3567,7 +3584,7 @@ function renderHcYTD() {
 
   // 6 weeks visible at natural width, scroll left for more
   const PX_PER_WEEK = 90;
-  const padL=46, padR=16, padT=24, padB=38;
+  const padL=46, padR=16, padT=36, padB=38; // extra top room for the Admin/Rehash divider labels
   const H=150;
   const W = padL + PX_PER_WEEK*(points.length-1) + padR;
   const cH = H-padT-padB;
@@ -3613,6 +3630,15 @@ function renderHcYTD() {
     const lbl=d?d.start:`W${p.w}`;
     svg.innerHTML+=`<text x="${x}" y="${H-8}" text-anchor="middle" fill="#5a5870" font-family="JetBrains Mono" font-size="10" font-weight="600">${lbl}</text>`;
   });
+
+  // Divider where the data source changes: Admin list (left) → Rehash list (right)
+  const iR = points.findIndex(p => p.w >= HC_REHASH_START_WEEK);
+  if (iR > 0) {
+    const x = (px(iR - 1) + px(iR)) / 2;
+    svg.innerHTML+=`<line x1="${x}" y1="6" x2="${x}" y2="${padT+cH}" stroke="#8b3d6b" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.7"/>`;
+    svg.innerHTML+=`<text x="${x-6}" y="14" text-anchor="end" fill="#8b3d6b" font-family="Inter" font-size="9" font-weight="700" letter-spacing="0.08em">ADMIN LIST</text>`;
+    svg.innerHTML+=`<text x="${x+6}" y="14" text-anchor="start" fill="#8b3d6b" font-family="Inter" font-size="9" font-weight="700" letter-spacing="0.08em">REHASH LIST (WK ${HC_REHASH_START_WEEK}+)</text>`;
+  }
 
   // Scroll to most recent
   const wrap=inner.parentElement;
