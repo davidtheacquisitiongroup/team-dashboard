@@ -1597,15 +1597,16 @@
      BETA UI REFRESH — overrides only; markup/logic otherwise unchanged
      ══════════════════════════════════════════════════════════════════ */
   :root {
-    --bg: #f4f5f8;
-    --surface2: #f8f9fb;
-    --border: #dfe1e9;
+    --bg: #ffffff;
+    --surface2: #fbf9fb;
+    --border: #e6e1ea;
+    --lift: 0 1px 2px rgba(60,30,50,0.05);
     --radius: 10px;
     --radius-sm: 8px;
   }
 
   /* Calm, near-solid page background — no grid texture, no gradient wash */
-  body { background: var(--bg); background-attachment: scroll; }
+  html, body { background: #ffffff; background-attachment: scroll; }
   body::before { display: none; }
 
   /* Header */
@@ -1640,7 +1641,7 @@
     letter-spacing: 0; color: var(--text); margin-bottom: 14px;
   }
   .section-label::after { background: transparent; }
-  .card { border-radius: var(--radius); box-shadow: none; border: 1px solid var(--border); }
+  .card { border-radius: var(--radius); box-shadow: var(--lift); border: 1px solid var(--border); }
 
   /* Overall Recruitment adapts to the content width (sidebar + padding already excluded) */
   #overall-wrap { container-type: inline-size; container-name: ow; }
@@ -1648,7 +1649,7 @@
   /* ── Filter card ── */
   #or-filter-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    margin-bottom: 16px;
+    margin-bottom: 16px; box-shadow: var(--lift);
   }
   #or-filter-card .hc-toolbar {
     background: transparent !important; border: 0 !important; border-radius: 0 !important;
@@ -1690,10 +1691,10 @@
   #or-metric-pills .hc-pill::before {
     content: ''; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--border); background: var(--surface); flex-shrink: 0;
   }
-  #or-metric-pills .hc-pill.active { background: rgba(160,72,122,0.08); border-color: rgba(160,72,122,0.45); color: var(--accent4); }
+  #or-metric-pills .hc-pill.active { background: var(--surface); border-color: rgba(160,72,122,0.5); color: var(--accent4); }
   #or-metric-pills .hc-pill.active::before {
-    background: var(--accent1) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/10px no-repeat;
-    border-color: var(--accent1);
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='%23a0487a' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat;
+    border-color: var(--border);
   }
   #or-metric-pills .hc-pill[data-metric="all"]::before { display: none; }
   #or-metric-pills .hc-pill[data-metric="all"] { padding: 0 12px; font-weight: 700; }
@@ -1708,39 +1709,64 @@
   .or-ici-panel { border-radius: var(--radius); }
   .or-ici-tag { border-radius: 6px; }
 
-  /* ── KPI cards: equal height, one grid that follows the content width ── */
+  /* ── KPI cards: Booked / Completed / Attended lead, the rest are compact ── */
   #or-metrics-row { display: block !important; margin-bottom: 18px !important; }
   #or-kpi-strip {
-    display: grid !important; gap: 12px !important; flex: none !important;
-    grid-template-columns: repeat(auto-fit, minmax(calc(100% / 7 - 11px), 1fr)); grid-auto-rows: 1fr;
+    display: grid !important; gap: 12px !important; flex: none !important; align-items: start;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
   }
-  @container ow (max-width: 1099px) { #or-kpi-strip { grid-template-columns: repeat(auto-fit, minmax(calc(25% - 9px), 1fr)); } }
-  @container ow (max-width: 599px)  { #or-kpi-strip { grid-template-columns: repeat(auto-fit, minmax(calc(100% / 3 - 8px), 1fr)); } }
-  @container ow (max-width: 439px)  { #or-kpi-strip { grid-template-columns: repeat(auto-fit, minmax(calc(50% - 6px), 1fr)); } }
+  .or-kpi-chip.primary   { grid-column: span 2; }
+  .or-kpi-chip.secondary { grid-column: span 1; }
+  @container ow (max-width: 1399px) {
+    #or-kpi-strip { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .or-kpi-chip.primary   { grid-column: span 4; }
+    .or-kpi-chip.secondary { grid-column: span 3; }
+  }
+  @container ow (max-width: 599px) {
+    #or-kpi-strip { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px !important; align-items: stretch; }
+    .or-kpi-chip.primary   { grid-column: span 2; }
+    .or-kpi-chip.secondary { grid-column: span 3; }
+  }
   .or-kpi-chip {
-    min-width: 0 !important; padding: 14px 16px !important; align-items: flex-start !important;
-    border-radius: var(--radius); box-shadow: none; animation: none; gap: 0;
-    border-color: var(--border); background: var(--surface);
+    min-width: 0 !important; align-items: flex-start !important; gap: 0;
+    border-radius: var(--radius); box-shadow: var(--lift); animation: none;
+    border: 1px solid var(--border); background: var(--surface);
   }
-  .or-kpi-lbl { font-size: 0.72rem; letter-spacing: 0.02em; text-transform: none; font-weight: 600; color: var(--muted); text-align: left; min-height: 2.3em; display: flex; align-items: flex-start; }
-  .or-kpi-val { font-size: 1.85rem; margin-top: 2px; color: var(--accent1); }
-  .or-kpi-pct { font-size: 0.74rem; color: var(--muted); margin-top: 8px; min-height: 1.1em; }
-  .or-kpi-pct b { color: var(--accent3); font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 0.82rem; }
-  .or-kpi-pend { font-size: 0.7rem; color: var(--muted); margin-top: 2px; min-height: 1.1em; }
+  .or-kpi-lbl { text-transform: none; letter-spacing: 0.01em; font-weight: 600; color: var(--muted); text-align: left; }
+  .or-kpi-pct { color: var(--muted); min-height: 1.15em; }
+  .or-kpi-pct b { color: var(--accent3); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .or-kpi-pend { color: var(--muted); min-height: 1.15em; }
+  .or-kpi-chip.primary { padding: 16px 18px !important; }
+  .or-kpi-chip.primary .or-kpi-lbl { font-size: 0.82rem; color: var(--text); }
+  .or-kpi-chip.primary .or-kpi-val { font-size: 2.5rem; margin-top: 6px; color: var(--accent1); }
+  .or-kpi-chip.primary .or-kpi-pct { font-size: 0.8rem; margin-top: 8px; }
+  .or-kpi-chip.primary .or-kpi-pct b { font-size: 0.88rem; }
+  .or-kpi-chip.primary .or-kpi-pend { font-size: 0.74rem; margin-top: 2px; }
+  .or-kpi-chip.secondary { padding: 10px 12px !important; }
+  .or-kpi-chip.secondary .or-kpi-lbl { font-size: 0.7rem; }
+  .or-kpi-chip.secondary .or-kpi-val { font-size: 1.4rem; margin-top: 3px; color: var(--accent1); }
+  .or-kpi-chip.secondary .or-kpi-pct { font-size: 0.68rem; margin-top: 5px; min-height: 2.3em; }
+  .or-kpi-chip.secondary .or-kpi-pct b { font-size: 0.74rem; }
+  .or-kpi-chip.secondary .or-kpi-pend { font-size: 0.66rem; }
+  @container ow (max-width: 599px) {
+    .or-kpi-chip.primary { padding: 12px 12px !important; }
+    .or-kpi-chip.primary .or-kpi-val { font-size: 1.8rem; }
+    .or-kpi-chip.secondary .or-kpi-pct { min-height: 1.2em; }
+  }
 
-  /* Overall conversion: two compact, teal-accented cards below the operational cards */
+  /* Overall conversion: quiet, neutral cards — no brand tint */
   .or-ratio-section { border: 0 !important; padding: 0 !important; margin-top: 12px; display: block !important; width: 100% !important; }
   .or-ratio-section[style*="display: none"] { display: none !important; }
   .or-ratio-heading { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
   #or-ratio-strip { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px !important; }
   @container ow (max-width: 519px) { #or-ratio-strip { grid-template-columns: minmax(0, 1fr); } }
   .or-ratio-chip {
-    min-width: 0 !important; flex-direction: row !important; align-items: center !important; justify-content: space-between;
-    padding: 10px 16px !important; border-radius: var(--radius); box-shadow: none !important; animation: none;
-    background: rgba(74,173,168,0.07); border: 1px solid rgba(74,173,168,0.35); gap: 4px 12px; flex-wrap: wrap;
+    min-width: 0 !important; flex-direction: row !important; align-items: baseline !important; justify-content: space-between;
+    padding: 10px 16px !important; border-radius: var(--radius); box-shadow: var(--lift) !important; animation: none;
+    background: var(--surface); border: 1px solid var(--border); gap: 2px 12px; flex-wrap: wrap;
   }
-  .or-ratio-lbl { margin: 0 !important; font-size: 0.74rem !important; letter-spacing: 0.02em !important; text-transform: none !important; font-weight: 600; color: var(--text) !important; }
-  .or-ratio-val { font-size: 1.35rem; color: #2f8a85; }
+  .or-ratio-lbl { margin: 0 !important; font-size: 0.78rem !important; letter-spacing: 0.01em !important; text-transform: none !important; font-weight: 600; color: var(--text) !important; }
+  .or-ratio-val { font-size: 1.3rem; color: var(--text); }
   .or-ratio-sub { margin: 0 !important; flex-basis: 100%; font-size: 0.7rem; color: var(--muted); order: 3; }
 
   /* ── Recruiter table ── */
@@ -1762,7 +1788,7 @@
   }
   #or-table { width: 100%; min-width: max-content; border-collapse: separate; border-spacing: 0; table-layout: auto; }
   #or-table thead th {
-    position: sticky; top: 0; z-index: 3; background: #f1f2f6; color: #5b5870;
+    position: sticky; top: 0; z-index: 3; background: #faf6f9; color: #5b5870;
     font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; text-transform: none;
     padding: 10px 14px; white-space: normal; line-height: 1.2; border-bottom: 1px solid var(--border);
     text-align: right; vertical-align: bottom; cursor: pointer; min-width: 78px;
@@ -1774,7 +1800,7 @@
   #or-table tbody tr { background: transparent; border: 0; box-shadow: none; animation: none; }
   #or-table tbody tr:hover td { background: #faf6f9; }
   #or-table tbody td {
-    padding: 10px 14px; font-size: 0.9rem; border: 0; border-bottom: 1px solid #ebecf1;
+    padding: 10px 14px; font-size: 0.9rem; border: 0; border-bottom: 1px solid #f1edf2;
     background: var(--surface); text-align: right; vertical-align: middle; white-space: nowrap;
   }
   #or-table tbody td.td-name {
@@ -5257,8 +5283,8 @@ function applyOverallFilters() {
       const pendingKey = m === "sec_attended" ? "sec_pending" : m === "hired" ? "hired_pending" : m === "day1" ? "day1_pending" : null;
       const pending = pendingKey ? totals[pendingKey] : null;
       const chip = document.createElement("div");
-      chip.className = "or-kpi-chip";
-      const LONGK = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Secondary Booked",sec_attended:"Secondary Attended",hired:"Hired",day1:"Day 1"};
+      chip.className = "or-kpi-chip " + (["booked","completed","attended"].includes(m) ? "primary" : "secondary");
+      const LONGK = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
       const SHORTD = {booked:"booked",completed:"completed",attended:"attended",sec_booked:"sec. booked",sec_attended:"sec. attended",hired:"hired",day1:"Day 1"};
       const denLbl = METRIC_CFG[m].pctOf ? SHORTD[METRIC_CFG[m].pctOf] : "";
       chip.innerHTML = `
@@ -5295,7 +5321,8 @@ function applyOverallFilters() {
   }
 
   // Table header — sortable (beta: one right-aligned numeric column per count, and one per %)
-  const LONG = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Secondary Booked",sec_attended:"Secondary Attended",hired:"Hired",day1:"Day 1"};
+  const LONG = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
+  const LONGT = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Secondary Booked",sec_attended:"Secondary Attended",hired:"Hired",day1:"Day 1"};
   const pctMetrics = new Set(activeMetrics.filter(m => {
     const d = METRIC_CFG[m].pctOf;
     return d && (d === "completed" || d === "booked" || activeSet.has(d));
@@ -5307,8 +5334,8 @@ function applyOverallFilters() {
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orSort('${key}')}"><span class="th-label">${label}</span><span class="th-sort" id="or-sort-${key}"></span></th>`;
     let h = th("name", groupKey === "ici" ? "ICI" : "Recruiter", "th-name", "Sort by name");
     activeMetrics.forEach(m => {
-      h += th(m, LONG[m], "th-num", LONG[m] + " — count");
-      if (pctMetrics.has(m)) h += th(m + "_pct", LONG[m] + " %", "th-num th-pct", `${LONG[m]} ÷ ${LONG[METRIC_CFG[m].pctOf]}`);
+      h += th(m, LONG[m], "th-num", LONGT[m] + " — count");
+      if (pctMetrics.has(m)) h += th(m + "_pct", LONG[m] + " %", "th-num th-pct", `${LONGT[m]} % = ${LONGT[m]} ÷ ${LONGT[METRIC_CFG[m].pctOf]}`);
     });
     thead.innerHTML = h;
   }
