@@ -1849,6 +1849,67 @@
     .or-kpi-chip.primary .or-kpi-pct { font-size: 0.74rem; }
     .or-kpi-chip.primary .or-kpi-pct b { font-size: 1.15rem; }
   }
+
+  /* ══ Round 3: sidebar, header, time pill, shadows, rank arrows, skeletons ══ */
+  /* Header: page title left; period pill, status and refresh grouped right */
+  .logo-title { font-family: 'Inter', sans-serif !important; letter-spacing: -0.01em !important; font-weight: 700; }
+  @media (min-width: 901px) { .logo-title { font-size: 1.5rem; } }
+  .logo-sub { text-transform: none; letter-spacing: 0; font-size: 0.82rem; font-weight: 500; }
+  .last-updated { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+  #or-period-btn {
+    font-family: 'Inter', sans-serif; font-size: 0.84rem; font-weight: 600; color: var(--text);
+    background-color: var(--surface); border: 1px solid var(--border); border-radius: 10px; height: 38px;
+    padding: 0 36px 0 40px; min-width: 0; max-width: none; box-shadow: var(--lift); text-align: left; white-space: nowrap;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b5870' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15' rx='2'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235b5870' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: left 13px center, right 13px center; background-size: 16px 16px, 10px 7px;
+  }
+  #or-period-btn:hover, #or-period-btn:focus-visible { border-color: var(--accent1); outline: none; }
+  #or-period-btn.all-time { color: var(--text); background-color: var(--surface); border-color: var(--border); }
+  #overall-wrap > .section-label { display: none; }
+
+  /* Scorecard shadow: soft, diffused, slightly tinted */
+  .or-kpi-chip, .or-ratio-chip { box-shadow: 0 8px 22px -4px rgba(120,60,100,0.16), 0 1px 3px rgba(60,30,50,0.08) !important; }
+
+  /* Leaderboard rank change */
+  .lb-note { font-size: 0.74rem; color: var(--muted); margin: -6px 0 10px; min-height: 1em; }
+  .lb-rankcell { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; gap: 3px; }
+  .lb-delta { font: 700 0.72rem 'JetBrains Mono', monospace; }
+  .lb-delta.up { color: #2f8a85; }
+  .lb-delta.down { color: #c45e93; }
+  .lb-delta.same { color: var(--muted); font-weight: 600; }
+  .lb-delta.new { color: var(--accent1); font-size: 0.6rem; letter-spacing: 0.06em; }
+
+  /* Loading skeletons */
+  .or-kpi-chip.skeleton { min-height: 96px; border-color: var(--border) !important; box-shadow: none !important;
+    background: linear-gradient(100deg, #f4f1f5 30%, #fbfafc 50%, #f4f1f5 70%) 0 0 / 200% 100%; animation: or-shimmer 1.3s linear infinite; }
+  .or-kpi-chip.primary.skeleton { min-height: 118px; }
+  @keyframes or-shimmer { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .or-kpi-chip.skeleton { animation: none; } }
+
+  /* ── Round 4 ── */
+  /* Leaderboard: arrow sits between the big number and the name */
+  #leaderboard.has-delta .lb-row { grid-template-columns: 96px 1fr 80px 72px; }
+  @media (max-width: 900px) { #leaderboard.has-delta .lb-row { grid-template-columns: 76px 1fr 60px 56px; } }
+  .lb-rankcell { flex-direction: row; justify-content: flex-start; gap: 10px; }
+  .lb-rankcell .lb-rank { min-width: 34px; text-align: center; }
+  .lb-delta { min-width: 30px; font-size: 0.78rem; }
+
+  /* Updated-time sits under the Refresh button */
+  .refresh-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .refresh-wrap .last-updated { font-size: 0.66rem; line-height: 1; }
+
+  /* Total (all clients): one solid brand card, clearly different from TELUS / EMPIRE */
+  .all-clients-banner { margin-top: 14px; padding: 0; background: none; border: 0; border-radius: 0; display: block; animation: none; }
+  .client-card.all-clients {
+    background: var(--accent4); border: 0; color: #fff; padding: 18px 20px; animation: none;
+    box-shadow: 0 10px 24px -8px rgba(139,61,107,0.45);
+  }
+  .client-card.all-clients .client-name { color: #fff !important; font-size: 0.95rem; letter-spacing: 0.14em; }
+  .client-card.all-clients .client-stat-val { color: #fff; }
+  .client-card.all-clients .client-stat-lbl { color: rgba(255,255,255,0.78); }
+  .client-card.all-clients .ring-track { stroke: rgba(255,255,255,0.28); }
+  .client-card.all-clients .ring-fill { stroke: #fff !important; }
+  .client-card.all-clients .ring-label { color: #fff; }
 </style>
 </head>
 <body>
@@ -1862,7 +1923,7 @@
 <!-- SIDEBAR -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <img src="data:image/jpeg;base64,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" alt="The Acquisition Group" style="width:110px;height:110px;object-fit:cover;display:block;border-radius:4px;" />
+    <img src="data:image/jpeg;base64,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" alt="The Acquisition Group" style="width:36px;height:36px;object-fit:cover;display:block;border-radius:8px;" />
   </div>
   <div class="sidebar-nav">
     <div class="sidebar-label">Sections</div>
@@ -1893,7 +1954,7 @@
     <span></span><span></span><span></span>
   </button>
   <div class="logo-block">
-    <div class="logo-title">Team Dashboard</div>
+    <div class="logo-title" id="page-title">Team Leaderboard</div>
     <div class="logo-sub">Recruitment Intelligence</div>
   </div>
   <div class="header-right">
@@ -1946,7 +2007,7 @@
     </div>
     <select id="hc-week-select-header" class="header-week-select" style="display:none;"><option value="">Loading…</option></select>
     <div class="live-dot">Live</div>
-    <button class="refresh-btn" id="refresh-btn" onclick="fetchData(); fetchHeadcount(); fetchOverall()">↻ Refresh</button>
+    <div class="refresh-wrap"><button class="refresh-btn" id="refresh-btn" onclick="fetchData(); fetchHeadcount(); fetchOverall()">↻ Refresh</button><span id="last-updated" class="last-updated" title="Time of the last successful data load"></span></div>
   </div>
 </header>
 
@@ -1957,18 +2018,18 @@
   <div class="page active" id="page-overview">
     <!-- LEADERBOARD -->
     <section id="leaderboard-wrap">
-      <div class="section-label">🏆 Prelim Attendance Leaderboard</div>
+      <div class="section-label">Prelim Attendance Leaderboard</div>
       <div class="leaderboard-grid" id="leaderboard"></div>
     </section>
 
     <!-- CLIENT STATS + MOST BOOKED -->
     <aside id="clients-wrap">
-      <div class="section-label">📊 By Client</div>
+      <div class="section-label">By Client</div>
       <div class="client-cards" id="client-cards"></div>
       <div class="all-clients-banner" id="all-clients-banner" style="display:none"></div>
 
       <!-- MOST BOOKED — its own section below By Client -->
-      <div class="section-label" style="margin-top:22px;">🔥 Most Booked</div>
+      <div class="section-label" style="margin-top:22px;">Most Booked</div>
       <div id="most-booked-banner" style="display:none;padding:16px 20px;background:linear-gradient(135deg,rgba(196,122,58,0.10),rgba(160,72,122,0.06));border:1.5px solid rgba(196,122,58,0.35);border-radius:12px;display:flex;align-items:center;justify-content:space-between;animation:fadeUp 0.5s ease both;">
         <div>
           <div id="most-booked-name" style="font-size:1.15rem;font-weight:700;color:var(--text);">—</div>
@@ -1982,7 +2043,7 @@
 
     <!-- TEAM TARGETS -->
     <aside id="targets-wrap">
-      <div class="section-label">🎯 Team Targets</div>
+      <div class="section-label">Team Targets</div>
       <div class="targets-panel" id="targets-panel">
         <div class="targets-header">
           <div class="targets-title">Team Target</div>
@@ -2150,9 +2211,13 @@
         <div class="hc-toolbar" style="margin-bottom:0;border-radius:0 0 10px 10px;flex-wrap:wrap;gap:14px;padding:10px 16px;background:var(--surface);">
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;">
             <span class="hc-toolbar-label">Recruiter</span>
-            <select id="or-recruiter-filter" class="hc-select" style="min-width:160px;" onchange="applyOverallFilters()">
+            <select id="or-recruiter-filter" style="display:none" onchange="applyOverallFilters()">
               <option value="all">All Recruiters</option>
             </select>
+            <div class="or-ici-wrap" id="or-rec-wrap">
+              <button class="hc-select or-ici-btn" id="or-rec-btn" type="button" onclick="orToggleRecPanel(event)">All Recruiters</button>
+              <div class="or-ici-panel" id="or-rec-panel" style="width:240px;" hidden></div>
+            </div>
           </div>
           <div class="hc-toolbar-divider"></div>
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
@@ -2179,7 +2244,7 @@
 
       <!-- SUMMARY KPI CHIPS + SPECIAL / DERIVED RATIO METRICS, side by side -->
       <div id="or-metrics-row" style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;margin-bottom:20px;">
-        <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"></div>
+        <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"><div class="or-kpi-chip primary skeleton"></div><div class="or-kpi-chip primary skeleton"></div><div class="or-kpi-chip primary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div></div>
         <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
           <div class="or-ratio-heading">Overall conversion</div>
           <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
@@ -2199,7 +2264,7 @@
                 <th class="th-name">Recruiter</th>
               </tr>
             </thead>
-            <tbody id="or-tbody"></tbody>
+            <tbody id="or-tbody"><tr class="empty-row"><td colspan="8">Loading data…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -2267,6 +2332,8 @@ function showPage(name) {
   }
   const btn = document.getElementById('nav-' + name);
   if (btn) btn.classList.add('active');
+  const _te = document.getElementById('page-title');
+  if (_te) _te.textContent = ({overview:'Team Leaderboard',headcount:'Headcount',overall:'Overall Recruitment',ici:'ICI Conversion',results:'Results View'})[name] || 'Team Dashboard';
   trackEvent('page_view_dashboard', { page: name });
 
   // Show the right header control per page, hide others
@@ -2368,13 +2435,13 @@ function renderLeaderboard(rows) {
     const rank = i + 1;
     const pct  = pcts[i];
     const rankClass = rank <= 3 ? `rank-${rank}` : "";
-    const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+    const medal = "";
     const div = document.createElement("div");
     div.className = `lb-row ${rankClass}`;
     div.style.animationDelay = `${i * 60}ms`;
     div.innerHTML = `
       <div class="lb-rank">${rank}</div>
-      <div class="lb-name">${medal} ${name}</div>
+      <div class="lb-name">${name}</div>
       <div class="lb-bar-wrap">
         <div class="lb-bar-track"><div class="lb-bar-fill" data-pct="${pct}"></div></div>
       </div>
@@ -2446,7 +2513,7 @@ function renderClients(telus, empire) {
   banner.innerHTML = `
     <div class="client-card card all-clients" style="animation-delay:160ms">
       <div>
-        <div class="client-name" style="color:var(--accent4)">ALL CLIENTS</div>
+        <div class="client-name">TOTAL · ALL CLIENTS</div>
         <div class="client-nums">
           <div class="client-stat">
             <span class="client-stat-val">${totalCompleted}</span>
@@ -4256,6 +4323,8 @@ async function fetchOverall() {
     // Populate recruiter & ICI dropdowns
     orUpdateFilterDropdowns();
     applyOverallFilters();
+    const _lu = document.getElementById('last-updated');
+    if (_lu) _lu.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
     // Render dashboard from raw data (shares the Time Range with Overall Recruitment)
     renderDashboardFromRaw();
@@ -4932,6 +5001,22 @@ function orMakeStrip(text, active, onPick, withCheck) {
 
 // Single source of truth for the Time Range button + panel: reflects whichever of
 // week/day or month/quarter/YTD/custom is actually being applied.
+function orFriendlyRange(mode, fallback) {
+  if (mode !== "week") return fallback;
+  const toD = (k) => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); };
+  const f  = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const fy = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (_orDaySel.size) {
+    const ds = [..._orDaySel].sort().map(toD);
+    if (ds.length === 1) return ds[0].toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    return `${ds.length} days · ${f(ds[0])} – ${f(ds[ds.length - 1])}`;
+  }
+  const ws = [..._orWeekSel].sort();
+  if (!ws.length) return fallback;
+  const a = toD(ws[0]), z = toD(ws[ws.length - 1]); z.setDate(z.getDate() + 4);
+  return ws.length === 1 ? `${f(a)} – ${fy(z)}` : `${f(a)} – ${fy(z)} · ${ws.length} weeks`;
+}
+
 function orSyncTimeUI() {
   const btn = document.getElementById("or-period-btn");
   if (!btn) return;
@@ -4951,7 +5036,7 @@ function orSyncTimeUI() {
       label += " · " + (lbls.length === 1 ? lbls[0] : lbls.length + " days");
     }
   }
-  btn.textContent = label;
+  btn.textContent = orFriendlyRange(mode, label);
   btn.classList.toggle("all-time", mode === "all");
 
   document.querySelectorAll("#or-time-tabs button").forEach(b => {
@@ -5429,12 +5514,52 @@ function applyOverallFilters() {
   orBetaUpdate();
 }
 
+// ── Recruiter dropdown (same look/behaviour as ICI & Source; single-select) ──
+function orToggleRecPanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById("or-rec-panel");
+  if (!panel) return;
+  ["or-period-panel", "or-ici-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  panel.hidden = !panel.hidden;
+}
+function orPickRecruiter(v) {
+  const sel = document.getElementById("or-recruiter-filter");
+  if (sel) sel.value = v;
+  const panel = document.getElementById("or-rec-panel"); if (panel) panel.hidden = true;
+  applyOverallFilters();
+}
+function orBuildRecPanel() {
+  const sel = document.getElementById("or-recruiter-filter"), panel = document.getElementById("or-rec-panel");
+  if (!sel || !panel) return;
+  panel.innerHTML = "";
+  [...sel.options].forEach(o => {
+    const label = document.createElement("label"); label.className = "or-ici-option" + (o.value === "all" ? " or-ici-all" : "");
+    const r = document.createElement("input"); r.type = "radio"; r.name = "or-rec"; r.value = o.value;
+    r.addEventListener("click", () => orPickRecruiter(o.value));
+    label.appendChild(r); label.appendChild(document.createTextNode(" " + (o.value === "all" ? "All Recruiters" : o.textContent)));
+    panel.appendChild(label);
+  });
+  orSyncRecUI();
+}
+function orSyncRecUI() {
+  const sel = document.getElementById("or-recruiter-filter"), btn = document.getElementById("or-rec-btn");
+  if (!sel || !btn) return;
+  btn.textContent = sel.value === "all" ? "All Recruiters" : sel.value;
+  document.querySelectorAll("#or-rec-panel input[type=radio]").forEach(r => { r.checked = r.value === sel.value; });
+}
+{ const _origOUFD = orUpdateFilterDropdowns; orUpdateFilterDropdowns = function () { _origOUFD(); orBuildRecPanel(); }; }
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("or-rec-panel"), wrap = document.getElementById("or-rec-wrap");
+  if (panel && !panel.hidden && wrap && e.target.isConnected && !wrap.contains(e.target)) panel.hidden = true;
+});
+
 // ── Beta helpers: search, clear-filters ──
 function orFiltersDirty() {
   return _orClient !== "all" || _orMetrics.size !== 7 || _orRecruiterFilter !== "all" ||
          _orICIFilter.size > 0 || _orSourceFilter.size > 0 || !!_orSearch;
 }
 function orBetaUpdate() {
+  orSyncRecUI();
   const b = document.getElementById("or-clear-filters");
   if (b) b.hidden = !orFiltersDirty();
 }
@@ -5519,19 +5644,43 @@ function renderDashboardFromRaw() {
     .filter(r => r.completed > 0)
     .sort((a, b) => b.pct - a.pct);
 
+  // Rank change vs the previous week (only when exactly one whole week is selected)
+  let prevRank = null;
+  if (_orWeekSel.size === 1 && !_orPeriod && _orDaySel.size === 0) {
+    const wi = _orWeeks.indexOf([..._orWeekSel][0]);
+    if (wi > 0) {
+      const pw = _orWeeks[wi - 1], g = {};
+      _orAllRows.filter(r => r.weekStart === pw).forEach(r => { (g[r.recruiter || "Unknown"] = g[r.recruiter || "Unknown"] || []).push(r); });
+      const pr = Object.entries(g).map(([name, rs]) => {
+        const c = rs.filter(r => r.prelim !== "").length, a = rs.filter(r => r.prelim === "Attended" || r.prelim === "Secondary").length;
+        return { name, c, pct: c > 0 ? a / c : 0 };
+      }).filter(r => r.c > 0).sort((a, b) => b.pct - a.pct);
+      prevRank = {}; pr.forEach((r, i) => { prevRank[r.name] = i + 1; });
+    }
+  }
+
   const lb = document.getElementById("leaderboard");
   if (lb) {
     lb.innerHTML = "";
+    lb.classList.toggle("has-delta", !!prevRank);
     ranked.forEach((r, i) => {
       const rank = i + 1;
       const rankClass = rank <= 3 ? `rank-${rank}` : "";
-      const medal = rank === 1 ? "🥇" : rank === 2 ? "🥈" : rank === 3 ? "🥉" : "";
+      const medal = "";
       const div = document.createElement("div");
       div.className = `lb-row ${rankClass}`;
       div.style.animationDelay = `${i * 60}ms`;
       div.innerHTML = `
-        <div class="lb-rank">${rank}</div>
-        <div class="lb-name">${medal} ${r.name}</div>
+        <div class="lb-rankcell"><div class="lb-rank">${rank}</div>${(() => {
+          if (!prevRank) return "";
+          const pr = prevRank[r.name];
+          if (pr === undefined) return `<div class="lb-delta new" title="Not ranked in the previous week">NEW</div>`;
+          const d = pr - rank;
+          if (d > 0) return `<div class="lb-delta up" title="Up ${d} from #${pr} last week">▲ ${d}</div>`;
+          if (d < 0) return `<div class="lb-delta down" title="Down ${-d} from #${pr} last week">▼ ${-d}</div>`;
+          return `<div class="lb-delta same" title="Same rank as last week (#${pr})">–</div>`;
+        })()}</div>
+        <div class="lb-name">${r.name}</div>
         <div class="lb-bar-wrap">
           <div class="lb-bar-track"><div class="lb-bar-fill" data-pct="${r.pct}"></div></div>
         </div>
