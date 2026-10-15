@@ -1850,6 +1850,72 @@
     .or-kpi-chip.primary .or-kpi-pct { font-size: 0.74rem; }
     .or-kpi-chip.primary .or-kpi-pct b { font-size: 1.15rem; }
   }
+
+  /* ══ Round 3: sidebar, header, time pill, shadows, rank arrows, skeletons ══ */
+  .sidebar { width: 220px; background: #f8f7f9; box-shadow: none; padding: 14px 12px; gap: 12px; }
+  .sb-brand { display: flex; align-items: center; gap: 10px; padding: 2px 4px 4px; }
+  .sb-logo { width: 36px !important; height: 36px !important; border-radius: 9px !important; object-fit: cover; flex-shrink: 0; }
+  .sb-brand-name { font-size: 1.02rem; font-weight: 700; color: var(--text); flex: 1; line-height: 1.15; }
+  .sb-updown { width: 16px; height: 16px; fill: none; stroke: var(--muted); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .sb-search { position: relative; display: flex; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; height: 38px; padding: 0 8px 0 10px; gap: 8px; box-shadow: var(--lift); }
+  .sb-search:focus-within { border-color: var(--accent1); }
+  .sb-search-ico { width: 15px; height: 15px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
+  .sb-search input { border: 0; outline: 0; background: transparent; font: 500 0.84rem 'Inter', sans-serif; color: var(--text); min-width: 0; flex: 1; }
+  .sb-search input::placeholder { color: var(--text); opacity: 0.85; }
+  .sb-search kbd { font: 600 0.66rem 'Inter', sans-serif; color: var(--muted); background: #f1eef3; border: 1px solid var(--border); border-radius: 6px; padding: 2px 6px; }
+  .sidebar-nav { padding: 6px 0 0; gap: 2px; display: flex; flex-direction: column; flex: 1; overflow-y: auto; }
+  .sb-group { display: flex; align-items: center; gap: 8px; background: none; border: 0; cursor: pointer; padding: 6px 4px; font: 500 0.86rem 'Inter', sans-serif; color: var(--muted); text-align: left; }
+  .sb-group-box { width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); position: relative; flex-shrink: 0; }
+  .sb-group-box::after { content: ''; position: absolute; left: 3px; right: 3px; top: 7px; height: 1.5px; background: var(--muted); border-radius: 1px; }
+  .sb-group.collapsed .sb-group-box::before { content: ''; position: absolute; top: 3px; bottom: 3px; left: 7px; width: 1.5px; background: var(--muted); border-radius: 1px; }
+  .sb-items { display: flex; flex-direction: column; gap: 3px; margin-bottom: 8px; }
+  .sb-items[hidden] { display: none; }
+  .nav-btn { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; font: 500 0.92rem 'Inter', sans-serif; color: var(--text); border: 1px solid transparent; background: transparent; text-align: left; width: 100%; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+  .nav-btn:hover { background: #f0edf2; }
+  .nav-btn.active { background: var(--surface); border-color: var(--border); box-shadow: var(--lift); color: var(--accent4); font-weight: 600; border-left-width: 1px; }
+  .nav-ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .nav-btn:focus-visible, .sb-group:focus-visible { outline: 2px solid var(--accent1); outline-offset: 1px; }
+  .sidebar-footer { display: flex; align-items: center; gap: 8px; padding: 10px 6px 4px; border-top: 1px solid var(--border); font-size: 0.72rem; color: var(--muted); }
+  .live-dot-sm { width: 7px; height: 7px; border-radius: 50%; background: var(--accent1); flex-shrink: 0; }
+
+  /* Header: page title left; period pill, status and refresh grouped right */
+  .logo-title { font-family: 'Inter', sans-serif !important; letter-spacing: -0.01em !important; font-weight: 700; }
+  @media (min-width: 901px) { .logo-title { font-size: 1.5rem; } }
+  .logo-sub { text-transform: none; letter-spacing: 0; font-size: 0.82rem; font-weight: 500; }
+  .last-updated { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
+  #or-period-btn {
+    font-family: 'Inter', sans-serif; font-size: 0.84rem; font-weight: 600; color: var(--text);
+    background-color: var(--surface); border: 1px solid var(--border); border-radius: 10px; height: 38px;
+    padding: 0 36px 0 40px; min-width: 0; max-width: none; box-shadow: var(--lift); text-align: left; white-space: nowrap;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235b5870' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15' rx='2'/%3E%3Cpath d='M3.5 10h17M8 3v4M16 3v4'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235b5870' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: left 13px center, right 13px center; background-size: 16px 16px, 10px 7px;
+  }
+  #or-period-btn:hover, #or-period-btn:focus-visible { border-color: var(--accent1); outline: none; }
+  #or-period-btn.all-time { color: var(--text); background-color: var(--surface); border-color: var(--border); }
+  #overall-wrap > .section-label { display: none; }
+
+  /* Scorecard shadow: soft, diffused, slightly tinted */
+  .or-kpi-chip, .or-ratio-chip { box-shadow: 0 8px 22px -4px rgba(120,60,100,0.16), 0 1px 3px rgba(60,30,50,0.08) !important; }
+
+  /* Leaderboard rank change */
+  .lb-note { font-size: 0.74rem; color: var(--muted); margin: -6px 0 10px; min-height: 1em; }
+  .lb-rankcell { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; gap: 3px; }
+  .lb-delta { font: 700 0.72rem 'JetBrains Mono', monospace; }
+  .lb-delta.up { color: #2f8a85; }
+  .lb-delta.down { color: #c45e93; }
+  .lb-delta.same { color: var(--muted); font-weight: 600; }
+  .lb-delta.new { color: var(--accent1); font-size: 0.6rem; letter-spacing: 0.06em; }
+
+  /* Loading skeletons */
+  .or-kpi-chip.skeleton { min-height: 96px; border-color: var(--border) !important; box-shadow: none !important;
+    background: linear-gradient(100deg, #f4f1f5 30%, #fbfafc 50%, #f4f1f5 70%) 0 0 / 200% 100%; animation: or-shimmer 1.3s linear infinite; }
+  .or-kpi-chip.primary.skeleton { min-height: 118px; }
+  @keyframes or-shimmer { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .or-kpi-chip.skeleton { animation: none; } }
+  .sb-brand-name { font-size: 0.95rem; white-space: nowrap; }
+  .nav-btn { font-size: 0.88rem; gap: 10px; padding: 10px; }
+  .nav-btn span { line-height: 1.2; }
+  .sb-updown { flex-shrink: 0; width: 16px; min-width: 16px; }
 </style>
 </head>
 <body>
@@ -1861,29 +1927,30 @@
 </div>
 
 <!-- SIDEBAR -->
-<nav class="sidebar">
-  <div class="sidebar-logo">
-    <img src="data:image/jpeg;base64,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" alt="The Acquisition Group" style="width:110px;height:110px;object-fit:cover;display:block;border-radius:4px;" />
+<nav class="sidebar" aria-label="Main navigation">
+  <div class="sb-brand">
+    <img src="data:image/jpeg;base64,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" alt="The Acquisition Group" class="sb-logo" />
+    <div class="sb-brand-name">Team Dashboard</div>
+    <svg class="sb-updown" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg>
+  </div>
+  <div class="sb-search">
+    <svg class="sb-search-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+    <input id="sb-search" type="text" placeholder="Quick jump" aria-label="Quick jump to a section" autocomplete="off">
+    <kbd>⌘K</kbd>
   </div>
   <div class="sidebar-nav">
-    <div class="sidebar-label">Sections</div>
-    <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')">
-      <span class="nav-icon">🏆</span> Team Leaderboard
+    <button class="sb-group" type="button" onclick="this.classList.toggle('collapsed');this.nextElementSibling.hidden=this.classList.contains('collapsed')" aria-expanded="true">
+      <span class="sb-group-box"></span><span>Dashboard</span>
     </button>
-    <button class="nav-btn" id="nav-headcount" onclick="showPage('headcount')">
-      <span class="nav-icon">🏢</span> Headcount
-    </button>
-    <button class="nav-btn" id="nav-overall" onclick="showPage('overall')">
-      <span class="nav-icon">📋</span> Overall Recruitment
-    </button>
-    <button class="nav-btn" id="nav-ici" onclick="showPage('ici')" style="display:none;">
-      <span class="nav-icon">⚖️</span> ICI Conversion
-    </button>
-    <button class="nav-btn" id="nav-results" onclick="showPage('results')" style="display:none;">
-      <span class="nav-icon">🧾</span> Results View
-    </button>
+    <div class="sb-items">
+      <button class="nav-btn active" id="nav-overview" onclick="showPage('overview')"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4z"/><path d="M8 6H5a2 2 0 0 0 0 4h3M16 6h3a2 2 0 0 1 0 4h-3M12 13v4M9 20h6M10 17h4"/></svg><span>Team Leaderboard</span></button>
+      <button class="nav-btn" id="nav-headcount" onclick="showPage('headcount')"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5M16 5.2a3 3 0 0 1 0 5.6M18 14c2 .6 3.5 2.4 3.5 5"/></svg><span>Headcount</span></button>
+      <button class="nav-btn" id="nav-overall" onclick="showPage('overall')"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4h6v2.5H9zM8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg><span>Overall Recruitment</span></button>
+      <button class="nav-btn" id="nav-ici" onclick="showPage('ici')" style="display:none;"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M5 20h14M6 8h12M6 8l-3 6a3 3 0 0 0 6 0L6 8zM18 8l-3 6a3 3 0 0 0 6 0l-3-6z"/></svg><span>ICI Conversion</span></button>
+      <button class="nav-btn" id="nav-results" onclick="showPage('results')" style="display:none;"><svg class="nav-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2V3zM9 8h6M9 12h6"/></svg><span>Results View</span></button>
+    </div>
   </div>
-  <div class="sidebar-footer">Auto-refreshes every 5 min</div>
+  <div class="sidebar-footer"><span class="live-dot-sm"></span><span>Auto-refreshes every 5 min</span></div>
 </nav>
 
 <!-- HEADER -->
@@ -1894,7 +1961,7 @@
     <span></span><span></span><span></span>
   </button>
   <div class="logo-block">
-    <div class="logo-title">Team Dashboard</div><span class="beta-badge" title="Preview of UI updates — not the live dashboard">Beta preview</span>
+    <div class="logo-title" id="page-title">Team Leaderboard</div><span class="beta-badge" title="Preview of UI updates — not the live dashboard">Beta preview</span>
     <div class="logo-sub">Recruitment Intelligence</div>
   </div>
   <div class="header-right">
@@ -1946,7 +2013,7 @@
     </div>
     </div>
     <select id="hc-week-select-header" class="header-week-select" style="display:none;"><option value="">Loading…</option></select>
-    <div class="live-dot">Live</div>
+    <div class="live-dot">Live</div><span id="last-updated" class="last-updated" title="Time of the last successful data load"></span>
     <button class="refresh-btn" id="refresh-btn" onclick="fetchData(); fetchHeadcount(); fetchOverall()">↻ Refresh</button>
   </div>
 </header>
@@ -1959,6 +2026,7 @@
     <!-- LEADERBOARD -->
     <section id="leaderboard-wrap">
       <div class="section-label">🏆 Prelim Attendance Leaderboard</div>
+      <div class="lb-note" id="lb-note"></div>
       <div class="leaderboard-grid" id="leaderboard"></div>
     </section>
 
@@ -2151,9 +2219,13 @@
         <div class="hc-toolbar" style="margin-bottom:0;border-radius:0 0 10px 10px;flex-wrap:wrap;gap:14px;padding:10px 16px;background:var(--surface);">
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;">
             <span class="hc-toolbar-label">Recruiter</span>
-            <select id="or-recruiter-filter" class="hc-select" style="min-width:160px;" onchange="applyOverallFilters()">
+            <select id="or-recruiter-filter" style="display:none" onchange="applyOverallFilters()">
               <option value="all">All Recruiters</option>
             </select>
+            <div class="or-ici-wrap" id="or-rec-wrap">
+              <button class="hc-select or-ici-btn" id="or-rec-btn" type="button" onclick="orToggleRecPanel(event)">All Recruiters</button>
+              <div class="or-ici-panel" id="or-rec-panel" style="width:240px;" hidden></div>
+            </div>
           </div>
           <div class="hc-toolbar-divider"></div>
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
@@ -2180,7 +2252,7 @@
 
       <!-- SUMMARY KPI CHIPS + SPECIAL / DERIVED RATIO METRICS, side by side -->
       <div id="or-metrics-row" style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;margin-bottom:20px;">
-        <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"></div>
+        <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"><div class="or-kpi-chip primary skeleton"></div><div class="or-kpi-chip primary skeleton"></div><div class="or-kpi-chip primary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div><div class="or-kpi-chip secondary skeleton"></div></div>
         <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
           <div class="or-ratio-heading">Overall conversion</div>
           <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
@@ -2200,7 +2272,7 @@
                 <th class="th-name">Recruiter</th>
               </tr>
             </thead>
-            <tbody id="or-tbody"></tbody>
+            <tbody id="or-tbody"><tr class="empty-row"><td colspan="8">Loading data…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -2268,6 +2340,8 @@ function showPage(name) {
   }
   const btn = document.getElementById('nav-' + name);
   if (btn) btn.classList.add('active');
+  const _te = document.getElementById('page-title');
+  if (_te) _te.textContent = ({overview:'Team Leaderboard',headcount:'Headcount',overall:'Overall Recruitment',ici:'ICI Conversion',results:'Results View'})[name] || 'Team Dashboard';
   trackEvent('page_view_dashboard', { page: name });
 
   // Show the right header control per page, hide others
@@ -4257,6 +4331,8 @@ async function fetchOverall() {
     // Populate recruiter & ICI dropdowns
     orUpdateFilterDropdowns();
     applyOverallFilters();
+    const _lu = document.getElementById('last-updated');
+    if (_lu) _lu.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
     // Render dashboard from raw data (shares the Time Range with Overall Recruitment)
     renderDashboardFromRaw();
@@ -4933,6 +5009,22 @@ function orMakeStrip(text, active, onPick, withCheck) {
 
 // Single source of truth for the Time Range button + panel: reflects whichever of
 // week/day or month/quarter/YTD/custom is actually being applied.
+function orFriendlyRange(mode, fallback) {
+  if (mode !== "week") return fallback;
+  const toD = (k) => { const [y, m, d] = k.split("-").map(Number); return new Date(y, m - 1, d); };
+  const f  = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const fy = (d) => d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  if (_orDaySel.size) {
+    const ds = [..._orDaySel].sort().map(toD);
+    if (ds.length === 1) return ds[0].toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    return `${ds.length} days · ${f(ds[0])} – ${f(ds[ds.length - 1])}`;
+  }
+  const ws = [..._orWeekSel].sort();
+  if (!ws.length) return fallback;
+  const a = toD(ws[0]), z = toD(ws[ws.length - 1]); z.setDate(z.getDate() + 4);
+  return ws.length === 1 ? `${f(a)} – ${fy(z)}` : `${f(a)} – ${fy(z)} · ${ws.length} weeks`;
+}
+
 function orSyncTimeUI() {
   const btn = document.getElementById("or-period-btn");
   if (!btn) return;
@@ -4952,7 +5044,7 @@ function orSyncTimeUI() {
       label += " · " + (lbls.length === 1 ? lbls[0] : lbls.length + " days");
     }
   }
-  btn.textContent = label;
+  btn.textContent = orFriendlyRange(mode, label);
   btn.classList.toggle("all-time", mode === "all");
 
   document.querySelectorAll("#or-time-tabs button").forEach(b => {
@@ -5430,12 +5522,70 @@ function applyOverallFilters() {
   orBetaUpdate();
 }
 
+// ── Recruiter dropdown (same look/behaviour as ICI & Source; single-select) ──
+function orToggleRecPanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById("or-rec-panel");
+  if (!panel) return;
+  ["or-period-panel", "or-ici-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  panel.hidden = !panel.hidden;
+}
+function orPickRecruiter(v) {
+  const sel = document.getElementById("or-recruiter-filter");
+  if (sel) sel.value = v;
+  const panel = document.getElementById("or-rec-panel"); if (panel) panel.hidden = true;
+  applyOverallFilters();
+}
+function orBuildRecPanel() {
+  const sel = document.getElementById("or-recruiter-filter"), panel = document.getElementById("or-rec-panel");
+  if (!sel || !panel) return;
+  panel.innerHTML = "";
+  [...sel.options].forEach(o => {
+    const label = document.createElement("label"); label.className = "or-ici-option" + (o.value === "all" ? " or-ici-all" : "");
+    const r = document.createElement("input"); r.type = "radio"; r.name = "or-rec"; r.value = o.value;
+    r.addEventListener("click", () => orPickRecruiter(o.value));
+    label.appendChild(r); label.appendChild(document.createTextNode(" " + (o.value === "all" ? "All Recruiters" : o.textContent)));
+    panel.appendChild(label);
+  });
+  orSyncRecUI();
+}
+function orSyncRecUI() {
+  const sel = document.getElementById("or-recruiter-filter"), btn = document.getElementById("or-rec-btn");
+  if (!sel || !btn) return;
+  btn.textContent = sel.value === "all" ? "All Recruiters" : sel.value;
+  document.querySelectorAll("#or-rec-panel input[type=radio]").forEach(r => { r.checked = r.value === sel.value; });
+}
+{ const _origOUFD = orUpdateFilterDropdowns; orUpdateFilterDropdowns = function () { _origOUFD(); orBuildRecPanel(); }; }
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("or-rec-panel"), wrap = document.getElementById("or-rec-wrap");
+  if (panel && !panel.hidden && wrap && e.target.isConnected && !wrap.contains(e.target)) panel.hidden = true;
+});
+
+// ── Sidebar quick jump (⌘K / Ctrl+K) ──
+document.addEventListener("DOMContentLoaded", () => {
+  const box = document.getElementById("sb-search"); if (!box) return;
+  const items = () => [...document.querySelectorAll(".sb-items .nav-btn")].filter(b => b.dataset.hidden !== "1");
+  box.addEventListener("input", () => {
+    const q = box.value.trim().toLowerCase();
+    document.querySelectorAll(".sb-items .nav-btn").forEach(b => {
+      if (b.id === "nav-ici" || b.id === "nav-results") return;   // hidden sections stay hidden
+      b.style.display = (!q || b.textContent.toLowerCase().includes(q)) ? "" : "none";
+    });
+  });
+  box.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { const m = [...document.querySelectorAll(".sb-items .nav-btn")].find(b => b.style.display !== "none" && b.id !== "nav-ici" && b.id !== "nav-results"); if (m) { m.click(); box.value = ""; box.dispatchEvent(new Event("input")); box.blur(); } }
+    if (e.key === "Escape") { box.value = ""; box.dispatchEvent(new Event("input")); box.blur(); }
+  });
+  document.addEventListener("keydown", (e) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); box.focus(); box.select(); } });
+});
+
 // ── Beta helpers: search, clear-filters ──
 function orFiltersDirty() {
   return _orClient !== "all" || _orMetrics.size !== 7 || _orRecruiterFilter !== "all" ||
          _orICIFilter.size > 0 || _orSourceFilter.size > 0 || !!_orSearch;
 }
 function orBetaUpdate() {
+  orSyncRecUI();
   const b = document.getElementById("or-clear-filters");
   if (b) b.hidden = !orFiltersDirty();
 }
@@ -5520,6 +5670,26 @@ function renderDashboardFromRaw() {
     .filter(r => r.completed > 0)
     .sort((a, b) => b.pct - a.pct);
 
+  // Rank change vs the previous week (only when exactly one whole week is selected)
+  let prevRank = null, prevWeekLbl = "";
+  if (_orWeekSel.size === 1 && !_orPeriod && _orDaySel.size === 0) {
+    const wi = _orWeeks.indexOf([..._orWeekSel][0]);
+    if (wi > 0) {
+      const pw = _orWeeks[wi - 1], g = {};
+      _orAllRows.filter(r => r.weekStart === pw).forEach(r => { (g[r.recruiter || "Unknown"] = g[r.recruiter || "Unknown"] || []).push(r); });
+      const pr = Object.entries(g).map(([name, rs]) => {
+        const c = rs.filter(r => r.prelim !== "").length, a = rs.filter(r => r.prelim === "Attended" || r.prelim === "Secondary").length;
+        return { name, c, pct: c > 0 ? a / c : 0 };
+      }).filter(r => r.c > 0).sort((a, b) => b.pct - a.pct);
+      prevRank = {}; pr.forEach((r, i) => { prevRank[r.name] = i + 1; });
+      const d0 = new Date(pw + "T00:00:00"), d1 = new Date(d0); d1.setDate(d1.getDate() + 4);
+      const f = d => d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      prevWeekLbl = `${f(d0)} – ${f(d1)}`;
+    }
+  }
+  const noteEl = document.getElementById("lb-note");
+  if (noteEl) noteEl.textContent = prevRank ? `▲▼ Rank change vs previous week (${prevWeekLbl})` : "";
+
   const lb = document.getElementById("leaderboard");
   if (lb) {
     lb.innerHTML = "";
@@ -5531,7 +5701,15 @@ function renderDashboardFromRaw() {
       div.className = `lb-row ${rankClass}`;
       div.style.animationDelay = `${i * 60}ms`;
       div.innerHTML = `
-        <div class="lb-rank">${rank}</div>
+        <div class="lb-rankcell"><div class="lb-rank">${rank}</div>${(() => {
+          if (!prevRank) return "";
+          const pr = prevRank[r.name];
+          if (pr === undefined) return `<div class="lb-delta new" title="Not ranked in the previous week">NEW</div>`;
+          const d = pr - rank;
+          if (d > 0) return `<div class="lb-delta up" title="Up ${d} from #${pr} last week">▲ ${d}</div>`;
+          if (d < 0) return `<div class="lb-delta down" title="Down ${-d} from #${pr} last week">▼ ${-d}</div>`;
+          return `<div class="lb-delta same" title="Same rank as last week (#${pr})">–</div>`;
+        })()}</div>
         <div class="lb-name">${medal} ${r.name}</div>
         <div class="lb-bar-wrap">
           <div class="lb-bar-track"><div class="lb-bar-fill" data-pct="${r.pct}"></div></div>
