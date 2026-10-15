@@ -1591,6 +1591,264 @@
     #page-results.active { display: block; }
     #results-wrap { padding: 0; }
   }
+
+  /* ══════════════════════════════════════════════════════════════════
+     BETA UI REFRESH — overrides only; markup/logic otherwise unchanged
+     ══════════════════════════════════════════════════════════════════ */
+  :root {
+    --bg: #ffffff;
+    --surface2: #fbf9fb;
+    --border: #e6e1ea;
+    --lift: 0 1px 2px rgba(60,30,50,0.05);
+    --radius: 10px;
+    --radius-sm: 8px;
+  }
+
+  /* Calm, near-solid page background — no grid texture, no gradient wash */
+  html, body { background: #ffffff; background-attachment: scroll; }
+  body::before { display: none; }
+
+  /* Header */
+  header { background: var(--surface); background-image: none; }
+  .logo-block { align-items: center; flex-wrap: wrap; row-gap: 2px; }
+  .logo-title {
+    font-size: 1.9rem; letter-spacing: 0.06em; line-height: 1;
+    background: none; -webkit-text-fill-color: var(--accent4); color: var(--accent4);
+  }
+  .logo-sub { font-size: 0.68rem; letter-spacing: 0.14em; }
+  .beta-badge {
+    font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent4); background: rgba(160,72,122,0.1); border: 1px solid rgba(160,72,122,0.35);
+    border-radius: 999px; padding: 2px 8px;
+  }
+  .header-right { gap: 14px; flex-wrap: wrap; justify-content: flex-end; }
+  .live-dot { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); gap: 6px; }
+  .live-dot::before { width: 7px; height: 7px; }
+  .refresh-btn {
+    min-height: 34px; padding: 0 14px; border-radius: var(--radius-sm); background: var(--surface);
+    color: var(--text); font-weight: 600;
+  }
+  .header-week-select { min-height: 34px; border-radius: var(--radius-sm); }
+  #or-period-group { gap: 8px; }
+  @media (min-width: 901px) {
+    header { padding: 14px 32px 14px 252px; gap: 12px 24px; flex-wrap: wrap; }
+  }
+
+  /* Section headings: quiet, readable — tracked caps reserved for small labels */
+  .section-label {
+    font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 700;
+    letter-spacing: 0; color: var(--text); margin-bottom: 14px;
+  }
+  .section-label::after { background: transparent; }
+  .card { border-radius: var(--radius); box-shadow: var(--lift); border: 1px solid var(--border); }
+
+  /* Overall Recruitment adapts to the content width (sidebar + padding already excluded) */
+  #overall-wrap { container-type: inline-size; container-name: ow; }
+
+  /* ── Filter card ── */
+  #or-filter-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    margin-bottom: 16px; box-shadow: var(--lift);
+  }
+  #or-filter-card .hc-toolbar {
+    background: transparent !important; border: 0 !important; border-radius: 0 !important;
+    padding: 10px 14px !important; gap: 10px 18px !important; align-items: center;
+  }
+  #or-filter-card .hc-toolbar:first-child { border-bottom: 1px solid var(--border) !important; }
+  #or-filter-card .hc-toolbar-divider { display: none; }
+  #or-filter-card .hc-toolbar-label {
+    min-width: 62px; font-size: 0.66rem; letter-spacing: 0.1em; color: var(--muted);
+  }
+  #or-filter-card .hc-select, #or-filter-card .or-ici-btn {
+    min-height: 34px; height: 34px; border-radius: var(--radius-sm); font-size: 0.8rem;
+    font-family: 'Inter', sans-serif; font-weight: 500; background-color: var(--surface);
+    border: 1px solid var(--border); color: var(--text); min-width: 150px;
+  }
+  #or-filter-card .or-ici-btn { min-width: 130px; }
+  #or-filter-card .hc-select:hover, #or-filter-card .or-ici-btn:hover { border-color: var(--accent1); }
+  #or-filter-card .hc-select:focus-visible, #or-filter-card .hc-pill:focus-visible,
+  .or-clear-btn:focus-visible, .or-search:focus-visible, .recruiter-table thead th:focus-visible {
+    outline: 2px solid var(--accent1); outline-offset: 1px;
+  }
+
+  /* Client = segmented control (pick one) */
+  #or-client-pills { gap: 0; flex-wrap: nowrap; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
+  #or-client-pills .hc-pill {
+    border: 0; border-radius: 0; min-height: 32px; padding: 0 14px; font-size: 0.78rem; color: var(--text);
+    border-right: 1px solid var(--border);
+  }
+  #or-client-pills .hc-pill:last-child { border-right: 0; }
+  #or-client-pills .hc-pill:hover { background: rgba(160,72,122,0.06); color: var(--accent4); }
+  #or-client-pills .hc-pill.active { background: var(--accent4); color: #fff; }
+
+  /* Metrics = toggle chips with a check (pick several) */
+  #or-metric-pills { gap: 6px; }
+  #or-metric-pills .hc-pill {
+    min-height: 30px; padding: 0 11px 0 9px; border-radius: 999px; font-size: 0.76rem; background: var(--surface);
+    border: 1px solid var(--border); color: var(--muted); display: inline-flex; align-items: center; gap: 6px;
+  }
+  #or-metric-pills .hc-pill::before {
+    content: ''; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--border); background: var(--surface); flex-shrink: 0;
+  }
+  #or-metric-pills .hc-pill.active { background: var(--surface); border-color: rgba(160,72,122,0.5); color: var(--accent4); }
+  #or-metric-pills .hc-pill.active::before {
+    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='%23a0487a' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat;
+    border-color: var(--border);
+  }
+  #or-metric-pills .hc-pill[data-metric="all"]::before { display: none; }
+  #or-metric-pills .hc-pill[data-metric="all"] { padding: 0 12px; font-weight: 700; }
+
+  .or-clear-btn {
+    margin-left: auto; min-height: 32px; padding: 0 12px; border-radius: var(--radius-sm);
+    border: 1px solid rgba(160,72,122,0.4); background: var(--surface); color: var(--accent4);
+    font: 600 0.78rem 'Inter', sans-serif; cursor: pointer;
+  }
+  .or-clear-btn:hover { background: rgba(160,72,122,0.08); }
+  .or-clear-btn[hidden] { display: none; }
+  .or-ici-panel { border-radius: var(--radius); }
+  .or-ici-tag { border-radius: 6px; }
+
+  /* ── KPI cards: Booked / Completed / Attended lead, the rest are compact ── */
+  #or-metrics-row { display: block !important; margin-bottom: 18px !important; }
+  #or-kpi-strip {
+    display: grid !important; gap: 12px !important; flex: none !important; align-items: start;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+  .or-kpi-chip.primary   { grid-column: span 2; }
+  .or-kpi-chip.secondary { grid-column: span 1; }
+  @container ow (max-width: 1399px) {
+    #or-kpi-strip { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .or-kpi-chip.primary   { grid-column: span 4; }
+    .or-kpi-chip.secondary { grid-column: span 3; }
+  }
+  @container ow (max-width: 599px) {
+    #or-kpi-strip { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px !important; align-items: stretch; }
+    .or-kpi-chip.primary   { grid-column: span 2; }
+    .or-kpi-chip.secondary { grid-column: span 3; }
+  }
+  .or-kpi-chip {
+    min-width: 0 !important; align-items: flex-start !important; gap: 0;
+    border-radius: var(--radius); box-shadow: var(--lift); animation: none;
+    border: 1px solid var(--border); background: var(--surface);
+  }
+  .or-kpi-lbl { text-transform: none; letter-spacing: 0.01em; font-weight: 600; color: var(--muted); text-align: left; }
+  .or-kpi-pct { color: var(--muted); min-height: 1.15em; }
+  .or-kpi-pct b { color: var(--accent3); font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .or-kpi-pend { color: var(--muted); min-height: 1.15em; }
+  .or-kpi-chip.primary { padding: 16px 18px !important; }
+  .or-kpi-chip.primary .or-kpi-lbl { font-size: 0.82rem; color: var(--text); }
+  .or-kpi-chip.primary .or-kpi-val { font-size: 2.5rem; margin-top: 6px; color: var(--accent1); }
+  .or-kpi-chip.primary .or-kpi-pct { font-size: 0.8rem; margin-top: 8px; }
+  .or-kpi-chip.primary .or-kpi-pct b { font-size: 0.88rem; }
+  .or-kpi-chip.primary .or-kpi-pend { font-size: 0.74rem; margin-top: 2px; }
+  .or-kpi-chip.secondary { padding: 10px 12px !important; }
+  .or-kpi-chip.secondary .or-kpi-lbl { font-size: 0.7rem; }
+  .or-kpi-chip.secondary .or-kpi-val { font-size: 1.4rem; margin-top: 3px; color: var(--accent1); }
+  .or-kpi-chip.secondary .or-kpi-pct { font-size: 0.68rem; margin-top: 5px; min-height: 2.3em; }
+  .or-kpi-chip.secondary .or-kpi-pct b { font-size: 0.74rem; }
+  .or-kpi-chip.secondary .or-kpi-pend { font-size: 0.66rem; }
+  @container ow (max-width: 599px) {
+    .or-kpi-chip.primary { padding: 12px 12px !important; }
+    .or-kpi-chip.primary .or-kpi-val { font-size: 1.8rem; }
+    .or-kpi-chip.secondary .or-kpi-pct { min-height: 1.2em; }
+  }
+
+  /* Overall conversion: quiet, neutral cards — no brand tint */
+  .or-ratio-section { border: 0 !important; padding: 0 !important; margin-top: 12px; display: block !important; width: 100% !important; }
+  .or-ratio-section[style*="display: none"] { display: none !important; }
+  .or-ratio-heading { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  #or-ratio-strip { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px !important; }
+  @container ow (max-width: 519px) { #or-ratio-strip { grid-template-columns: minmax(0, 1fr); } }
+  .or-ratio-chip {
+    min-width: 0 !important; flex-direction: row !important; align-items: baseline !important; justify-content: space-between;
+    padding: 10px 16px !important; border-radius: var(--radius); box-shadow: var(--lift) !important; animation: none;
+    background: var(--surface); border: 1px solid var(--border); gap: 2px 12px; flex-wrap: wrap;
+  }
+  .or-ratio-lbl { margin: 0 !important; font-size: 0.78rem !important; letter-spacing: 0.01em !important; text-transform: none !important; font-weight: 600; color: var(--text) !important; }
+  .or-ratio-val { font-size: 1.3rem; color: var(--text); }
+  .or-ratio-sub { margin: 0 !important; flex-basis: 100%; font-size: 0.7rem; color: var(--muted); order: 3; }
+
+  /* ── Recruiter table ── */
+  .or-table-card { background: var(--surface); }
+  .or-table-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+  }
+  .or-table-title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+  .or-table-title span { font-weight: 500; color: var(--muted); font-size: 0.82rem; }
+  .or-search {
+    width: 220px; max-width: 100%; height: 34px; padding: 0 12px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--surface2); font: 500 0.82rem 'Inter', sans-serif; color: var(--text);
+  }
+  .or-search::placeholder { color: var(--muted); }
+  .or-table-scroll {
+    overflow: auto; max-height: min(72vh, 760px); -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+  }
+  #or-table { width: 100%; min-width: max-content; border-collapse: separate; border-spacing: 0; table-layout: auto; }
+  #or-table thead th {
+    position: sticky; top: 0; z-index: 3; background: #faf6f9; color: #5b5870;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; text-transform: none;
+    padding: 10px 14px; white-space: normal; line-height: 1.2; border-bottom: 1px solid var(--border);
+    text-align: right; vertical-align: bottom; cursor: pointer; min-width: 78px;
+  }
+  #or-table thead th.th-name { text-align: left; left: 0; z-index: 5; min-width: 190px; border-right: 1px solid var(--border); }
+  #or-table thead th.th-pct { color: #2f8a85; min-width: 64px; }
+  #or-table thead th:hover { color: var(--accent1); }
+  .th-sort { color: var(--accent1); margin-left: 3px; }
+  #or-table tbody tr { background: transparent; border: 0; box-shadow: none; animation: none; }
+  #or-table tbody tr:hover td { background: #faf6f9; }
+  #or-table tbody td {
+    padding: 10px 14px; font-size: 0.9rem; border: 0; border-bottom: 1px solid #f1edf2;
+    background: var(--surface); text-align: right; vertical-align: middle; white-space: nowrap;
+  }
+  #or-table tbody td.td-name {
+    position: sticky; left: 0; z-index: 2; text-align: left; border-right: 1px solid var(--border);
+    min-width: 190px; max-width: 280px; white-space: normal;
+  }
+  .td-name-main { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+  .td-name-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-top: 2px; line-height: 1.3; }
+  #or-table td.td-num .n { display: block; font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--accent4); }
+  #or-table td.td-num.zero .n { color: #b3b0bf; font-weight: 600; }
+  #or-table td.td-num .pend { display: block; font-size: 0.62rem; color: var(--muted); margin-top: 1px; }
+  #or-table td.td-num { padding-right: 6px; padding-left: 22px; }
+  #or-table td.td-pctcell { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; font-weight: 600; color: #2f8a85; text-align: left; padding: 10px 14px 10px 6px; }
+  #or-table thead th.th-num { padding-left: 22px; padding-right: 6px; }
+  #or-table thead th.th-pct { text-align: left; padding: 10px 14px 10px 6px; }
+  #or-table tr.total-row td { background: #f3e9f0 !important; border-top: 2px solid rgba(139,61,107,0.35); border-bottom: 0; font-weight: 700; }
+  #or-table tr.total-row td.td-name .td-name-main { color: var(--accent4); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem; }
+  #or-table tr.empty-row td { text-align: center; padding: 36px 14px; color: var(--muted); font-size: 0.9rem; white-space: normal; position: static; }
+  #or-table tr.empty-row:hover td { background: var(--surface); }
+
+  /* Narrow windows: tighter cells, header controls stack, table stays inside its own scroller */
+  @container ow (max-width: 699px) {
+    #or-filter-card .hc-toolbar { flex-direction: row !important; align-items: center !important; }
+    #or-filter-card .hc-toolbar-group { width: auto !important; }
+    #or-filter-card .hc-toolbar-label { min-width: 0; width: 100%; }
+    #or-filter-card .hc-select, #or-filter-card .or-ici-btn { width: auto !important; min-width: 140px; }
+    #or-table tbody td { padding: 9px 10px; }
+    #or-table thead th { padding: 9px 10px; }
+    .or-table-scroll { max-height: 68vh; }
+  }
+
+  /* ── Round 2 tweaks ── */
+  /* Recruiter select: same inset chevron as the ICI / Source buttons */
+  #or-filter-card #or-recruiter-filter {
+    -webkit-appearance: none; appearance: none; padding: 0 36px 0 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8599' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 10px 6px;
+  }
+  /* Scorecards: clearer edges */
+  :root { --edge: #d2cad8; }
+  .or-kpi-chip, .or-ratio-chip { border-color: var(--edge) !important; box-shadow: 0 1px 3px rgba(60,30,50,0.10), 0 0 0 0.5px rgba(60,30,50,0.03) !important; }
+  .or-kpi-chip.primary { border-width: 1px; }
+  /* Primary scorecards: percentage is a headline number */
+  .or-kpi-chip.primary .or-kpi-pct { font-size: 0.88rem; margin-top: 8px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; min-height: 1.7rem; }
+  .or-kpi-chip.primary .or-kpi-pct b { font-size: 1.55rem; line-height: 1; letter-spacing: -0.01em; }
+  @container ow (max-width: 599px) {
+    .or-kpi-chip.primary .or-kpi-pct { font-size: 0.74rem; }
+    .or-kpi-chip.primary .or-kpi-pct b { font-size: 1.15rem; }
+  }
 </style>
 </head>
 <body>
@@ -1857,7 +2115,7 @@
       <div class="section-label">📋 Overall Recruitment</div>
 
       <!-- FILTER BAR: two rows -->
-      <div style="display:flex;flex-direction:column;gap:0;margin-bottom:20px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;">
+      <div id="or-filter-card" style="display:flex;flex-direction:column;gap:0;margin-bottom:20px;">
 
         <!-- ROW 1: Client + Metric -->
         <div class="hc-toolbar" style="margin-bottom:0;border-bottom:1px solid var(--border);border-radius:10px 10px 0 0;flex-wrap:wrap;gap:14px;padding:12px 16px;">
@@ -1874,7 +2132,7 @@
           <div class="hc-toolbar-divider"></div>
           <!-- Metric filter -->
           <div class="hc-toolbar-group" style="flex-wrap:wrap;">
-            <span class="hc-toolbar-label">Metric</span>
+            <span class="hc-toolbar-label">Metrics</span>
             <div class="hc-pill-group" id="or-metric-pills">
               <button class="hc-pill active" data-metric="all">All</button>
               <button class="hc-pill active" data-metric="booked">Booked</button>
@@ -1914,6 +2172,7 @@
             </div>
             <div class="or-ici-tags" id="or-source-tags"></div>
           </div>
+          <button type="button" id="or-clear-filters" class="or-clear-btn" onclick="orClearAllFilters()" hidden>Clear filters</button>
         </div>
 
       </div>
@@ -1922,20 +2181,22 @@
       <div id="or-metrics-row" style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;margin-bottom:20px;">
         <div id="or-kpi-strip" style="display:flex;flex-wrap:wrap;gap:12px;flex:1;"></div>
         <div class="or-ratio-section" id="or-ratio-section" style="display:none;">
+          <div class="or-ratio-heading">Overall conversion</div>
           <div id="or-ratio-strip" style="display:flex;flex-wrap:wrap;gap:12px;"></div>
         </div>
       </div>
 
       <!-- DATA TABLE -->
-      <div class="card" style="padding:0;overflow:hidden;">
-        <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--border) transparent;">
-          <table class="recruiter-table" id="or-table" style="width:100%;table-layout:fixed;min-width:640px;">
-            <colgroup>
-              <col style="width:20%"/>
-            </colgroup>
+      <div class="card or-table-card" style="padding:0;overflow:hidden;">
+        <div class="or-table-head">
+          <div class="or-table-title">Recruiter performance <span id="or-table-count"></span></div>
+          <input id="or-search" type="search" class="or-search" placeholder="Search name…" aria-label="Search recruiters" autocomplete="off">
+        </div>
+        <div class="or-table-scroll">
+          <table class="recruiter-table" id="or-table">
             <thead>
               <tr id="or-thead-row">
-                <th style="text-align:left;padding:14px 20px;">Recruiter / Group</th>
+                <th class="th-name">Recruiter</th>
               </tr>
             </thead>
             <tbody id="or-tbody"></tbody>
@@ -4535,6 +4796,7 @@ function orUpdateFilterDropdowns() {
 }
 
 // Sort state for Overall Recruitment table
+let _orSearch = "";   // lowercase recruiter/ICI name search (beta)
 let _orSortCol = "name";
 let _orSortDir = 1; // 1=asc, -1=desc
 
@@ -4962,7 +5224,7 @@ function applyOverallFilters() {
     groups[key].push(r);
   });
 
-  const groupNames = Object.keys(groups).sort();
+  const groupNames = Object.keys(groups).sort().filter(n => !_orSearch || n.toLowerCase().includes(_orSearch));
 
   // Metric calculator — all fields are pre-normalized to trimmed strings (never undefined)
   function calcMetrics(rs) {
@@ -5039,13 +5301,15 @@ function applyOverallFilters() {
       const pendingKey = m === "sec_attended" ? "sec_pending" : m === "hired" ? "hired_pending" : m === "day1" ? "day1_pending" : null;
       const pending = pendingKey ? totals[pendingKey] : null;
       const chip = document.createElement("div");
-      chip.className = "or-kpi-chip";
-      const bookedSub = `<span style="font-size:0.6rem;color:var(--muted);min-height:1em;display:block;">${pending !== null && pending > 0 ? pending + " pending" : ""}</span>`;
+      chip.className = "or-kpi-chip " + (["booked","completed","attended"].includes(m) ? "primary" : "secondary");
+      const LONGK = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
+      const SHORTD = {booked:"booked",completed:"completed",attended:"attended",sec_booked:"sec. booked",sec_attended:"sec. attended",hired:"hired",day1:"Day 1"};
+      const denLbl = METRIC_CFG[m].pctOf ? SHORTD[METRIC_CFG[m].pctOf] : "";
       chip.innerHTML = `
-        <span class="or-kpi-lbl">${METRIC_CFG[m].label}</span>
+        <span class="or-kpi-lbl">${LONGK[m]}</span>
         <span class="or-kpi-val">${val}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:0.72rem;font-weight:700;color:var(--accent3);min-height:1.1em;display:block;">${pct !== null ? pct + "%" : ""}</span>
-        ${bookedSub}
+        <span class="or-kpi-pct">${pct !== null ? `<b>${pct}%</b> of ${denLbl}` : "&nbsp;"}</span>
+        <span class="or-kpi-pend">${pending !== null && pending > 0 ? pending + " pending" : "&nbsp;"}</span>
       `;
       kpiStrip.appendChild(chip);
     });
@@ -5074,39 +5338,27 @@ function applyOverallFilters() {
     `;
   }
 
-  // Table header — sortable
+  // Table header — sortable (beta: one right-aligned numeric column per count, and one per %)
+  const LONG = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
+  const LONGT = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Secondary Booked",sec_attended:"Secondary Attended",hired:"Hired",day1:"Day 1"};
+  const pctMetrics = new Set(activeMetrics.filter(m => {
+    const d = METRIC_CFG[m].pctOf;
+    return d && (d === "completed" || d === "booked" || activeSet.has(d));
+  }));
   const thead = document.getElementById("or-thead-row");
   if (thead) {
-    thead.innerHTML = `<th data-or-col="name" style="text-align:left;padding:14px 20px;cursor:pointer;user-select:none;" onclick="orSort('name')">Recruiter <span style="color:var(--muted);font-size:0.65rem;" id="or-sort-name"></span></th>`;
+    const th = (key, label, cls, tip) =>
+      `<th class="${cls}" onclick="orSort('${key}')" title="${tip}" tabindex="0" aria-sort="${_orSortCol === key ? (_orSortDir === 1 ? "ascending" : "descending") : "none"}"
+        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orSort('${key}')}"><span class="th-label">${label}</span><span class="th-sort" id="or-sort-${key}"></span></th>`;
+    let h = th("name", groupKey === "ici" ? "ICI" : "Recruiter", "th-name", "Sort by name");
     activeMetrics.forEach(m => {
-      const hasPct = METRIC_CFG[m].pctOf && (METRIC_CFG[m].pctOf === "completed" || activeSet.has(METRIC_CFG[m].pctOf));
-      if (hasPct) {
-        // Split into two clickable spans: count | %
-        thead.innerHTML += `
-          <th style="text-align:center;padding:14px 8px;font-size:0.7rem;letter-spacing:0.1em;white-space:nowrap;">
-            <span onclick="orSort('${m}')" style="cursor:pointer;user-select:none;padding:2px 5px;border-radius:4px;transition:background 0.15s;" onmouseover="this.style.background='rgba(160,72,122,0.08)'" onmouseout="this.style.background=''">${METRIC_CFG[m].label} <span style="color:var(--muted);font-size:0.65rem;" id="or-sort-${m}"></span></span>
-            <span style="color:var(--border);margin:0 1px;">|</span>
-            <span onclick="orSort('${m}_pct')" style="cursor:pointer;user-select:none;padding:2px 5px;border-radius:4px;color:var(--accent3);transition:background 0.15s;" onmouseover="this.style.background='rgba(160,72,122,0.08)'" onmouseout="this.style.background=''">&nbsp;% <span style="color:var(--muted);font-size:0.65rem;" id="or-sort-${m}_pct"></span></span>
-          </th>`;
-      } else {
-        thead.innerHTML += `<th data-or-col="${m}" style="text-align:center;padding:14px 12px;font-size:0.7rem;letter-spacing:0.1em;white-space:nowrap;cursor:pointer;user-select:none;" onclick="orSort('${m}')">${METRIC_CFG[m].label} <span style="color:var(--muted);font-size:0.65rem;" id="or-sort-${m}"></span></th>`;
-      }
+      h += th(m, LONG[m], "th-num", LONGT[m] + " — count");
+      if (pctMetrics.has(m)) h += th(m + "_pct", LONG[m] + " %", "th-num th-pct", `${LONGT[m]} % = ${LONGT[m]} ÷ ${LONGT[METRIC_CFG[m].pctOf]}`);
     });
-
-    // table-layout:fixed divides the table's actual width evenly across columns --
-    // if that width is too small for the number of active metrics, "Label | %"
-    // headers overflow into neighbouring cells instead of wrapping (nowrap) or
-    // scrolling. Size the table's min-width to the real column count so columns
-    // always have enough room; the wrapper's overflow-x:auto handles the rest.
-    const orTable = document.getElementById("or-table");
-    if (orTable) {
-      const perMetricWidth = 120; // enough for the widest "Sec. Attended | %" header
-      const nameColWidth = 200;
-      orTable.style.minWidth = (nameColWidth + activeMetrics.length * perMetricWidth) + "px";
-    }
+    thead.innerHTML = h;
   }
 
-  // Sort groups — supports both raw metric and metric_pct keys
+  // Sort groups — supports both raw metric and metric_pct keys (always on the underlying numbers)
   const sorted = [...groupNames].sort((a, b) => {
     if (_orSortCol === "name") {
       return _orSortDir * a.localeCompare(b);
@@ -5124,57 +5376,84 @@ function applyOverallFilters() {
   });
 
   // Update sort indicators — covers both raw and _pct keys
-  const sortKeys = ["name", ...activeMetrics, ...activeMetrics.filter(m => METRIC_CFG[m].pctOf).map(m => m + "_pct")];
+  const sortKeys = ["name", ...activeMetrics, ...[...pctMetrics].map(m => m + "_pct")];
   sortKeys.forEach(k => {
     const el = document.getElementById(`or-sort-${k}`);
     if (el) el.textContent = _orSortCol === k ? (_orSortDir === 1 ? "↑" : "↓") : "";
   });
 
-  // Table rows — ICI + Recruiter stacked in first column
+  const countEl = document.getElementById("or-table-count");
+  if (countEl) countEl.textContent = `· ${sorted.length} ${groupKey === "ici" ? "ICI" : "recruiter"}${sorted.length === 1 ? "" : "s"}`;
+
+  const numCell = (val, pending) =>
+    `<td class="td-num${val === 0 ? " zero" : ""}"><span class="n">${val}</span>${pending > 0 ? `<span class="pend">+${pending} pending</span>` : ""}</td>`;
+  const pctCell = (pct) => `<td class="td-num td-pctcell">${pct !== null ? pct + "%" : "—"}</td>`;
+  const pendOf = (k, mv) => {
+    const pendingKey = k === "sec_attended" ? "sec_pending" : k === "hired" ? "hired_pending" : k === "day1" ? "day1_pending" : null;
+    return pendingKey ? mv[pendingKey] : 0;
+  };
+  const rowCells = (mv) => activeMetrics.map(k =>
+    numCell(mv[k], pendOf(k, mv)) + (pctMetrics.has(k) ? pctCell(getPct(k, mv, activeSet)) : "")
+  ).join("");
+
+  // Table rows — name + ICIs (or recruiters) stacked in the sticky first column
   const tbody = document.getElementById("or-tbody");
   if (tbody) {
     tbody.innerHTML = "";
+    if (sorted.length === 0) {
+      const cols = 1 + activeMetrics.length + pctMetrics.size;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols}">No ${groupKey === "ici" ? "ICIs" : "recruiters"} match the current filters.</td></tr>`;
+    }
     sorted.forEach((name, i) => {
       const mv = calcMetrics(groups[name]);
-      // Gather unique ICIs for this group (recruiter grouping) or recruiters (ICI grouping)
       const subItems = [...new Set(groups[name].map(r => groupKey === "recruiter" ? r.ici : r.recruiter))].filter(Boolean).sort();
-      const subLine = subItems.join(", ");
       const tr = document.createElement("tr");
-      tr.style.animationDelay = `${i * 40}ms`;
-      // Name cell — primary name + secondary (ICI or recruiter) below
-      let cells = `<td style="padding:12px 20px;font-weight:600;">
-        <div style="font-weight:700;color:var(--text);">${name}</div>
-        ${subLine ? `<div style="font-size:0.7rem;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-top:2px;">${subLine}</div>` : ""}
-      </td>`;
-      activeMetrics.forEach(k => {
-        const val = mv[k];
-        const pct = getPct(k, mv, activeSet);
-        const pendingKey = k === "sec_attended" ? "sec_pending" : k === "hired" ? "hired_pending" : k === "day1" ? "day1_pending" : null;
-        const pending = pendingKey ? mv[pendingKey] : null;
-        const isZero = val === 0;
-        cells += orCell(val, pct, pending, isZero ? "var(--muted)" : "var(--accent4)", "");
-      });
-      tr.innerHTML = cells;
+      tr.innerHTML = `<td class="td-name"></td>` + rowCells(mv);
+      const nameTd = tr.firstChild;
+      const nm = document.createElement("div"); nm.className = "td-name-main"; nm.textContent = name;
+      nameTd.appendChild(nm);
+      const sub = subItems.join(", ");
+      if (sub) { const sd = document.createElement("div"); sd.className = "td-name-sub"; sd.textContent = sub; nameTd.appendChild(sd); }
       tbody.appendChild(tr);
     });
 
-    // Totals row
+    // Totals row (always the full filtered total, even while a name search narrows the list)
     if (sorted.length > 1) {
       const tr = document.createElement("tr");
-      tr.style.cssText = "background:rgba(160,72,122,0.05);";
-      tr.innerHTML = `<td style="padding:14px 20px;font-weight:800;font-family:'Bebas Neue',sans-serif;letter-spacing:0.1em;color:var(--accent4);border-top:2px solid var(--border);">TOTAL</td>`;
-      activeMetrics.forEach(k => {
-        const val = totals[k];
-        const pct = getPct(k, totals, activeSet);
-        const pendingKey = k === "sec_attended" ? "sec_pending" : k === "hired" ? "hired_pending" : k === "day1" ? "day1_pending" : null;
-        const pending = pendingKey ? totals[pendingKey] : null;
-        tr.innerHTML += orCell(val, pct, pending, "var(--accent4)", "border-top:2px solid var(--border);");
-      });
+      tr.className = "total-row";
+      tr.innerHTML = `<td class="td-name"><div class="td-name-main">Total${_orSearch ? ' <span class="td-name-sub" style="display:inline">· all filtered</span>' : ""}</div></td>` + rowCells(totals);
       tbody.appendChild(tr);
     }
   }
   orSyncTimeUI();
+  orBetaUpdate();
 }
+
+// ── Beta helpers: search, clear-filters ──
+function orFiltersDirty() {
+  return _orClient !== "all" || _orMetrics.size !== 7 || _orRecruiterFilter !== "all" ||
+         _orICIFilter.size > 0 || _orSourceFilter.size > 0 || !!_orSearch;
+}
+function orBetaUpdate() {
+  const b = document.getElementById("or-clear-filters");
+  if (b) b.hidden = !orFiltersDirty();
+}
+function orClearAllFilters() {
+  _orClient = "all";
+  document.querySelectorAll("#or-client-pills .hc-pill").forEach(b => b.classList.toggle("active", b.dataset.client === "all"));
+  _orMetrics = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
+  document.querySelectorAll("#or-metric-pills .hc-pill").forEach(b => b.classList.add("active"));
+  const rec = document.getElementById("or-recruiter-filter"); if (rec) rec.value = "all";
+  _orRecruiterFilter = "all";
+  _orICIFilter.clear(); _syncICIUI();
+  _orSourceFilter.clear(); _syncSourceUI();
+  _orSearch = ""; const sb = document.getElementById("or-search"); if (sb) sb.value = "";
+  applyOverallFilters();
+}
+document.addEventListener("DOMContentLoaded", () => {
+  const sb = document.getElementById("or-search");
+  if (sb) sb.addEventListener("input", () => { _orSearch = sb.value.trim().toLowerCase(); applyOverallFilters(); });
+});
 
 // Shared cell renderer — number always centered, pipe + % to its right, pending below without shifting number
 function orCell(val, pct, pending, numColor, extraTdStyle) {

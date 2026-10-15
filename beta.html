@@ -1831,6 +1831,25 @@
     #or-table thead th { padding: 9px 10px; }
     .or-table-scroll { max-height: 68vh; }
   }
+
+  /* ── Round 2 tweaks ── */
+  /* Recruiter select: same inset chevron as the ICI / Source buttons */
+  #or-filter-card #or-recruiter-filter {
+    -webkit-appearance: none; appearance: none; padding: 0 36px 0 12px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a8599' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; background-size: 10px 6px;
+  }
+  /* Scorecards: clearer edges */
+  :root { --edge: #d2cad8; }
+  .or-kpi-chip, .or-ratio-chip { border-color: var(--edge) !important; box-shadow: 0 1px 3px rgba(60,30,50,0.10), 0 0 0 0.5px rgba(60,30,50,0.03) !important; }
+  .or-kpi-chip.primary { border-width: 1px; }
+  /* Primary scorecards: percentage is a headline number */
+  .or-kpi-chip.primary .or-kpi-pct { font-size: 0.88rem; margin-top: 8px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; min-height: 1.7rem; }
+  .or-kpi-chip.primary .or-kpi-pct b { font-size: 1.55rem; line-height: 1; letter-spacing: -0.01em; }
+  @container ow (max-width: 599px) {
+    .or-kpi-chip.primary .or-kpi-pct { font-size: 0.74rem; }
+    .or-kpi-chip.primary .or-kpi-pct b { font-size: 1.15rem; }
+  }
 </style>
 </head>
 <body>
