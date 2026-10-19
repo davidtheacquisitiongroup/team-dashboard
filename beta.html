@@ -1911,6 +1911,20 @@
   .client-card.all-clients .ring-track { stroke: rgba(255,255,255,0.28); }
   .client-card.all-clients .ring-fill { stroke: #fff !important; }
   .client-card.all-clients .ring-label { color: #fff; }
+
+  /* Booked + Completed combined card */
+  #or-kpi-strip.merged .or-kpi-chip.primary { grid-column: span 3; }
+  @container ow (max-width: 1399px) { #or-kpi-strip.merged .or-kpi-chip.primary { grid-column: span 6; } }
+  @container ow (max-width: 599px)  { #or-kpi-strip.merged .or-kpi-chip.primary { grid-column: span 3; } }
+  .kpi-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0; width: 100%; }
+  .kpi-pair > div { display: flex; flex-direction: column; padding-right: 14px; }
+  .kpi-pair > div + div { padding-left: 18px; padding-right: 0; border-left: 1px solid var(--edge, #d2cad8); }
+  .or-kpi-chip.pair .or-kpi-pct { margin-top: 10px; }
+  @container ow (max-width: 599px) {
+    .or-kpi-chip.pair .or-kpi-val { font-size: 1.7rem; }
+    .kpi-pair > div + div { padding-left: 10px; } .kpi-pair > div { padding-right: 8px; }
+  }
+  #or-kpi-strip.merged .or-kpi-chip.primary { align-self: stretch; }
 </style>
 </head>
 <body>
@@ -5381,7 +5395,23 @@ function applyOverallFilters() {
   const kpiStrip = document.getElementById("or-kpi-strip");
   if (kpiStrip) {
     kpiStrip.innerHTML = "";
+    const merged = activeSet.has("booked") && activeSet.has("completed");   // Booked + Completed share one card
+    kpiStrip.classList.toggle("merged", merged);
     activeMetrics.forEach(m => {
+      if (merged && m === "completed") return;
+      if (merged && m === "booked") {
+        const cp = getPct("completed", totals, activeSet);
+        const chip = document.createElement("div");
+        chip.className = "or-kpi-chip primary pair";
+        chip.innerHTML = `
+          <div class="kpi-pair">
+            <div><span class="or-kpi-lbl">Booked</span><span class="or-kpi-val">${totals.booked}</span></div>
+            <div><span class="or-kpi-lbl">Completed</span><span class="or-kpi-val">${totals.completed}</span></div>
+          </div>
+          <span class="or-kpi-pct">${cp !== null ? `<b>${cp}%</b> of booked completed` : "&nbsp;"}</span>`;
+        kpiStrip.appendChild(chip);
+        return;
+      }
       const val = totals[m];
       const pct = getPct(m, totals, activeSet);
       const pendingKey = m === "sec_attended" ? "sec_pending" : m === "hired" ? "hired_pending" : m === "day1" ? "day1_pending" : null;
