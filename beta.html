@@ -1925,6 +1925,29 @@
     .kpi-pair > div + div { padding-left: 10px; } .kpi-pair > div { padding-right: 8px; }
   }
   #or-kpi-strip.merged .or-kpi-chip.primary { align-self: stretch; }
+
+  /* ── Team Leaderboard: reflow instead of squeezing when the window is narrower ── */
+  .lb-row { grid-template-columns: 48px minmax(0, 1fr) 80px 72px; }
+  #leaderboard.has-delta .lb-row { grid-template-columns: 96px minmax(0, 1fr) 80px 72px; }
+  .lb-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-pct { text-align: right; }
+  @media (min-width: 1100px) and (max-width: 1359px) {
+    main { grid-template-columns: minmax(0, 1fr) 320px; grid-template-rows: auto auto; }
+    #leaderboard-wrap { grid-column: 1; grid-row: 1 / span 2; }
+    #clients-wrap     { grid-column: 2; grid-row: 1; }
+    #targets-wrap     { grid-column: 2; grid-row: 2; }
+  }
+  @media (min-width: 901px) and (max-width: 1099px) {
+    main { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto auto; }
+    #leaderboard-wrap { grid-column: 1 / -1; grid-row: 1; align-self: unset; }
+    #clients-wrap     { grid-column: 1; grid-row: 2; }
+    #targets-wrap     { grid-column: 2; grid-row: 2; }
+  }
+  @media (max-width: 900px) {
+    .lb-row { grid-template-columns: 36px minmax(0, 1fr) 60px 56px; }
+    #leaderboard.has-delta .lb-row { grid-template-columns: 76px minmax(0, 1fr) 60px 56px; }
+  }
+  .lb-row { max-height: 112px; }
 </style>
 </head>
 <body>
@@ -2392,9 +2415,15 @@ function parsePct(val) {
   return n > 1 ? n / 100 : n;   // handle both 0.7 and 70%
 }
 
+// Whole-number percent from a fraction. Normal rounding, except it never shows 100% unless the
+// numerator really equals the denominator (e.g. 429 of 430 shows 99%, not 100%).
+function pctInt(frac) {
+  const r = Math.round(frac * 100);
+  return (r >= 100 && frac < 1) ? 99 : r;
+}
 function fmtPct(p) {
   if (p === null) return "—";
-  return Math.round(p * 100) + "%";
+  return pctInt(p) + "%";
 }
 
 function pctClass(p) {
@@ -2486,7 +2515,7 @@ function renderClients(telus, empire) {
 
   clients.forEach((c, i) => {
     const pct = c.pct;
-    const pctNum = pct !== null ? Math.round(pct * 100) : 0;
+    const pctNum = pct !== null ? pctInt(pct) : 0;
     // ring: circumference ~138 for r=22
     const offset = pct !== null ? 138 - (138 * pct) : 138;
     totalCompleted += (c.completed || 0);
@@ -2565,7 +2594,7 @@ function renderClients(telus, empire) {
 function renderTargets(survivalPct, goalPct, currentPct, avgTargetPct) {
   // Values: survivalPct=E17, goalPct=F17, currentPct=G17, avgTargetPct=H17
 
-  const fmt = (p) => p !== null ? Math.round(p * 100) + "%" : "—";
+  const fmt = (p) => p !== null ? pctInt(p) + "%" : "—";
 
   // Update YTD note
   const noteEl = document.getElementById("targets-ytd-note");
@@ -4432,7 +4461,7 @@ function iciPct(m, key, denomKey) {
   if (!denomKey) return null;
   const d = m[denomKey];
   if (!d) return null;
-  return Math.round((m[key] / d) * 100);
+  return pctInt(m[key] / d);
 }
 
 // Spreadsheet-style A/B/C/D/E column bar, sized to match the 4 data columns
@@ -4559,7 +4588,7 @@ function resultsSecAttPct(rows) {
   const secBooked = rows.filter(r => r.prelim === "Secondary").length;
   const secAttended = rows.filter(r => r.secondary === "Attended").length;
   if (!secBooked) return null;
-  return Math.round((secAttended / secBooked) * 100);
+  return pctInt(secAttended / secBooked);
 }
 
 const RESULTS_METRIC_DEFS = [
@@ -5385,7 +5414,7 @@ function applyOverallFilters() {
     if (!alwaysAvail && !activeSet.has(denom)) return null;
     const d = vals[denom];
     if (!d) return null;
-    return Math.round((vals[m] / d) * 100);
+    return pctInt(vals[m] / d);
   }
 
   const totals = calcMetrics(rows);
@@ -5715,7 +5744,7 @@ function renderDashboardFromRaw() {
         <div class="lb-bar-wrap">
           <div class="lb-bar-track"><div class="lb-bar-fill" data-pct="${r.pct}"></div></div>
         </div>
-        <div class="lb-pct">${Math.round(r.pct * 100)}%</div>
+        <div class="lb-pct">${pctInt(r.pct)}%</div>
       `;
       lb.appendChild(div);
     });
