@@ -2356,6 +2356,7 @@ const REFRESH_INTERVAL = 5 * 60 * 1000;
 // ════════════════════════════════════════════════════════
 //  PAGE NAVIGATION
 // ════════════════════════════════════════════════════════
+const LEADERBOARD_HIDDEN = new Set(["amaan", "gagan", "carly"]);
 let _leaderboardWeekChip = ""; // stores leaderboard chip text
 
 function showPage(name) {
@@ -5699,8 +5700,10 @@ function renderDashboardFromRaw() {
     return { name, completed, attended, pct, booked };
   });
 
+  // Recruiters hidden from the leaderboard (their data stays in every other view)
+  const lbHidden = n => LEADERBOARD_HIDDEN.has(String(n).trim().toLowerCase());
   const ranked = recStats
-    .filter(r => r.completed > 0)
+    .filter(r => r.completed > 0 && !lbHidden(r.name))
     .sort((a, b) => b.pct - a.pct);
 
   // Rank change vs the previous week (only when exactly one whole week is selected)
@@ -5713,7 +5716,7 @@ function renderDashboardFromRaw() {
       const pr = Object.entries(g).map(([name, rs]) => {
         const c = rs.filter(r => r.prelim !== "").length, a = rs.filter(r => r.prelim === "Attended" || r.prelim === "Secondary").length;
         return { name, c, pct: c > 0 ? a / c : 0 };
-      }).filter(r => r.c > 0).sort((a, b) => b.pct - a.pct);
+      }).filter(r => r.c > 0 && !lbHidden(r.name)).sort((a, b) => b.pct - a.pct);
       prevRank = {}; pr.forEach((r, i) => { prevRank[r.name] = i + 1; });
     }
   }
@@ -5755,7 +5758,7 @@ function renderDashboardFromRaw() {
   }
 
   // ── MOST BOOKED ──
-  const allByBooked = [...recStats].sort((a, b) => b.booked - a.booked);
+  const allByBooked = recStats.filter(r => !lbHidden(r.name)).sort((a, b) => b.booked - a.booked);
   if (allByBooked.length) {
     const mostBooked = allByBooked[0];
     const mbBanner = document.getElementById("most-booked-banner");
