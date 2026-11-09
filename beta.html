@@ -4207,6 +4207,12 @@ function orExcluded(name) {
   return !name;
 }
 
+// Former team members — still count toward "All Recruiters" totals (their
+// historical rows aren't touched), just not offered as a filter choice.
+const OR_EX_RECRUITERS = new Set(
+  ["akshie", "amaan", "carly", "gagan", "ishita", "mehak", "minah", "sean", "tee"]
+);
+
 // Raw data store
 let _orAllRows    = [];
 let _orWeeks      = [];
@@ -4346,7 +4352,7 @@ async function fetchOverall() {
     _orSources = [...new Set(_orAllRows.map(r => r.source))].sort((a, b) => a === OR_NO_SOURCE ? 1 : b === OR_NO_SOURCE ? -1 : a.localeCompare(b));
 
     _orWeeks      = [...weekSet].sort();
-    _orRecruiters = [...recruiterMap.values()].sort();
+    _orRecruiters = [...recruiterMap.values()].filter(r => !OR_EX_RECRUITERS.has(r.toLowerCase())).sort();
     _orICIs       = [...iciSet].sort();
 
     // Normalize recruiter names in rows — trim + normalize case to Title Case for display
