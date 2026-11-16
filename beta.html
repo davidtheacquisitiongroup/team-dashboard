@@ -1793,9 +1793,9 @@
     padding: 10px 14px; white-space: normal; line-height: 1.2; border-bottom: 1px solid var(--border);
     text-align: right; vertical-align: bottom; cursor: pointer; min-width: 78px;
   }
-  #or-table thead th.th-name { text-align: left; left: 0; z-index: 5; width: 150px; min-width: 150px; max-width: 150px; }
-  #or-table thead th.th-sub { text-align: left; left: 150px; z-index: 5; width: 140px; min-width: 140px; max-width: 140px; }
-  #or-table thead th.th-sub2 { text-align: left; left: 290px; z-index: 5; width: 130px; min-width: 130px; max-width: 130px; border-right: 1px solid var(--border); }
+  #or-table thead th.th-name { text-align: left; left: 0; z-index: 5; width: 150px; min-width: 150px; max-width: 150px; border-right: 1px solid var(--border); }
+  #or-table thead th.th-sub { text-align: left; width: 140px; min-width: 140px; max-width: 140px; }
+  #or-table thead th.th-sub2 { text-align: left; width: 130px; min-width: 130px; max-width: 130px; }
   #or-table thead th.th-pct { color: #2f8a85; min-width: 64px; }
   #or-table thead th:hover { color: var(--accent1); }
   .th-sort { color: var(--accent1); margin-left: 3px; }
@@ -1806,16 +1806,16 @@
     background: var(--surface); text-align: right; vertical-align: middle; white-space: nowrap;
   }
   #or-table tbody td.td-name {
-    position: sticky; left: 0; z-index: 2; text-align: left;
+    position: sticky; left: 0; z-index: 2; text-align: left; border-right: 1px solid var(--border);
     width: 150px; min-width: 150px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   #or-table tbody td.td-sub {
-    position: sticky; left: 150px; z-index: 2; text-align: left;
+    text-align: left;
     width: 140px; min-width: 140px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     font-size: 0.86rem; color: var(--text);
   }
   #or-table tbody td.td-sub2 {
-    position: sticky; left: 290px; z-index: 2; text-align: left; border-right: 1px solid var(--border);
+    text-align: left;
     width: 130px; min-width: 130px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     font-size: 0.84rem; color: var(--text);
   }
@@ -1863,9 +1863,9 @@
     #or-filter-card .hc-select, #or-filter-card .or-ici-btn { width: auto !important; min-width: 140px; }
     #or-table tbody td { padding: 9px 10px; }
     #or-table thead th.th-name, #or-table tbody td.td-name { width: 104px; min-width: 104px; max-width: 104px; }
-    /* narrow windows: only the first label column stays pinned */
-    #or-table thead th.th-sub, #or-table thead th.th-sub2 { position: sticky; left: auto; width: 108px; min-width: 108px; max-width: 108px; }
-    #or-table tbody td.td-sub, #or-table tbody td.td-sub2 { position: static; width: 108px; min-width: 108px; max-width: 108px; }
+    /* narrow windows: the label columns get narrower */
+    #or-table thead th.th-sub, #or-table thead th.th-sub2 { width: 108px; min-width: 108px; max-width: 108px; }
+    #or-table tbody td.td-sub, #or-table tbody td.td-sub2 { width: 108px; min-width: 108px; max-width: 108px; }
     #or-table thead th { padding: 9px 10px; }
     .or-table-scroll { max-height: 68vh; }
   }
@@ -2300,6 +2300,7 @@
               <button class="hc-pill" data-client="TELUS" onclick="orSetClient('TELUS')">TELUS</button>
               <button class="hc-pill" data-client="Common Good" onclick="orSetClient('Common Good')">Common Good</button>
               <button class="hc-pill" data-client="Empire Telecom" onclick="orSetClient('Empire Telecom')">Empire Telecom</button>
+              <button class="hc-pill" data-client="SPC" onclick="orSetClient('SPC')">SPC</button>
             </div>
           </div>
           <div class="hc-toolbar-divider"></div>
@@ -4308,6 +4309,7 @@ function normalizeClient(raw) {
   if (s.includes("TELUS"))                    return "TELUS";
   if (s.includes("COMMON") || s.includes("CG")) return "Common Good";
   if (s.includes("EMPIRE"))                   return "Empire Telecom";
+  if (s === "SPC")                            return "SPC";
   return raw;
 }
 
@@ -4342,18 +4344,39 @@ const _orDaySel        = new Set(); // selected day keys YYYY-MM-DD (empty = all
 let _orDayOptions      = [];        // [{key,lbl}] days available in the selected weeks
 let _orWeeksInit       = false;
 
+// "Thu, Jan 15" (no year) → { label: "Thu, 15 Jan 2026", weekStart: "2026-01-12" }. The weekday picks the year
+// (this year first, then last, then next), so a date is never off by a year without the weekday disagreeing.
+function orSpcDate(str) {
+  const m = String(str || "").trim().match(/^([A-Za-z]{3})[A-Za-z]*,?\s+([A-Za-z]{3})[A-Za-z]*\s+(\d{1,2})$/);
+  if (!m) return null;
+  const MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const WD  = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const mo = MON.findIndex(x => x.toLowerCase() === m[2].toLowerCase()), day = parseInt(m[3]);
+  if (mo < 0) return null;
+  const now = new Date().getFullYear();
+  for (const y of [now, now - 1, now + 1]) {
+    const d = new Date(y, mo, day);
+    if (d.getMonth() !== mo || WD[d.getDay()].toLowerCase() !== m[1].toLowerCase()) continue;
+    const mon = new Date(y, mo, day - ((d.getDay() + 6) % 7));
+    const pad = n => String(n).padStart(2, "0");
+    return { label: `${WD[d.getDay()]}, ${day} ${MON[mo]} ${y}`, weekStart: `${mon.getFullYear()}-${pad(mon.getMonth() + 1)}-${pad(mon.getDate())}` };
+  }
+  return null;
+}
+
 async function fetchOverall() {
   try {
-    const sheetNames = ["ImportTELUS", "ImportCG", "ImportEmpire"];
+    const sheetNames = ["ImportTELUS", "ImportCG", "ImportEmpire", "ImportSPC"];
     // Row 1 = headers. Columns are read by header name because tabs get new columns inserted
     // (e.g. ImportTELUS gained "Source"), which shifts everything after them.
     const allFetches = sheetNames.map(s => getRange(`'${s}'!A1:T`).catch(()=>[]));
     const results = await Promise.all(allFetches);
 
     _orAllRows = [];
-    const clientTags = ["TELUS", "Common Good", "Empire Telecom"];
+    const clientTags = ["TELUS", "Common Good", "Empire Telecom", "SPC"];
+    // ImportSPC has Position (CST, B2B, …) where the other tabs have ICI / Office
     const HDR_KEYS = {
-      ici: ["ici","office"], date: ["date"], candidate: ["candidatename"], source: ["source"],
+      ici: ["ici","office","position"], date: ["date"], candidate: ["candidatename"], source: ["source"],
       recruiter: ["recruiter"], prelim: ["prelimresult"], secondary: ["secondaryresult"],
       hired: ["hiredresult"], day1: ["day1result"], backfill: ["backfill"],
       weekStart: ["weekstart"], client: ["client"],
@@ -4372,6 +4395,12 @@ async function fetchOverall() {
         const r = [cell(rr,"ici"), cell(rr,"date"), cell(rr,"candidate"), cell(rr,"recruiter"),
                    cell(rr,"prelim"), cell(rr,"secondary"), cell(rr,"hired"), cell(rr,"day1"),
                    cell(rr,"backfill"), cell(rr,"weekStart"), cell(rr,"client"), cell(rr,"source")];
+        if (sheetNames[idx] === "ImportSPC") {
+          // SPC rows carry a Position instead of an ICI, and dates without a year ("Thu, Jan 15")
+          r[0] = r[0] ? "SPC – " + r[0] : "SPC";
+          const d = orSpcDate(r[1]);
+          if (d) { r[1] = d.label; r[9] = r[9] || d.weekStart; }
+        }
         if (!r[0] && !r[2]) return;           // completely empty row
         if (r[0] === "ICI") return;            // header
         if (r[0] && r[0].startsWith('"')) return; // array formula row
