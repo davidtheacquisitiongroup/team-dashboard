@@ -1683,21 +1683,6 @@
   #or-client-pills .hc-pill.active { background: var(--accent4); color: #fff; }
 
   /* Metrics = toggle chips with a check (pick several) */
-  #or-metric-pills { gap: 6px; }
-  #or-metric-pills .hc-pill {
-    min-height: 30px; padding: 0 11px 0 9px; border-radius: 999px; font-size: 0.76rem; background: var(--surface);
-    border: 1px solid var(--border); color: var(--muted); display: inline-flex; align-items: center; gap: 6px;
-  }
-  #or-metric-pills .hc-pill::before {
-    content: ''; width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--border); background: var(--surface); flex-shrink: 0;
-  }
-  #or-metric-pills .hc-pill.active { background: var(--surface); border-color: rgba(160,72,122,0.5); color: var(--accent4); }
-  #or-metric-pills .hc-pill.active::before {
-    background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.2l2.4 2.4 4.6-5' fill='none' stroke='%23a0487a' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/11px no-repeat;
-    border-color: var(--border);
-  }
-  #or-metric-pills .hc-pill[data-metric="all"]::before { display: none; }
-  #or-metric-pills .hc-pill[data-metric="all"] { padding: 0 12px; font-weight: 700; }
 
   .or-clear-btn {
     margin-left: auto; min-height: 32px; padding: 0 12px; border-radius: var(--radius-sm);
@@ -2006,6 +1991,9 @@
   /* Filters: roomier rows */
   #or-filter-card { margin-bottom: 22px; }
   #or-filter-card .hc-toolbar { padding: 14px 18px !important; gap: 12px 20px !important; }
+  #or-filter-card .hc-toolbar-label { min-width: 0; }
+  #or-filter-card .hc-toolbar-group { gap: 8px !important; }
+  #or-filter-card .or-ici-btn { min-width: 118px; }
 
   /* Scorecards and conversion cards: more air between groups */
   #or-metrics-row { margin-bottom: 26px !important; }
@@ -2303,24 +2291,9 @@
               <button class="hc-pill" data-client="SPC" onclick="orSetClient('SPC')">SPC</button>
             </div>
           </div>
-          <div class="hc-toolbar-divider"></div>
-          <!-- Metric filter -->
-          <div class="hc-toolbar-group" style="flex-wrap:wrap;">
-            <span class="hc-toolbar-label">Metrics</span>
-            <div class="hc-pill-group" id="or-metric-pills">
-              <button class="hc-pill active" data-metric="all">All</button>
-              <button class="hc-pill active" data-metric="booked">Booked</button>
-              <button class="hc-pill active" data-metric="completed">Completed</button>
-              <button class="hc-pill active" data-metric="attended">Attended</button>
-              <button class="hc-pill active" data-metric="sec_booked">Sec. Booked</button>
-              <button class="hc-pill active" data-metric="sec_attended">Sec. Attended</button>
-              <button class="hc-pill active" data-metric="hired">Hired</button>
-              <button class="hc-pill active" data-metric="day1">Day 1</button>
-            </div>
-          </div>
         </div>
 
-        <!-- ROW 2: Recruiter + ICI -->
+        <!-- ROW 2: Recruiter, ICI, Source, Metrics -->
         <div class="hc-toolbar" style="margin-bottom:0;border-radius:0 0 10px 10px;flex-wrap:wrap;gap:14px;padding:10px 16px;background:var(--surface);">
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;">
             <span class="hc-toolbar-label">Recruiter</span>
@@ -2340,13 +2313,22 @@
             <div class="or-ici-tags" id="or-ici-tags"></div>
           </div>
           <div class="hc-toolbar-divider"></div>
-          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;flex:1;min-width:0;">
+          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
             <span class="hc-toolbar-label">Source</span>
             <div class="or-ici-wrap" id="or-source-wrap">
               <button class="hc-select or-ici-btn" id="or-source-btn" onclick="orToggleSourcePanel(event)">All Sources</button>
               <div class="or-ici-panel" id="or-source-panel" style="width:260px;" hidden></div>
             </div>
             <div class="or-ici-tags" id="or-source-tags"></div>
+          </div>
+          <div class="hc-toolbar-divider"></div>
+          <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
+            <span class="hc-toolbar-label">Metrics</span>
+            <div class="or-ici-wrap" id="or-metric-wrap">
+              <button class="hc-select or-ici-btn" id="or-metric-btn" type="button" onclick="orToggleMetricPanel(event)">All Metrics</button>
+              <div class="or-ici-panel" id="or-metric-panel" style="width:300px;" hidden></div>
+            </div>
+            <div class="or-ici-tags" id="or-metric-tags"></div>
           </div>
           <button type="button" id="or-clear-filters" class="or-clear-btn" onclick="orClearAllFilters()" hidden>Clear filters</button>
         </div>
@@ -4816,61 +4798,82 @@ function orSetClient(c) {
 }
 
 // Metric pill wiring — single click toggles, double-click isolates (same as headcount)
-function orInitMetricPills() {
-  const allMets = ["booked","completed","attended","sec_booked","sec_attended","hired","day1"];
-  const container = document.getElementById("or-metric-pills");
-  if (!container || container.dataset.wired) return;
-  container.dataset.wired = "1";
-
-  container.querySelectorAll(".hc-pill").forEach(btn => {
-    const m = btn.dataset.metric;
-    let clickTimer = null;
-
-    btn.addEventListener("click", () => {
-      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
-      clickTimer = setTimeout(() => {
-        if (m === "all") {
-          _orMetrics = new Set(allMets);
-          container.querySelectorAll(".hc-pill").forEach(b => b.classList.add("active"));
-        } else {
-          if (_orMetrics.has(m)) {
-            if (_orMetrics.size > 1) {
-              _orMetrics.delete(m);
-              btn.classList.remove("active");
-              container.querySelector('.hc-pill[data-metric="all"]').classList.remove("active");
-            }
-          } else {
-            _orMetrics.add(m);
-            btn.classList.add("active");
-            if (_orMetrics.size === allMets.length)
-              container.querySelector('.hc-pill[data-metric="all"]').classList.add("active");
-          }
-        }
-        applyOverallFilters();
-        clickTimer = null;
-      }, 220);
-    });
-
-    btn.addEventListener("dblclick", () => {
-      if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; }
-      if (m === "all") {
-        _orMetrics = new Set(allMets);
-        container.querySelectorAll(".hc-pill").forEach(b => b.classList.add("active"));
-      } else {
-        _orMetrics = new Set([m]);
-        container.querySelectorAll(".hc-pill").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-      }
-      applyOverallFilters();
-    });
-  });
+const OR_METRIC_ALL = ["booked","completed","attended","sec_booked","sec_attended","hired","day1"];
+const OR_METRIC_LABEL = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
+function orToggleMetricPanel(e) {
+  if (e) e.stopPropagation();
+  const panel = document.getElementById("or-metric-panel");
+  if (!panel) return;
+  ["or-period-panel", "or-ici-panel", "or-source-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  panel.hidden = !panel.hidden;
 }
+function orToggleMetric(m) {
+  if (_orMetrics.has(m)) { if (_orMetrics.size > 1) _orMetrics.delete(m); }   // at least one metric stays on
+  else _orMetrics.add(m);
+  _syncMetricUI();
+  applyOverallFilters();
+}
+function orAllMetrics() {
+  _orMetrics = new Set(OR_METRIC_ALL);
+  _syncMetricUI();
+  applyOverallFilters();
+}
+function _syncMetricUI() {
+  document.querySelectorAll("#or-metric-panel input[data-metric]").forEach(cb => { cb.checked = _orMetrics.has(cb.dataset.metric); });
+  const all = _orMetrics.size === OR_METRIC_ALL.length;
+  const allCb = document.getElementById("or-metric-all-cb");
+  if (allCb) allCb.checked = all;
+  const btn = document.getElementById("or-metric-btn");
+  if (btn) btn.textContent = all ? "All Metrics" : _orMetrics.size + " selected";
+  const tags = document.getElementById("or-metric-tags");
+  if (tags) {
+    tags.innerHTML = "";
+    if (!all) OR_METRIC_ALL.filter(m => _orMetrics.has(m)).forEach(m => {
+      const t = document.createElement("span");
+      t.className = "or-ici-tag";
+      t.appendChild(document.createTextNode(OR_METRIC_LABEL[m]));
+      const x = document.createElement("button");
+      x.type = "button"; x.title = "Remove"; x.textContent = "×";
+      x.addEventListener("click", () => orToggleMetric(m));
+      t.appendChild(x);
+      tags.appendChild(t);
+    });
+  }
+}
+function orInitMetricPills() {
+  const panel = document.getElementById("or-metric-panel");
+  if (!panel || panel.dataset.wired) return;
+  panel.dataset.wired = "1";
+  panel.innerHTML = `
+    <label class="or-ici-option or-ici-all">
+      <input type="checkbox" id="or-metric-all-cb" onclick="orAllMetrics()">
+      All Metrics
+    </label>
+    <div class="or-ici-grid" id="or-metric-grid" style="grid-template-columns:repeat(2,1fr);"></div>
+  `;
+  const grid = panel.querySelector("#or-metric-grid");
+  OR_METRIC_ALL.forEach(m => {
+    const label = document.createElement("label");
+    label.className = "or-ici-option";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.dataset.metric = m;
+    cb.addEventListener("click", () => orToggleMetric(m));
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" " + OR_METRIC_LABEL[m]));
+    grid.appendChild(label);
+  });
+  _syncMetricUI();
+}
+document.addEventListener("click", (e) => {
+  const panel = document.getElementById("or-metric-panel"), wrap = document.getElementById("or-metric-wrap");
+  if (panel && !panel.hidden && wrap && e.target.isConnected && !wrap.contains(e.target)) panel.hidden = true;
+});
 
 function orToggleSourcePanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-source-panel");
   if (!panel) return;
-  ["or-period-panel", "or-ici-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-period-panel", "or-ici-panel", "or-rec-panel", "or-metric-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -4918,13 +4921,18 @@ function orBuildSourcePanel() {
   if (!panel) return;
   [..._orSourceFilter].forEach(sv => { if (!_orSources.includes(sv)) _orSourceFilter.delete(sv); });
   panel.innerHTML = `
+    <input type="text" class="or-ici-search" id="or-source-search" placeholder="Search sources…" autocomplete="off">
     <label class="or-ici-option or-ici-all">
       <input type="checkbox" id="or-source-all-cb" onclick="orClearSource()">
       All Sources
     </label>
-    <div id="or-source-list"></div>
+    <div class="or-ici-grid" id="or-source-list" style="grid-template-columns:1fr 1fr;"></div>
   `;
   const list = panel.querySelector("#or-source-list");
+  panel.querySelector("#or-source-search").addEventListener("input", (ev) => {
+    const q = ev.target.value.trim().toLowerCase();
+    list.querySelectorAll(".or-ici-option").forEach(l => { l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none"; });
+  });
   _orSources.forEach(sv => {
     const label = document.createElement("label");
     label.className = "or-ici-option";
@@ -4942,7 +4950,7 @@ function orToggleICIPanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-ici-panel");
   if (!panel) return;
-  ["or-period-panel", "or-source-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-period-panel", "or-source-panel", "or-rec-panel", "or-metric-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -5226,7 +5234,7 @@ function orTogglePeriodPanel(e) {
   orSyncTimeUI();
   const panel = document.getElementById("or-period-panel");
   if (!panel) return;
-  ["or-ici-panel", "or-source-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-ici-panel", "or-source-panel", "or-rec-panel", "or-metric-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -5716,7 +5724,7 @@ function orToggleRecPanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-rec-panel");
   if (!panel) return;
-  ["or-period-panel", "or-ici-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-period-panel", "or-ici-panel", "or-source-panel", "or-metric-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 function orToggleRec(name) {
@@ -5828,8 +5836,8 @@ function orBetaUpdate() {
 function orClearAllFilters() {
   _orClient = "all";
   document.querySelectorAll("#or-client-pills .hc-pill").forEach(b => b.classList.toggle("active", b.dataset.client === "all"));
-  _orMetrics = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
-  document.querySelectorAll("#or-metric-pills .hc-pill").forEach(b => b.classList.add("active"));
+  _orMetrics = new Set(OR_METRIC_ALL);
+  _syncMetricUI();
   _orRecFilter.clear(); _syncRecUI();
   _orICIFilter.clear(); _syncICIUI();
   _orSourceFilter.clear(); _syncSourceUI();
