@@ -1794,7 +1794,8 @@
     text-align: right; vertical-align: bottom; cursor: pointer; min-width: 78px;
   }
   #or-table thead th.th-name { text-align: left; left: 0; z-index: 5; width: 150px; min-width: 150px; max-width: 150px; }
-  #or-table thead th.th-sub { text-align: left; left: 150px; z-index: 5; width: 140px; min-width: 140px; max-width: 140px; border-right: 1px solid var(--border); }
+  #or-table thead th.th-sub { text-align: left; left: 150px; z-index: 5; width: 140px; min-width: 140px; max-width: 140px; }
+  #or-table thead th.th-sub2 { text-align: left; left: 290px; z-index: 5; width: 130px; min-width: 130px; max-width: 130px; border-right: 1px solid var(--border); }
   #or-table thead th.th-pct { color: #2f8a85; min-width: 64px; }
   #or-table thead th:hover { color: var(--accent1); }
   .th-sort { color: var(--accent1); margin-left: 3px; }
@@ -1809,10 +1810,21 @@
     width: 150px; min-width: 150px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   #or-table tbody td.td-sub {
-    position: sticky; left: 150px; z-index: 2; text-align: left; border-right: 1px solid var(--border);
+    position: sticky; left: 150px; z-index: 2; text-align: left;
     width: 140px; min-width: 140px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     font-size: 0.86rem; color: var(--text);
   }
+  #or-table tbody td.td-sub2 {
+    position: sticky; left: 290px; z-index: 2; text-align: left; border-right: 1px solid var(--border);
+    width: 130px; min-width: 130px; max-width: 130px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 0.84rem; color: var(--text);
+  }
+  #or-table tr.grp2 td { background: #fbf8fa; font-weight: 600; }
+  #or-table tr.grp2 td.td-sub { cursor: pointer; }
+  #or-table tr.grp2:hover td { background: #f6eef3; }
+  #or-table tr.grp2 .caret { display: inline-block; width: 14px; color: var(--accent1); font-size: 0.7rem; }
+  #or-table tr.grp2 .grp-n { font-weight: 500; color: var(--muted); font-size: 0.7rem; margin-left: 4px; }
+  #or-table tr.total-row td.td-sub2 { background: #f3e9f0 !important; }
   /* Grouped rows: a header row per group, recruiter/ICI rows indented underneath */
   #or-table tr.grp td { background: #f7f1f5; font-weight: 700; border-bottom: 1px solid #ebe1e8; }
   #or-table tr.grp td.td-name { cursor: pointer; }
@@ -1820,7 +1832,6 @@
   #or-table tr.grp .caret { display: inline-block; width: 14px; color: var(--accent1); font-size: 0.7rem; }
   #or-table tr.grp .grp-n { font-weight: 500; color: var(--muted); font-size: 0.7rem; margin-left: 4px; }
   #or-table tr.kid td { background: var(--surface); }
-  #or-table tr.kid td.td-sub { padding-left: 24px; }
   #or-table tr.total-row td.td-sub { background: #f3e9f0 !important; }
   .or-table-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
   .or-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
@@ -1852,8 +1863,9 @@
     #or-filter-card .hc-select, #or-filter-card .or-ici-btn { width: auto !important; min-width: 140px; }
     #or-table tbody td { padding: 9px 10px; }
     #or-table thead th.th-name, #or-table tbody td.td-name { width: 104px; min-width: 104px; max-width: 104px; }
-    #or-table thead th.th-sub { left: 104px; width: 108px; min-width: 108px; max-width: 108px; }
-    #or-table tbody td.td-sub { left: 104px; width: 108px; min-width: 108px; max-width: 108px; }
+    /* narrow windows: only the first label column stays pinned */
+    #or-table thead th.th-sub, #or-table thead th.th-sub2 { position: sticky; left: auto; width: 108px; min-width: 108px; max-width: 108px; }
+    #or-table tbody td.td-sub, #or-table tbody td.td-sub2 { position: static; width: 108px; min-width: 108px; max-width: 108px; }
     #or-table thead th { padding: 9px 10px; }
     .or-table-scroll { max-height: 68vh; }
   }
@@ -2321,6 +2333,7 @@
             <div class="or-seg" id="or-view-seg" role="group" aria-label="Table view">
               <button type="button" data-view="ici" class="active" onclick="orSetView('ici')">By ICI</button>
               <button type="button" data-view="rec" onclick="orSetView('rec')">By Recruiter</button>
+              <button type="button" data-view="source" onclick="orSetView('source')">By Source</button>
             </div>
             <button type="button" class="or-expand-btn" id="or-expand-btn" onclick="orToggleExpandAll()">Expand all</button>
             <input id="or-search" type="search" class="or-search" placeholder="Search ICI or recruiter…" aria-label="Search ICIs or recruiters" autocomplete="off">
@@ -4280,10 +4293,12 @@ const RESULT_VALUE_CANONICAL = {
 let _orClient        = "all";
 let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
 let _orRecFilter       = new Set(); // empty = "All Recruiters"
-let _orView            = "ici";     // table rows: "ici" (ICI → recruiters) or "rec" (recruiter → ICIs)
-let _orExpandAll       = false;     // true = every group open except those in _orCollapsed
-const _orExpanded      = new Set(); // groups opened by hand while not in expand-all mode
-const _orCollapsed     = new Set(); // groups closed by hand while in expand-all mode
+let _orView            = "ici";     // table nesting: "ici" (ICI → Recruiter → Source), "rec" or "source"
+let _orExpandLevel     = 0;         // 0 = all collapsed, 1 = first level open, 2 = everything open
+const _orToggled       = new Set(); // groups flipped by hand relative to _orExpandLevel (keyed by path)
+const OR_VIEW_LEVELS   = { ici: ["ici", "recruiter", "source"], rec: ["recruiter", "ici", "source"], source: ["source", "ici", "recruiter"] };
+const OR_DIM_LABEL     = { ici: "ICI", recruiter: "Recruiter", source: "Source" };
+const OR_DIM_PLURAL    = { ici: "ICIs", recruiter: "Recruiters", source: "Sources" };
 let _orICIFilter       = new Set(); // empty = "All ICIs"
 let _orSourceFilter    = new Set(); // empty = "All Sources"
 const _orWeekSel       = new Set(); // selected week-start values (empty = no week filter)
@@ -4797,12 +4812,14 @@ function orToggleSourcePanel(e) {
 function orToggleSource(src) {
   if (_orSourceFilter.has(src)) _orSourceFilter.delete(src);
   else _orSourceFilter.add(src);
+  orAutoExpand();
   _syncSourceUI();
   applyOverallFilters();
 }
 
 function orClearSource() {
   _orSourceFilter.clear();
+  orAutoExpand();
   _syncSourceUI();
   applyOverallFilters();
 }
@@ -5370,18 +5387,6 @@ function applyOverallFilters() {
     return parsed && _orDaySel.has(parsed.key);
   });
 
-  // Table rows: one group per ICI (or per recruiter in the By Recruiter view); the other
-  // dimension is listed underneath each group. Filters only decide which rows exist.
-  const pKey = _orView === "rec" ? "recruiter" : "ici";
-  const sKey = _orView === "rec" ? "ici" : "recruiter";
-  const groups = {};
-  rows.forEach(r => {
-    const key = (r[pKey] || "Unknown").trim();
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(r);
-  });
-  const groupNames = Object.keys(groups);
-
   // Metric calculator — all fields are pre-normalized to trimmed strings (never undefined)
   function calcMetrics(rs) {
     // Booked = every row with a candidate name (all rows that passed the fetch filter)
@@ -5510,20 +5515,23 @@ function applyOverallFilters() {
     `;
   }
 
-  // Table header — two label columns (group, then its members), then sortable metric columns
+  // Table header — three label columns (outer group → middle → inner), then sortable metric columns
   const LONG = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
   const LONGT = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Secondary Booked",sec_attended:"Secondary Attended",hired:"Hired",day1:"Day 1"};
   const pctMetrics = new Set(activeMetrics.filter(m => {
     const d = METRIC_CFG[m].pctOf;
     return d && (d === "completed" || d === "booked" || activeSet.has(d));
   }));
-  const pLabel = _orView === "rec" ? "Recruiter" : "ICI", sLabel = _orView === "rec" ? "ICI" : "Recruiter";
+  const dims = OR_VIEW_LEVELS[_orView];
+  const NAME_COLS = ["name", "sub", "sub2"];            // sort keys of the three label columns
   const thead = document.getElementById("or-thead-row");
   if (thead) {
     const th = (key, label, cls, tip) =>
       `<th class="${cls}" onclick="orSort('${key}')" title="${tip}" tabindex="0" aria-sort="${_orSortCol === key ? (_orSortDir === 1 ? "ascending" : "descending") : "none"}"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orSort('${key}')}"><span class="th-label">${label}</span><span class="th-sort" id="or-sort-${key}"></span></th>`;
-    let h = th("name", pLabel, "th-name", "Sort by " + pLabel) + th("sub", sLabel, "th-sub", "Sort " + sLabel + " rows within each " + pLabel);
+    let h = th("name", OR_DIM_LABEL[dims[0]], "th-name", "Sort by " + OR_DIM_LABEL[dims[0]])
+          + th("sub", OR_DIM_LABEL[dims[1]], "th-sub", "Sort " + OR_DIM_LABEL[dims[1]] + " rows within each " + OR_DIM_LABEL[dims[0]])
+          + th("sub2", OR_DIM_LABEL[dims[2]], "th-sub2", "Sort " + OR_DIM_LABEL[dims[2]] + " rows within each " + OR_DIM_LABEL[dims[1]]);
     activeMetrics.forEach(m => {
       h += th(m, LONG[m], "th-num", LONGT[m] + " — count");
       if (pctMetrics.has(m)) h += th(m + "_pct", LONG[m] + " %", "th-num th-pct", `${LONGT[m]} % = ${LONGT[m]} ÷ ${LONGT[METRIC_CFG[m].pctOf]}`);
@@ -5531,56 +5539,56 @@ function applyOverallFilters() {
     thead.innerHTML = h;
   }
 
-  // Sorting — metric / metric_pct keys always sort on the underlying numbers. Groups follow the
-  // column that was clicked; the rows inside a group follow the same column (or the "sub" name column).
+  // Sorting — metric / metric_pct keys always sort on the underlying numbers. A label column sorts its own
+  // level (all other levels stay A–Z); a metric column sorts every level by that metric.
   const sortVal = (mv, key) => {
     const isPct = key.endsWith("_pct");
     return isPct ? (getPct(key.replace("_pct", ""), mv, activeSet) ?? -1) : (mv[key] ?? 0);
   };
   const byName = (a, b) => a.name.localeCompare(b.name);
-  const groupCmp = (a, b) => {
-    if (_orSortCol === "name") return _orSortDir * byName(a, b);
-    if (_orSortCol === "sub")  return byName(a, b);
-    return _orSortDir * (sortVal(a.mv, _orSortCol) - sortVal(b.mv, _orSortCol)) || byName(a, b);
-  };
-  const kidCmp = (a, b) => {
-    if (_orSortCol === "sub")  return _orSortDir * byName(a, b);
-    if (_orSortCol === "name") return byName(a, b);
+  const cmpAt = depth => (a, b) => {
+    const nameLevel = NAME_COLS.indexOf(_orSortCol);
+    if (nameLevel >= 0) return (nameLevel === depth ? _orSortDir : 1) * byName(a, b);
     return _orSortDir * (sortVal(a.mv, _orSortCol) - sortVal(b.mv, _orSortCol)) || byName(a, b);
   };
 
+  // Tree of groups: level 0 → level 1 → level 2 (leaf), each node carrying its own totals. The search box
+  // keeps a node when its own name, or anything beneath it, matches (and force-opens the path to the match).
   const q = _orSearch;
-  const view = [];
-  groupNames.forEach(name => {
-    const byKid = {};
-    groups[name].forEach(r => { const k = (r[sKey] || "Unknown").trim(); (byKid[k] = byKid[k] || []).push(r); });
-    let kids = Object.entries(byKid).map(([n, rs]) => ({ name: n, mv: calcMetrics(rs) }));
-    let forceOpen = false;
-    if (q && !name.toLowerCase().includes(q)) {
-      kids = kids.filter(k => k.name.toLowerCase().includes(q));
-      if (!kids.length) return;
-      forceOpen = true;
-    }
-    kids.sort(kidCmp);
-    view.push({ name, mv: calcMetrics(groups[name]), kids, forceOpen });
-  });
-  view.sort(groupCmp);
+  function buildLevel(rs, depth, path, ancestorMatch) {
+    const by = {};
+    rs.forEach(r => { const k = (r[dims[depth]] || "Unknown").trim(); (by[k] = by[k] || []).push(r); });
+    const nodes = [];
+    Object.entries(by).forEach(([name, grs]) => {
+      const selfMatch = !q || ancestorMatch || name.toLowerCase().includes(q);
+      const node = { name, depth, path: path + "\u0001" + name, mv: calcMetrics(grs), kids: [], forceOpen: false };
+      if (depth < 2) {
+        node.kids = buildLevel(grs, depth + 1, node.path, selfMatch);   // a match keeps everything beneath it
+        if (!node.kids.length) return;
+        node.forceOpen = !!q && !selfMatch;                             // opened only to reveal a deeper match
+      } else if (!selfMatch) return;
+      nodes.push(node);
+    });
+    nodes.sort(cmpAt(depth));
+    return nodes;
+  }
+  const view = buildLevel(rows, 0, "", false);
 
   // Update sort indicators — covers both raw and _pct keys
-  const sortKeys = ["name", "sub", ...activeMetrics, ...[...pctMetrics].map(m => m + "_pct")];
+  const sortKeys = [...NAME_COLS, ...activeMetrics, ...[...pctMetrics].map(m => m + "_pct")];
   sortKeys.forEach(k => {
     const el = document.getElementById(`or-sort-${k}`);
     if (el) el.textContent = _orSortCol === k ? (_orSortDir === 1 ? "↑" : "↓") : "";
   });
 
   const countEl = document.getElementById("or-table-count");
-  if (countEl) countEl.textContent = `· ${view.length} ${pLabel}${view.length === 1 ? "" : "s"}`;
+  const pName = OR_DIM_PLURAL[dims[0]];
+  if (countEl) countEl.textContent = `· ${view.length} ${view.length === 1 ? pName.replace(/s$/, "") : pName}`;
   const titleEl = document.getElementById("or-table-title-text");
-  if (titleEl) titleEl.textContent = "Performance by " + pLabel;
+  if (titleEl) titleEl.textContent = "Performance by " + OR_DIM_LABEL[dims[0]];
   document.querySelectorAll("#or-view-seg button").forEach(b => b.classList.toggle("active", b.dataset.view === _orView));
   const expBtn = document.getElementById("or-expand-btn");
-  const isOpen = g => g.forceOpen || orGroupOpen(g.name);
-  if (expBtn) expBtn.textContent = view.length && view.every(isOpen) ? "Collapse all" : "Expand all";
+  if (expBtn) expBtn.textContent = (_orExpandLevel === 2 && _orToggled.size === 0) ? "Collapse all" : "Expand all";
 
   const numCell = (val, pending) =>
     `<td class="td-num${val === 0 ? " zero" : ""}"><span class="n">${val}</span>${pending > 0 ? `<span class="pend">+${pending} pending</span>` : ""}</td>`;
@@ -5597,38 +5605,40 @@ function applyOverallFilters() {
   if (tbody) {
     tbody.innerHTML = "";
     if (view.length === 0) {
-      const cols = 2 + activeMetrics.length + pctMetrics.size;
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols}">No ${pLabel === "ICI" ? "ICIs" : "recruiters"} match the current filters.</td></tr>`;
+      const cols = 3 + activeMetrics.length + pctMetrics.size;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols}">No ${OR_DIM_PLURAL[dims[0]].toLowerCase()} match the current filters.</td></tr>`;
     }
-    view.forEach(g => {
-      const open = isOpen(g);
+    const LBL = ["td-name", "td-sub", "td-sub2"];
+    const emit = node => {
+      const hasKids = node.depth < 2 && node.kids.length > 0;
+      const open = hasKids && (node.forceOpen || orGroupOpen(node.path, node.depth));
       const tr = document.createElement("tr");
-      tr.className = "grp";
-      tr.innerHTML = `<td class="td-name" tabindex="0" role="button" aria-expanded="${open}"></td><td class="td-sub"></td>` + rowCells(g.mv);
-      const nameTd = tr.firstChild;
-      nameTd.title = g.name + " — " + g.kids.length + " " + sLabel.toLowerCase() + (g.kids.length === 1 ? "" : "s");
-      nameTd.innerHTML = `<span class="caret">${open ? "▾" : "▸"}</span>`;
-      nameTd.appendChild(document.createTextNode(g.name));
-      const cnt = document.createElement("span"); cnt.className = "grp-n"; cnt.textContent = "(" + g.kids.length + ")";
-      nameTd.appendChild(cnt);
-      const toggle = () => orToggleGroup(g.name);
-      nameTd.addEventListener("click", toggle);
-      nameTd.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
+      tr.className = node.depth === 0 ? "grp" : node.depth === 1 ? (hasKids ? "grp2" : "kid") : "kid";
+      tr.innerHTML = [0, 1, 2].map(i => `<td class="${LBL[i]}"></td>`).join("") + rowCells(node.mv);
+      const td = tr.children[node.depth];
+      if (hasKids) {
+        td.setAttribute("tabindex", "0"); td.setAttribute("role", "button"); td.setAttribute("aria-expanded", String(open));
+        td.title = node.name + " — " + node.kids.length + " " + OR_DIM_LABEL[dims[node.depth + 1]].toLowerCase() + (node.kids.length === 1 ? "" : "s");
+        td.innerHTML = `<span class="caret">${open ? "▾" : "▸"}</span>`;
+        td.appendChild(document.createTextNode(node.name));
+        const cnt = document.createElement("span"); cnt.className = "grp-n"; cnt.textContent = "(" + node.kids.length + ")";
+        td.appendChild(cnt);
+        const toggle = () => orToggleGroup(node.path);
+        td.addEventListener("click", toggle);
+        td.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
+      } else {
+        td.textContent = node.name;
+      }
       tbody.appendChild(tr);
-      if (open) g.kids.forEach(k => {
-        const kr = document.createElement("tr");
-        kr.className = "kid";
-        kr.innerHTML = `<td class="td-name"></td><td class="td-sub"></td>` + rowCells(k.mv);
-        kr.children[1].textContent = k.name;
-        tbody.appendChild(kr);
-      });
-    });
+      if (open) node.kids.forEach(emit);
+    };
+    view.forEach(emit);
 
     // Totals row (always the full filtered total, even while the search box narrows the list)
     if (view.length > 1) {
       const tr = document.createElement("tr");
       tr.className = "total-row";
-      tr.innerHTML = `<td class="td-name"><div class="td-name-main">Total${_orSearch ? ' <span class="td-name-sub" style="display:inline">· all filtered</span>' : ""}</div></td><td class="td-sub"></td>` + rowCells(totals);
+      tr.innerHTML = `<td class="td-name"><div class="td-name-main">Total${_orSearch ? ' <span class="td-name-sub" style="display:inline">· all filtered</span>' : ""}</div></td><td class="td-sub"></td><td class="td-sub2"></td>` + rowCells(totals);
       tbody.appendChild(tr);
     }
   }
@@ -5713,21 +5723,27 @@ document.addEventListener("click", (e) => {
   if (panel && !panel.hidden && wrap && e.target.isConnected && !wrap.contains(e.target)) panel.hidden = true;
 });
 
-// ── Grouped table: open/close state and the By ICI | By Recruiter toggle ──
-function orGroupOpen(name) { return _orExpandAll ? !_orCollapsed.has(name) : _orExpanded.has(name); }
-function orToggleGroup(name) {
-  const set = _orExpandAll ? _orCollapsed : _orExpanded;
-  if (set.has(name)) set.delete(name); else set.add(name);
+// ── Grouped table: open/close state and the By ICI | By Recruiter | By Source toggle ──
+// A group is open when its depth is within _orExpandLevel, unless it was flipped by hand.
+function orGroupOpen(path, depth) { return (_orExpandLevel > depth) !== _orToggled.has(path); }
+function orToggleGroup(path) {
+  if (_orToggled.has(path)) _orToggled.delete(path); else _orToggled.add(path);
   applyOverallFilters();
 }
-function orSetExpand(on) { _orExpandAll = on; _orExpanded.clear(); _orCollapsed.clear(); }
+function orSetExpand(level) { _orExpandLevel = level; _orToggled.clear(); }
 function orToggleExpandAll() {
   const btn = document.getElementById("or-expand-btn");
-  orSetExpand(!(btn && btn.textContent === "Collapse all"));
+  orSetExpand(btn && btn.textContent === "Collapse all" ? 0 : 2);
   applyOverallFilters();
 }
-// Picking recruiters (By ICI) or ICIs (By Recruiter) opens every group so the second column shows who/where.
-function orAutoExpand() { orSetExpand(_orView === "ici" ? _orRecFilter.size > 0 : _orICIFilter.size > 0); }
+// Filtering on a dimension that sits in the 2nd or 3rd column opens the groups just far enough to show it
+// (e.g. picking recruiters in By ICI opens each ICI to its recruiter rows).
+function orAutoExpand() {
+  const active = { ici: _orICIFilter.size > 0, recruiter: _orRecFilter.size > 0, source: _orSourceFilter.size > 0 };
+  let level = 0;
+  OR_VIEW_LEVELS[_orView].forEach((d, i) => { if (i > 0 && active[d]) level = Math.max(level, i); });
+  orSetExpand(level);
+}
 function orSetView(v) {
   if (_orView === v) return;
   _orView = v; _orSortCol = "name"; _orSortDir = 1;
