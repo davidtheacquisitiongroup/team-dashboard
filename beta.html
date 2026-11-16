@@ -1793,7 +1793,8 @@
     padding: 10px 14px; white-space: normal; line-height: 1.2; border-bottom: 1px solid var(--border);
     text-align: right; vertical-align: bottom; cursor: pointer; min-width: 78px;
   }
-  #or-table thead th.th-name { text-align: left; left: 0; z-index: 5; min-width: 190px; border-right: 1px solid var(--border); }
+  #or-table thead th.th-name { text-align: left; left: 0; z-index: 5; width: 150px; min-width: 150px; max-width: 150px; }
+  #or-table thead th.th-sub { text-align: left; left: 150px; z-index: 5; width: 140px; min-width: 140px; max-width: 140px; border-right: 1px solid var(--border); }
   #or-table thead th.th-pct { color: #2f8a85; min-width: 64px; }
   #or-table thead th:hover { color: var(--accent1); }
   .th-sort { color: var(--accent1); margin-left: 3px; }
@@ -1804,9 +1805,31 @@
     background: var(--surface); text-align: right; vertical-align: middle; white-space: nowrap;
   }
   #or-table tbody td.td-name {
-    position: sticky; left: 0; z-index: 2; text-align: left; border-right: 1px solid var(--border);
-    min-width: 190px; max-width: 280px; white-space: normal;
+    position: sticky; left: 0; z-index: 2; text-align: left;
+    width: 150px; min-width: 150px; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  #or-table tbody td.td-sub {
+    position: sticky; left: 150px; z-index: 2; text-align: left; border-right: 1px solid var(--border);
+    width: 140px; min-width: 140px; max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 0.86rem; color: var(--text);
+  }
+  /* Grouped rows: a header row per group, recruiter/ICI rows indented underneath */
+  #or-table tr.grp td { background: #f7f1f5; font-weight: 700; border-bottom: 1px solid #ebe1e8; }
+  #or-table tr.grp td.td-name { cursor: pointer; }
+  #or-table tr.grp:hover td { background: #f1e6ee; }
+  #or-table tr.grp .caret { display: inline-block; width: 14px; color: var(--accent1); font-size: 0.7rem; }
+  #or-table tr.grp .grp-n { font-weight: 500; color: var(--muted); font-size: 0.7rem; margin-left: 4px; }
+  #or-table tr.kid td { background: var(--surface); }
+  #or-table tr.kid td.td-sub { padding-left: 24px; }
+  #or-table tr.total-row td.td-sub { background: #f3e9f0 !important; }
+  .or-table-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .or-seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
+  .or-seg button { border: 0; border-right: 1px solid var(--border); background: transparent; padding: 0 12px; height: 34px; font: 600 0.78rem 'Inter', sans-serif; color: var(--muted); cursor: pointer; }
+  .or-seg button:last-child { border-right: 0; }
+  .or-seg button:hover { background: rgba(160,72,122,0.06); color: var(--accent4); }
+  .or-seg button.active { background: var(--accent4); color: #fff; }
+  .or-expand-btn { height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font: 600 0.78rem 'Inter', sans-serif; color: var(--accent4); cursor: pointer; }
+  .or-expand-btn:hover { border-color: var(--accent1); }
   .td-name-main { font-weight: 700; font-size: 0.92rem; color: var(--text); }
   .td-name-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted); margin-top: 2px; line-height: 1.3; }
   #or-table td.td-num .n { display: block; font-family: 'JetBrains Mono', monospace; font-size: 1rem; font-weight: 700; color: var(--accent4); }
@@ -1828,6 +1851,9 @@
     #or-filter-card .hc-toolbar-label { min-width: 0; width: 100%; }
     #or-filter-card .hc-select, #or-filter-card .or-ici-btn { width: auto !important; min-width: 140px; }
     #or-table tbody td { padding: 9px 10px; }
+    #or-table thead th.th-name, #or-table tbody td.td-name { width: 104px; min-width: 104px; max-width: 104px; }
+    #or-table thead th.th-sub { left: 104px; width: 108px; min-width: 108px; max-width: 108px; }
+    #or-table tbody td.td-sub { left: 104px; width: 108px; min-width: 108px; max-width: 108px; }
     #or-table thead th { padding: 9px 10px; }
     .or-table-scroll { max-height: 68vh; }
   }
@@ -2249,13 +2275,11 @@
         <div class="hc-toolbar" style="margin-bottom:0;border-radius:0 0 10px 10px;flex-wrap:wrap;gap:14px;padding:10px 16px;background:var(--surface);">
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;">
             <span class="hc-toolbar-label">Recruiter</span>
-            <select id="or-recruiter-filter" style="display:none" onchange="applyOverallFilters()">
-              <option value="all">All Recruiters</option>
-            </select>
             <div class="or-ici-wrap" id="or-rec-wrap">
               <button class="hc-select or-ici-btn" id="or-rec-btn" type="button" onclick="orToggleRecPanel(event)">All Recruiters</button>
-              <div class="or-ici-panel" id="or-rec-panel" style="width:240px;" hidden></div>
+              <div class="or-ici-panel" id="or-rec-panel" hidden></div>
             </div>
+            <div class="or-ici-tags" id="or-rec-tags"></div>
           </div>
           <div class="hc-toolbar-divider"></div>
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
@@ -2292,14 +2316,21 @@
       <!-- DATA TABLE -->
       <div class="card or-table-card" style="padding:0;overflow:hidden;">
         <div class="or-table-head">
-          <div class="or-table-title">Recruiter performance <span id="or-table-count"></span></div>
-          <input id="or-search" type="search" class="or-search" placeholder="Search name…" aria-label="Search recruiters" autocomplete="off">
+          <div class="or-table-title"><span id="or-table-title-text" style="color:inherit;font-size:inherit;font-weight:inherit;">Performance by ICI</span> <span id="or-table-count"></span></div>
+          <div class="or-table-tools">
+            <div class="or-seg" id="or-view-seg" role="group" aria-label="Table view">
+              <button type="button" data-view="ici" class="active" onclick="orSetView('ici')">By ICI</button>
+              <button type="button" data-view="rec" onclick="orSetView('rec')">By Recruiter</button>
+            </div>
+            <button type="button" class="or-expand-btn" id="or-expand-btn" onclick="orToggleExpandAll()">Expand all</button>
+            <input id="or-search" type="search" class="or-search" placeholder="Search ICI or recruiter…" aria-label="Search ICIs or recruiters" autocomplete="off">
+          </div>
         </div>
         <div class="or-table-scroll">
           <table class="recruiter-table" id="or-table">
             <thead>
               <tr id="or-thead-row">
-                <th class="th-name">Recruiter</th>
+                <th class="th-name">ICI</th>
               </tr>
             </thead>
             <tbody id="or-tbody"><tr class="empty-row"><td colspan="8">Loading data…</td></tr></tbody>
@@ -4248,7 +4279,11 @@ const RESULT_VALUE_CANONICAL = {
 // Active filter state
 let _orClient        = "all";
 let _orMetrics       = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
-let _orRecruiterFilter = "all";
+let _orRecFilter       = new Set(); // empty = "All Recruiters"
+let _orView            = "ici";     // table rows: "ici" (ICI → recruiters) or "rec" (recruiter → ICIs)
+let _orExpandAll       = false;     // true = every group open except those in _orCollapsed
+const _orExpanded      = new Set(); // groups opened by hand while not in expand-all mode
+const _orCollapsed     = new Set(); // groups closed by hand while in expand-all mode
 let _orICIFilter       = new Set(); // empty = "All ICIs"
 let _orSourceFilter    = new Set(); // empty = "All Sources"
 const _orWeekSel       = new Set(); // selected week-start values (empty = no week filter)
@@ -4755,7 +4790,7 @@ function orToggleSourcePanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-source-panel");
   if (!panel) return;
-  ["or-period-panel", "or-ici-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-period-panel", "or-ici-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -4825,19 +4860,21 @@ function orToggleICIPanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-ici-panel");
   if (!panel) return;
-  ["or-period-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-period-panel", "or-source-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
 function orToggleICI(ici) {
   if (_orICIFilter.has(ici)) _orICIFilter.delete(ici);
   else _orICIFilter.add(ici);
+  orAutoExpand();
   _syncICIUI();
   applyOverallFilters();
 }
 
 function orClearICI() {
   _orICIFilter.clear();
+  orAutoExpand();
   _syncICIUI();
   applyOverallFilters();
 }
@@ -4870,20 +4907,7 @@ function _syncICIUI() {
 
 function orUpdateFilterDropdowns() {
   orBuildSourcePanel();
-  const recSel = document.getElementById("or-recruiter-filter");
   const iciPanel = document.getElementById("or-ici-panel");
-
-  if (recSel) {
-    const prev = recSel.value;
-    recSel.innerHTML = `<option value="all">All Recruiters</option>`;
-    _orRecruiters.forEach(r => {
-      const opt = document.createElement("option");
-      opt.value = r; opt.textContent = r;
-      recSel.appendChild(opt);
-    });
-    recSel.value = _orRecruiters.includes(prev) ? prev : "all";
-    _orRecruiterFilter = recSel.value;
-  }
 
   if (iciPanel) {
     // Drop any previously selected ICIs that no longer exist in the data
@@ -4925,7 +4949,7 @@ function orSort(col) {
     _orSortDir *= -1;
   } else {
     _orSortCol = col;
-    _orSortDir = col === "name" ? 1 : -1;
+    _orSortDir = (col === "name" || col === "sub") ? 1 : -1;
   }
   applyOverallFilters();
 }
@@ -5120,7 +5144,7 @@ function orTogglePeriodPanel(e) {
   orSyncTimeUI();
   const panel = document.getElementById("or-period-panel");
   if (!panel) return;
-  ["or-ici-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
+  ["or-ici-panel", "or-source-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
 
@@ -5289,8 +5313,8 @@ function orParseDateKey(dateStr) {
 
 function applyOverallFilters() {
   // Sync from DOM (ICI filter is panel-driven, synced directly by orToggleICI/orClearICI)
-  const recSel  = document.getElementById("or-recruiter-filter");
-  if (recSel)  _orRecruiterFilter = recSel.value;
+  const recSet = new Set([..._orRecFilter].map(n => n.trim().toLowerCase()));
+  const recOK  = r => recSet.size === 0 || recSet.has(r.recruiter.trim().toLowerCase());
 
   const parseDateKey = orParseDateKey;
 
@@ -5307,7 +5331,7 @@ function applyOverallFilters() {
     } else if (_orWeekSel.size) {
       baseRows = baseRows.filter(r => _orWeekSel.has(r.weekStart));
     }
-    if (_orRecruiterFilter !== "all") baseRows = baseRows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
+    if (recSet.size > 0)              baseRows = baseRows.filter(recOK);
     if (_orICIFilter.size > 0)        baseRows = baseRows.filter(r => _orICIFilter.has(r.ici.trim()));
     if (_orSourceFilter.size > 0)     baseRows = baseRows.filter(r => _orSourceFilter.has(r.source));
 
@@ -5338,7 +5362,7 @@ function applyOverallFilters() {
   } else if (_orWeekSel.size) {
     rows = rows.filter(r => _orWeekSel.has(r.weekStart));
   }
-  if (_orRecruiterFilter !== "all")  rows = rows.filter(r => r.recruiter.trim().toLowerCase() === _orRecruiterFilter.trim().toLowerCase());
+  if (recSet.size > 0)               rows = rows.filter(recOK);
   if (_orICIFilter.size > 0)         rows = rows.filter(r => _orICIFilter.has(r.ici.trim()));
   if (_orSourceFilter.size > 0)      rows = rows.filter(r => _orSourceFilter.has(r.source));
   if (_orDaySel.size)                rows = rows.filter(r => {
@@ -5346,21 +5370,17 @@ function applyOverallFilters() {
     return parsed && _orDaySel.has(parsed.key);
   });
 
-  // Determine table grouping:
-  // If a specific recruiter is selected → group by ICI (to show their offices)
-  // If specific ICIs are selected → group by recruiter
-  // Otherwise → group by recruiter
-  let groupKey = "recruiter";
-  if (_orRecruiterFilter !== "all" && _orICIFilter.size === 0) groupKey = "ici";
-
+  // Table rows: one group per ICI (or per recruiter in the By Recruiter view); the other
+  // dimension is listed underneath each group. Filters only decide which rows exist.
+  const pKey = _orView === "rec" ? "recruiter" : "ici";
+  const sKey = _orView === "rec" ? "ici" : "recruiter";
   const groups = {};
   rows.forEach(r => {
-    const key = (r[groupKey] || "Unknown").trim();
+    const key = (r[pKey] || "Unknown").trim();
     if (!groups[key]) groups[key] = [];
     groups[key].push(r);
   });
-
-  const groupNames = Object.keys(groups).sort().filter(n => !_orSearch || n.toLowerCase().includes(_orSearch));
+  const groupNames = Object.keys(groups);
 
   // Metric calculator — all fields are pre-normalized to trimmed strings (never undefined)
   function calcMetrics(rs) {
@@ -5490,19 +5510,20 @@ function applyOverallFilters() {
     `;
   }
 
-  // Table header — sortable (beta: one right-aligned numeric column per count, and one per %)
+  // Table header — two label columns (group, then its members), then sortable metric columns
   const LONG = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Sec. Booked",sec_attended:"Sec. Attended",hired:"Hired",day1:"Day 1"};
   const LONGT = {booked:"Booked",completed:"Completed",attended:"Attended",sec_booked:"Secondary Booked",sec_attended:"Secondary Attended",hired:"Hired",day1:"Day 1"};
   const pctMetrics = new Set(activeMetrics.filter(m => {
     const d = METRIC_CFG[m].pctOf;
     return d && (d === "completed" || d === "booked" || activeSet.has(d));
   }));
+  const pLabel = _orView === "rec" ? "Recruiter" : "ICI", sLabel = _orView === "rec" ? "ICI" : "Recruiter";
   const thead = document.getElementById("or-thead-row");
   if (thead) {
     const th = (key, label, cls, tip) =>
       `<th class="${cls}" onclick="orSort('${key}')" title="${tip}" tabindex="0" aria-sort="${_orSortCol === key ? (_orSortDir === 1 ? "ascending" : "descending") : "none"}"
         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();orSort('${key}')}"><span class="th-label">${label}</span><span class="th-sort" id="or-sort-${key}"></span></th>`;
-    let h = th("name", groupKey === "ici" ? "ICI" : "Recruiter", "th-name", "Sort by name");
+    let h = th("name", pLabel, "th-name", "Sort by " + pLabel) + th("sub", sLabel, "th-sub", "Sort " + sLabel + " rows within each " + pLabel);
     activeMetrics.forEach(m => {
       h += th(m, LONG[m], "th-num", LONGT[m] + " — count");
       if (pctMetrics.has(m)) h += th(m + "_pct", LONG[m] + " %", "th-num th-pct", `${LONGT[m]} % = ${LONGT[m]} ÷ ${LONGT[METRIC_CFG[m].pctOf]}`);
@@ -5510,32 +5531,56 @@ function applyOverallFilters() {
     thead.innerHTML = h;
   }
 
-  // Sort groups — supports both raw metric and metric_pct keys (always on the underlying numbers)
-  const sorted = [...groupNames].sort((a, b) => {
-    if (_orSortCol === "name") {
-      return _orSortDir * a.localeCompare(b);
+  // Sorting — metric / metric_pct keys always sort on the underlying numbers. Groups follow the
+  // column that was clicked; the rows inside a group follow the same column (or the "sub" name column).
+  const sortVal = (mv, key) => {
+    const isPct = key.endsWith("_pct");
+    return isPct ? (getPct(key.replace("_pct", ""), mv, activeSet) ?? -1) : (mv[key] ?? 0);
+  };
+  const byName = (a, b) => a.name.localeCompare(b.name);
+  const groupCmp = (a, b) => {
+    if (_orSortCol === "name") return _orSortDir * byName(a, b);
+    if (_orSortCol === "sub")  return byName(a, b);
+    return _orSortDir * (sortVal(a.mv, _orSortCol) - sortVal(b.mv, _orSortCol)) || byName(a, b);
+  };
+  const kidCmp = (a, b) => {
+    if (_orSortCol === "sub")  return _orSortDir * byName(a, b);
+    if (_orSortCol === "name") return byName(a, b);
+    return _orSortDir * (sortVal(a.mv, _orSortCol) - sortVal(b.mv, _orSortCol)) || byName(a, b);
+  };
+
+  const q = _orSearch;
+  const view = [];
+  groupNames.forEach(name => {
+    const byKid = {};
+    groups[name].forEach(r => { const k = (r[sKey] || "Unknown").trim(); (byKid[k] = byKid[k] || []).push(r); });
+    let kids = Object.entries(byKid).map(([n, rs]) => ({ name: n, mv: calcMetrics(rs) }));
+    let forceOpen = false;
+    if (q && !name.toLowerCase().includes(q)) {
+      kids = kids.filter(k => k.name.toLowerCase().includes(q));
+      if (!kids.length) return;
+      forceOpen = true;
     }
-    const isPct = _orSortCol.endsWith("_pct");
-    const baseKey = isPct ? _orSortCol.replace("_pct", "") : _orSortCol;
-    if (isPct) {
-      const av = getPct(baseKey, calcMetrics(groups[a]), activeSet) ?? -1;
-      const bv = getPct(baseKey, calcMetrics(groups[b]), activeSet) ?? -1;
-      return _orSortDir * (av - bv);
-    }
-    const av = calcMetrics(groups[a])[_orSortCol] ?? 0;
-    const bv = calcMetrics(groups[b])[_orSortCol] ?? 0;
-    return _orSortDir * (av - bv);
+    kids.sort(kidCmp);
+    view.push({ name, mv: calcMetrics(groups[name]), kids, forceOpen });
   });
+  view.sort(groupCmp);
 
   // Update sort indicators — covers both raw and _pct keys
-  const sortKeys = ["name", ...activeMetrics, ...[...pctMetrics].map(m => m + "_pct")];
+  const sortKeys = ["name", "sub", ...activeMetrics, ...[...pctMetrics].map(m => m + "_pct")];
   sortKeys.forEach(k => {
     const el = document.getElementById(`or-sort-${k}`);
     if (el) el.textContent = _orSortCol === k ? (_orSortDir === 1 ? "↑" : "↓") : "";
   });
 
   const countEl = document.getElementById("or-table-count");
-  if (countEl) countEl.textContent = `· ${sorted.length} ${groupKey === "ici" ? "ICI" : "recruiter"}${sorted.length === 1 ? "" : "s"}`;
+  if (countEl) countEl.textContent = `· ${view.length} ${pLabel}${view.length === 1 ? "" : "s"}`;
+  const titleEl = document.getElementById("or-table-title-text");
+  if (titleEl) titleEl.textContent = "Performance by " + pLabel;
+  document.querySelectorAll("#or-view-seg button").forEach(b => b.classList.toggle("active", b.dataset.view === _orView));
+  const expBtn = document.getElementById("or-expand-btn");
+  const isOpen = g => g.forceOpen || orGroupOpen(g.name);
+  if (expBtn) expBtn.textContent = view.length && view.every(isOpen) ? "Collapse all" : "Expand all";
 
   const numCell = (val, pending) =>
     `<td class="td-num${val === 0 ? " zero" : ""}"><span class="n">${val}</span>${pending > 0 ? `<span class="pend">+${pending} pending</span>` : ""}</td>`;
@@ -5548,32 +5593,42 @@ function applyOverallFilters() {
     numCell(mv[k], pendOf(k, mv)) + (pctMetrics.has(k) ? pctCell(getPct(k, mv, activeSet)) : "")
   ).join("");
 
-  // Table rows — name + ICIs (or recruiters) stacked in the sticky first column
   const tbody = document.getElementById("or-tbody");
   if (tbody) {
     tbody.innerHTML = "";
-    if (sorted.length === 0) {
-      const cols = 1 + activeMetrics.length + pctMetrics.size;
-      tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols}">No ${groupKey === "ici" ? "ICIs" : "recruiters"} match the current filters.</td></tr>`;
+    if (view.length === 0) {
+      const cols = 2 + activeMetrics.length + pctMetrics.size;
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="${cols}">No ${pLabel === "ICI" ? "ICIs" : "recruiters"} match the current filters.</td></tr>`;
     }
-    sorted.forEach((name, i) => {
-      const mv = calcMetrics(groups[name]);
-      const subItems = [...new Set(groups[name].map(r => groupKey === "recruiter" ? r.ici : r.recruiter))].filter(Boolean).sort();
+    view.forEach(g => {
+      const open = isOpen(g);
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td class="td-name"></td>` + rowCells(mv);
+      tr.className = "grp";
+      tr.innerHTML = `<td class="td-name" tabindex="0" role="button" aria-expanded="${open}"></td><td class="td-sub"></td>` + rowCells(g.mv);
       const nameTd = tr.firstChild;
-      const nm = document.createElement("div"); nm.className = "td-name-main"; nm.textContent = name;
-      nameTd.appendChild(nm);
-      const sub = subItems.join(", ");
-      if (sub) { const sd = document.createElement("div"); sd.className = "td-name-sub"; sd.textContent = sub; nameTd.appendChild(sd); }
+      nameTd.title = g.name + " — " + g.kids.length + " " + sLabel.toLowerCase() + (g.kids.length === 1 ? "" : "s");
+      nameTd.innerHTML = `<span class="caret">${open ? "▾" : "▸"}</span>`;
+      nameTd.appendChild(document.createTextNode(g.name));
+      const cnt = document.createElement("span"); cnt.className = "grp-n"; cnt.textContent = "(" + g.kids.length + ")";
+      nameTd.appendChild(cnt);
+      const toggle = () => orToggleGroup(g.name);
+      nameTd.addEventListener("click", toggle);
+      nameTd.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); toggle(); } });
       tbody.appendChild(tr);
+      if (open) g.kids.forEach(k => {
+        const kr = document.createElement("tr");
+        kr.className = "kid";
+        kr.innerHTML = `<td class="td-name"></td><td class="td-sub"></td>` + rowCells(k.mv);
+        kr.children[1].textContent = k.name;
+        tbody.appendChild(kr);
+      });
     });
 
-    // Totals row (always the full filtered total, even while a name search narrows the list)
-    if (sorted.length > 1) {
+    // Totals row (always the full filtered total, even while the search box narrows the list)
+    if (view.length > 1) {
       const tr = document.createElement("tr");
       tr.className = "total-row";
-      tr.innerHTML = `<td class="td-name"><div class="td-name-main">Total${_orSearch ? ' <span class="td-name-sub" style="display:inline">· all filtered</span>' : ""}</div></td>` + rowCells(totals);
+      tr.innerHTML = `<td class="td-name"><div class="td-name-main">Total${_orSearch ? ' <span class="td-name-sub" style="display:inline">· all filtered</span>' : ""}</div></td><td class="td-sub"></td>` + rowCells(totals);
       tbody.appendChild(tr);
     }
   }
@@ -5581,7 +5636,7 @@ function applyOverallFilters() {
   orBetaUpdate();
 }
 
-// ── Recruiter dropdown (same look/behaviour as ICI & Source; single-select) ──
+// ── Recruiter dropdown (same look/behaviour as the ICI one: search, All, multi-select) ──
 function orToggleRecPanel(e) {
   if (e) e.stopPropagation();
   const panel = document.getElementById("or-rec-panel");
@@ -5589,30 +5644,68 @@ function orToggleRecPanel(e) {
   ["or-period-panel", "or-ici-panel", "or-source-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
-function orPickRecruiter(v) {
-  const sel = document.getElementById("or-recruiter-filter");
-  if (sel) sel.value = v;
-  const panel = document.getElementById("or-rec-panel"); if (panel) panel.hidden = true;
+function orToggleRec(name) {
+  if (_orRecFilter.has(name)) _orRecFilter.delete(name); else _orRecFilter.add(name);
+  orAutoExpand();
+  _syncRecUI();
   applyOverallFilters();
 }
-function orBuildRecPanel() {
-  const sel = document.getElementById("or-recruiter-filter"), panel = document.getElementById("or-rec-panel");
-  if (!sel || !panel) return;
-  panel.innerHTML = "";
-  [...sel.options].forEach(o => {
-    const label = document.createElement("label"); label.className = "or-ici-option" + (o.value === "all" ? " or-ici-all" : "");
-    const r = document.createElement("input"); r.type = "radio"; r.name = "or-rec"; r.value = o.value;
-    r.addEventListener("click", () => orPickRecruiter(o.value));
-    label.appendChild(r); label.appendChild(document.createTextNode(" " + (o.value === "all" ? "All Recruiters" : o.textContent)));
-    panel.appendChild(label);
-  });
-  orSyncRecUI();
+function orClearRec() {
+  _orRecFilter.clear();
+  orAutoExpand();
+  _syncRecUI();
+  applyOverallFilters();
 }
-function orSyncRecUI() {
-  const sel = document.getElementById("or-recruiter-filter"), btn = document.getElementById("or-rec-btn");
-  if (!sel || !btn) return;
-  btn.textContent = sel.value === "all" ? "All Recruiters" : sel.value;
-  document.querySelectorAll("#or-rec-panel input[type=radio]").forEach(r => { r.checked = r.value === sel.value; });
+function _syncRecUI() {
+  document.querySelectorAll("#or-rec-panel input[data-rec]").forEach(cb => { cb.checked = _orRecFilter.has(cb.dataset.rec); });
+  const allCb = document.getElementById("or-rec-all-cb");
+  if (allCb) allCb.checked = _orRecFilter.size === 0;
+  const btn = document.getElementById("or-rec-btn");
+  if (btn) btn.textContent = _orRecFilter.size === 0 ? "All Recruiters" : _orRecFilter.size + " selected";
+  const tags = document.getElementById("or-rec-tags");
+  if (tags) {
+    tags.innerHTML = "";
+    [..._orRecFilter].forEach(n => {
+      const t = document.createElement("span");
+      t.className = "or-ici-tag";
+      t.appendChild(document.createTextNode(n));
+      const x = document.createElement("button");
+      x.type = "button"; x.title = "Remove"; x.textContent = "×";
+      x.addEventListener("click", () => orToggleRec(n));
+      t.appendChild(x);
+      tags.appendChild(t);
+    });
+  }
+}
+function orBuildRecPanel() {
+  const panel = document.getElementById("or-rec-panel");
+  if (!panel) return;
+  // Drop any previously selected recruiters that no longer exist in the data
+  [..._orRecFilter].forEach(n => { if (!_orRecruiters.includes(n)) _orRecFilter.delete(n); });
+  panel.innerHTML = `
+    <input type="text" class="or-ici-search" id="or-rec-search" placeholder="Search recruiters…" autocomplete="off">
+    <label class="or-ici-option or-ici-all">
+      <input type="checkbox" id="or-rec-all-cb" onclick="orClearRec()">
+      All Recruiters
+    </label>
+    <div class="or-ici-grid" id="or-rec-grid"></div>
+  `;
+  const grid = panel.querySelector("#or-rec-grid");
+  _orRecruiters.forEach(n => {
+    const label = document.createElement("label");
+    label.className = "or-ici-option";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.dataset.rec = n;
+    cb.addEventListener("click", () => orToggleRec(n));
+    label.appendChild(cb);
+    label.appendChild(document.createTextNode(" " + n));
+    grid.appendChild(label);
+  });
+  panel.querySelector("#or-rec-search").addEventListener("input", (ev) => {
+    const q = ev.target.value.trim().toLowerCase();
+    grid.querySelectorAll(".or-ici-option").forEach(l => { l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none"; });
+  });
+  _syncRecUI();
 }
 { const _origOUFD = orUpdateFilterDropdowns; orUpdateFilterDropdowns = function () { _origOUFD(); orBuildRecPanel(); }; }
 document.addEventListener("click", (e) => {
@@ -5620,13 +5713,34 @@ document.addEventListener("click", (e) => {
   if (panel && !panel.hidden && wrap && e.target.isConnected && !wrap.contains(e.target)) panel.hidden = true;
 });
 
+// ── Grouped table: open/close state and the By ICI | By Recruiter toggle ──
+function orGroupOpen(name) { return _orExpandAll ? !_orCollapsed.has(name) : _orExpanded.has(name); }
+function orToggleGroup(name) {
+  const set = _orExpandAll ? _orCollapsed : _orExpanded;
+  if (set.has(name)) set.delete(name); else set.add(name);
+  applyOverallFilters();
+}
+function orSetExpand(on) { _orExpandAll = on; _orExpanded.clear(); _orCollapsed.clear(); }
+function orToggleExpandAll() {
+  const btn = document.getElementById("or-expand-btn");
+  orSetExpand(!(btn && btn.textContent === "Collapse all"));
+  applyOverallFilters();
+}
+// Picking recruiters (By ICI) or ICIs (By Recruiter) opens every group so the second column shows who/where.
+function orAutoExpand() { orSetExpand(_orView === "ici" ? _orRecFilter.size > 0 : _orICIFilter.size > 0); }
+function orSetView(v) {
+  if (_orView === v) return;
+  _orView = v; _orSortCol = "name"; _orSortDir = 1;
+  orAutoExpand();
+  applyOverallFilters();
+}
+
 // ── Beta helpers: search, clear-filters ──
 function orFiltersDirty() {
-  return _orClient !== "all" || _orMetrics.size !== 7 || _orRecruiterFilter !== "all" ||
+  return _orClient !== "all" || _orMetrics.size !== 7 || _orRecFilter.size > 0 ||
          _orICIFilter.size > 0 || _orSourceFilter.size > 0 || !!_orSearch;
 }
 function orBetaUpdate() {
-  orSyncRecUI();
   const b = document.getElementById("or-clear-filters");
   if (b) b.hidden = !orFiltersDirty();
 }
@@ -5635,11 +5749,11 @@ function orClearAllFilters() {
   document.querySelectorAll("#or-client-pills .hc-pill").forEach(b => b.classList.toggle("active", b.dataset.client === "all"));
   _orMetrics = new Set(["booked","completed","attended","sec_booked","sec_attended","hired","day1"]);
   document.querySelectorAll("#or-metric-pills .hc-pill").forEach(b => b.classList.add("active"));
-  const rec = document.getElementById("or-recruiter-filter"); if (rec) rec.value = "all";
-  _orRecruiterFilter = "all";
+  _orRecFilter.clear(); _syncRecUI();
   _orICIFilter.clear(); _syncICIUI();
   _orSourceFilter.clear(); _syncSourceUI();
   _orSearch = ""; const sb = document.getElementById("or-search"); if (sb) sb.value = "";
+  orAutoExpand();
   applyOverallFilters();
 }
 document.addEventListener("DOMContentLoaded", () => {
@@ -5667,8 +5781,6 @@ function orCell(val, pct, pending, numColor, extraTdStyle) {
 // Wire dropdowns and metric pills on DOMContentLoaded
 document.addEventListener("DOMContentLoaded", () => {
   orInitMetricPills();
-  const recSel = document.getElementById("or-recruiter-filter");
-  if (recSel) recSel.addEventListener("change", applyOverallFilters);
 });
 
 
