@@ -2654,6 +2654,23 @@ function renderClients(telus, empire) {
 // ════════════════════════════════════════════════════════
 //  TEAM TARGETS
 // ════════════════════════════════════════════════════════
+let _orTargetsSheet = null;
+// Current = YTD prelim attendance across every client: (Attended + Secondary) ÷ rows with a prelim result,
+// for bookings dated in the current calendar year — the same definition as the rest of the dashboard.
+function orRefreshTargets() {
+  if (!_orTargetsSheet) return;
+  const year = new Date().getFullYear();
+  let completed = 0, attended = 0;
+  (typeof _orAllRows !== "undefined" ? _orAllRows : []).forEach(r => {
+    const d = orParseRowDate(r.date);
+    if (!d || d.getFullYear() !== year || r.prelim === "") return;
+    completed++;
+    if (r.prelim === "Attended" || r.prelim === "Secondary") attended++;
+  });
+  const current = completed > 0 ? attended / completed : null;
+  renderTargets(_orTargetsSheet.survivalPct, _orTargetsSheet.goalPct, current, _orTargetsSheet.avgTargetPct);
+}
+
 function renderTargets(survivalPct, goalPct, currentPct, avgTargetPct) {
   // Values: survivalPct=E17, goalPct=F17, currentPct=G17, avgTargetPct=H17
 
@@ -2820,7 +2837,11 @@ async function fetchData() {
     const goalPct      = parsePct(cell(targetRows, 0, 1));
     const currentPct   = parsePct(cell(targetRows, 0, 2));
     const avgTargetPct = parsePct(cell(targetRows, 0, 3));
-    renderTargets(survivalPct, goalPct, currentPct, avgTargetPct);
+    // Survival / Target are typed into the sheet. "Current" is worked out here from the booking rows
+    // (the sheet's own YTD formulas count the wrong columns since Source was added), so keep the sheet
+    // values and let orRefreshTargets() fill in Current once the rows are loaded.
+    _orTargetsSheet = { survivalPct, goalPct, avgTargetPct: (avgTargetPct !== null && avgTargetPct <= 1) ? avgTargetPct : null };
+    orRefreshTargets();
 
     document.getElementById("loading").style.display = "none";
 
@@ -4470,6 +4491,7 @@ async function fetchOverall() {
     // Populate recruiter & ICI dropdowns
     orUpdateFilterDropdowns();
     applyOverallFilters();
+    orRefreshTargets();
     const _lu = document.getElementById('last-updated');
     if (_lu) _lu.textContent = 'Updated ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
