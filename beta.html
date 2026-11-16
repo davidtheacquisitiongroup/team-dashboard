@@ -4403,7 +4403,7 @@ async function fetchOverall() {
                    cell(rr,"backfill"), cell(rr,"weekStart"), cell(rr,"client"), cell(rr,"source")];
         if (sheetNames[idx] === "ImportSPC") {
           // Specialty (ImportSPC) rows carry a Position instead of an ICI, and dates without a year ("Thu, Jan 15")
-          r[0] = r[0] ? "Specialty – " + r[0] : "Specialty";
+          r[0] = r[0] ? "SPC – " + r[0] : "SPC";
           const d = orSpcDate(r[1]);
           if (d) { r[1] = d.label; r[9] = r[9] || d.weekStart; }
         }
