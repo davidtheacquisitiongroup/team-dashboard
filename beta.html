@@ -4807,28 +4807,32 @@ function orToggleMetricPanel(e) {
   ["or-period-panel", "or-ici-panel", "or-source-panel", "or-rec-panel"].forEach(id => { const el = document.getElementById(id); if (el) el.hidden = true; });
   panel.hidden = !panel.hidden;
 }
+// Like the ICI / Recruiter filters: nothing picked = "All Metrics" (every column shown); picking boxes narrows it.
+const _orMetricPick = new Set();
+function orApplyMetricPick() { _orMetrics = _orMetricPick.size ? new Set(_orMetricPick) : new Set(OR_METRIC_ALL); }
 function orToggleMetric(m) {
-  if (_orMetrics.has(m)) { if (_orMetrics.size > 1) _orMetrics.delete(m); }   // at least one metric stays on
-  else _orMetrics.add(m);
+  if (_orMetricPick.has(m)) _orMetricPick.delete(m); else _orMetricPick.add(m);
+  orApplyMetricPick();
   _syncMetricUI();
   applyOverallFilters();
 }
 function orAllMetrics() {
-  _orMetrics = new Set(OR_METRIC_ALL);
+  _orMetricPick.clear();
+  orApplyMetricPick();
   _syncMetricUI();
   applyOverallFilters();
 }
 function _syncMetricUI() {
-  document.querySelectorAll("#or-metric-panel input[data-metric]").forEach(cb => { cb.checked = _orMetrics.has(cb.dataset.metric); });
-  const all = _orMetrics.size === OR_METRIC_ALL.length;
+  document.querySelectorAll("#or-metric-panel input[data-metric]").forEach(cb => { cb.checked = _orMetricPick.has(cb.dataset.metric); });
+  const all = _orMetricPick.size === 0;
   const allCb = document.getElementById("or-metric-all-cb");
   if (allCb) allCb.checked = all;
   const btn = document.getElementById("or-metric-btn");
-  if (btn) btn.textContent = all ? "All Metrics" : _orMetrics.size + " selected";
+  if (btn) btn.textContent = all ? "All Metrics" : _orMetricPick.size + " selected";
   const tags = document.getElementById("or-metric-tags");
   if (tags) {
     tags.innerHTML = "";
-    if (!all) OR_METRIC_ALL.filter(m => _orMetrics.has(m)).forEach(m => {
+    if (!all) OR_METRIC_ALL.filter(m => _orMetricPick.has(m)).forEach(m => {
       const t = document.createElement("span");
       t.className = "or-ici-tag";
       t.appendChild(document.createTextNode(OR_METRIC_LABEL[m]));
@@ -5836,7 +5840,7 @@ function orBetaUpdate() {
 function orClearAllFilters() {
   _orClient = "all";
   document.querySelectorAll("#or-client-pills .hc-pill").forEach(b => b.classList.toggle("active", b.dataset.client === "all"));
-  _orMetrics = new Set(OR_METRIC_ALL);
+  _orMetricPick.clear(); orApplyMetricPick();
   _syncMetricUI();
   _orRecFilter.clear(); _syncRecUI();
   _orICIFilter.clear(); _syncICIUI();
