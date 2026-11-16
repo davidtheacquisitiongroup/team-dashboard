@@ -2291,7 +2291,7 @@
               <button class="hc-pill" data-client="TELUS" onclick="orSetClient('TELUS')">TELUS</button>
               <button class="hc-pill" data-client="Common Good" onclick="orSetClient('Common Good')">Common Good</button>
               <button class="hc-pill" data-client="Empire Telecom" onclick="orSetClient('Empire Telecom')">Empire Telecom</button>
-              <button class="hc-pill" data-client="SPC" onclick="orSetClient('SPC')">SPC</button>
+              <button class="hc-pill" data-client="Specialty" onclick="orSetClient('Specialty')">Specialty</button>
             </div>
           </div>
         </div>
@@ -4315,7 +4315,7 @@ function normalizeClient(raw) {
   if (s.includes("TELUS"))                    return "TELUS";
   if (s.includes("COMMON") || s.includes("CG")) return "Common Good";
   if (s.includes("EMPIRE"))                   return "Empire Telecom";
-  if (s === "SPC")                            return "SPC";
+  if (s === "SPC" || s === "SPECIALTY")       return "Specialty";
   return raw;
 }
 
@@ -4379,7 +4379,7 @@ async function fetchOverall() {
     const results = await Promise.all(allFetches);
 
     _orAllRows = [];
-    const clientTags = ["TELUS", "Common Good", "Empire Telecom", "SPC"];
+    const clientTags = ["TELUS", "Common Good", "Empire Telecom", "Specialty"];
     // ImportSPC has Position (CST, B2B, …) where the other tabs have ICI / Office
     const HDR_KEYS = {
       ici: ["ici","office","position"], date: ["date"], candidate: ["candidatename"], source: ["source"],
@@ -4402,8 +4402,8 @@ async function fetchOverall() {
                    cell(rr,"prelim"), cell(rr,"secondary"), cell(rr,"hired"), cell(rr,"day1"),
                    cell(rr,"backfill"), cell(rr,"weekStart"), cell(rr,"client"), cell(rr,"source")];
         if (sheetNames[idx] === "ImportSPC") {
-          // SPC rows carry a Position instead of an ICI, and dates without a year ("Thu, Jan 15")
-          r[0] = r[0] ? "SPC – " + r[0] : "SPC";
+          // Specialty (ImportSPC) rows carry a Position instead of an ICI, and dates without a year ("Thu, Jan 15")
+          r[0] = r[0] ? "Specialty – " + r[0] : "Specialty";
           const d = orSpcDate(r[1]);
           if (d) { r[1] = d.label; r[9] = r[9] || d.weekStart; }
         }
