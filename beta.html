@@ -4370,6 +4370,10 @@ function orSpcDate(str) {
   return null;
 }
 
+// ICI 021G is now ICI 021 and ICI 021B is now ICI 020 (the old ICI 020 is labelled "ICI 020 old" in the sheet).
+// Relabelled here so the dashboard is right whether or not the sheet's ICI column has been renamed yet.
+const OR_ICI_RENAME = { "ici 021g": "ICI 021", "ici 021b": "ICI 020" };
+
 async function fetchOverall() {
   try {
     const sheetNames = ["ImportTELUS", "ImportCG", "ImportEmpire", "ImportSPC"];
@@ -4433,7 +4437,7 @@ async function fetchOverall() {
         };
 
         _orAllRows.push({
-          ici:       norm(r[0]),
+          ici:       OR_ICI_RENAME[norm(r[0]).toLowerCase()] || norm(r[0]),
           date:      norm(r[1]),
           candidate,
           recruiter,
