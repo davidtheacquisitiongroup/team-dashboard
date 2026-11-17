@@ -889,6 +889,8 @@
     padding: 6px 8px; border-radius: 6px; cursor: pointer;
     font-size: 0.8rem; color: var(--text); transition: background 0.15s;
   }
+  .or-ici-grp { grid-column: 1 / -1; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--text-dim, #888); margin: 8px 0 2px; padding-top: 6px; border-top: 1px dashed var(--border); }
+  .or-ici-grp:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
   .or-ici-option:hover { background: var(--surface2); }
   .or-ici-option input { accent-color: var(--accent1); cursor: pointer; }
   .or-ici-option.or-ici-all { font-weight: 700; border-bottom: 1px dashed var(--border); margin-bottom: 6px; padding-bottom: 8px; border-radius: 6px 6px 0 0; }
@@ -2307,9 +2309,9 @@
           </div>
           <div class="hc-toolbar-divider"></div>
           <div class="hc-toolbar-group" style="gap:8px;align-items:center;flex-wrap:wrap;min-width:0;">
-            <span class="hc-toolbar-label">ICI</span>
+            <span class="hc-toolbar-label">Office</span>
             <div class="or-ici-wrap" id="or-ici-wrap">
-              <button class="hc-select or-ici-btn" id="or-ici-btn" onclick="orToggleICIPanel(event)">All ICIs</button>
+              <button class="hc-select or-ici-btn" id="or-ici-btn" onclick="orToggleICIPanel(event)">All Offices</button>
               <div class="or-ici-panel" id="or-ici-panel" hidden></div>
             </div>
             <div class="or-ici-tags" id="or-ici-tags"></div>
@@ -2349,22 +2351,22 @@
       <!-- DATA TABLE -->
       <div class="card or-table-card" style="padding:0;overflow:hidden;">
         <div class="or-table-head">
-          <div class="or-table-title"><span id="or-table-title-text" style="color:inherit;font-size:inherit;font-weight:inherit;">Performance by ICI</span> <span id="or-table-count"></span></div>
+          <div class="or-table-title"><span id="or-table-title-text" style="color:inherit;font-size:inherit;font-weight:inherit;">Performance by Office</span> <span id="or-table-count"></span></div>
           <div class="or-table-tools">
             <div class="or-seg" id="or-view-seg" role="group" aria-label="Table view">
-              <button type="button" data-view="ici" class="active" onclick="orSetView('ici')">By ICI</button>
+              <button type="button" data-view="ici" class="active" onclick="orSetView('ici')">By Office</button>
               <button type="button" data-view="rec" onclick="orSetView('rec')">By Recruiter</button>
               <button type="button" data-view="source" onclick="orSetView('source')">By Source</button>
             </div>
             <button type="button" class="or-expand-btn" id="or-expand-btn" onclick="orToggleExpandAll()">Expand all</button>
-            <input id="or-search" type="search" class="or-search" placeholder="Search ICI or recruiter…" aria-label="Search ICIs or recruiters" autocomplete="off">
+            <input id="or-search" type="search" class="or-search" placeholder="Search office or recruiter…" aria-label="Search offices or recruiters" autocomplete="off">
           </div>
         </div>
         <div class="or-table-scroll">
           <table class="recruiter-table" id="or-table">
             <thead>
               <tr id="or-thead-row">
-                <th class="th-name">ICI</th>
+                <th class="th-name">Office</th>
               </tr>
             </thead>
             <tbody id="or-tbody"><tr class="empty-row"><td colspan="8">Loading data…</td></tr></tbody>
@@ -4340,9 +4342,9 @@ let _orView            = "ici";     // table nesting: "ici" (ICI → Recruiter �
 let _orExpandLevel     = 0;         // 0 = all collapsed, 1 = first level open, 2 = everything open
 const _orToggled       = new Set(); // groups flipped by hand relative to _orExpandLevel (keyed by path)
 const OR_VIEW_LEVELS   = { ici: ["ici", "recruiter", "source"], rec: ["recruiter", "ici", "source"], source: ["source", "ici", "recruiter"] };
-const OR_DIM_LABEL     = { ici: "ICI", recruiter: "Recruiter", source: "Source" };
+const OR_DIM_LABEL     = { ici: "Office", recruiter: "Recruiter", source: "Source" };
 const OR_DIM_PLURAL    = { ici: "ICIs", recruiter: "Recruiters", source: "Sources" };
-let _orICIFilter       = new Set(); // empty = "All ICIs"
+let _orICIFilter       = new Set(); // empty = "All Offices"
 let _orSourceFilter    = new Set(); // empty = "All Sources"
 const _orWeekSel       = new Set(); // selected week-start values (empty = no week filter)
 const _orDaySel        = new Set(); // selected day keys YYYY-MM-DD (empty = all days in selected weeks)
@@ -5009,7 +5011,7 @@ function _syncICIUI() {
   if (allCb) allCb.checked = _orICIFilter.size === 0;
   const btn = document.getElementById("or-ici-btn");
   if (btn) {
-    btn.textContent = _orICIFilter.size === 0 ? "All ICIs" : _orICIFilter.size + " selected";
+    btn.textContent = _orICIFilter.size === 0 ? "All Offices" : _orICIFilter.size + " selected";
   }
   const tags = document.getElementById("or-ici-tags");
   if (tags) {
@@ -5036,25 +5038,38 @@ function orUpdateFilterDropdowns() {
     [..._orICIFilter].forEach(i => { if (!_orICIs.includes(i)) _orICIFilter.delete(i); });
 
     iciPanel.innerHTML = `
-      <input type="text" class="or-ici-search" id="or-ici-search" placeholder="Search ICIs…" autocomplete="off">
+      <input type="text" class="or-ici-search" id="or-ici-search" placeholder="Search offices…" autocomplete="off">
       <label class="or-ici-option or-ici-all">
         <input type="checkbox" id="or-ici-all-cb" onclick="orClearICI()">
-        All ICIs
+        All Offices
       </label>
       <div class="or-ici-grid" id="or-ici-grid"></div>
     `;
     const grid = iciPanel.querySelector("#or-ici-grid");
-    _orICIs.forEach(i => {
-      const label = document.createElement("label");
-      label.className = "or-ici-option";
-      label.innerHTML = `<input type="checkbox" data-ici="${i}"> ${i}`;
-      label.querySelector("input").addEventListener("click", () => orToggleICI(i));
-      grid.appendChild(label);
+    const grpOf = n => /^ICI\b/i.test(n) ? "TELUS" : /^CG\b/i.test(n) ? "Common Good"
+      : /^(atlanta|tampa|seattle|orlando)$/i.test(n) ? "Empire Telecom" : /^SPC\b/i.test(n) ? "Specialty" : "Other";
+    ["TELUS","Common Good","Empire Telecom","Specialty","Other"].forEach(g => {
+      const items = _orICIs.filter(n => grpOf(n) === g);
+      if (!items.length) return;
+      const h = document.createElement("div");
+      h.className = "or-ici-grp"; h.textContent = g;
+      grid.appendChild(h);
+      items.forEach(i => {
+        const label = document.createElement("label");
+        label.className = "or-ici-option";
+        label.innerHTML = `<input type="checkbox" data-ici="${i}"> ${i}`;
+        label.querySelector("input").addEventListener("click", () => orToggleICI(i));
+        grid.appendChild(label);
+      });
     });
     iciPanel.querySelector("#or-ici-search").addEventListener("input", (ev) => {
       const q = ev.target.value.trim().toLowerCase();
-      grid.querySelectorAll(".or-ici-option").forEach(l => {
-        l.style.display = l.textContent.toLowerCase().includes(q) ? "" : "none";
+      let showHdr = null;
+      [...grid.children].reverse().forEach(l => {
+        if (l.classList.contains("or-ici-grp")) { l.style.display = showHdr ? "" : "none"; showHdr = null; return; }
+        const vis = l.textContent.toLowerCase().includes(q);
+        l.style.display = vis ? "" : "none";
+        if (vis) showHdr = true;
       });
     });
     _syncICIUI();
