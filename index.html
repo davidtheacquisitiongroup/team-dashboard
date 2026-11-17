@@ -1512,6 +1512,8 @@
   }
 
   /* ── RESULTS VIEW PAGE ── */
+  #page-trend { display: none; }
+  #page-trend.active { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; }
   #page-results { display: none; }
   #page-results.active {
     display: grid; grid-column: 1 / -1; grid-template-columns: subgrid;
@@ -2046,6 +2048,9 @@
     <button class="nav-btn" id="nav-results" onclick="showPage('results')" style="display:none;">
       <span class="nav-icon">🧾</span> Results View
     </button>
+    <button class="nav-btn" id="nav-trend" onclick="showPage('trend')">
+      <span class="nav-icon">📈</span> Trend Analysis
+    </button>
   </div>
   <div class="sidebar-footer">Auto-refreshes every 5 min</div>
 </nav>
@@ -2409,6 +2414,14 @@
     </section>
   </div>
 
+  <!-- PAGE 7: TREND ANALYSIS -->
+  <div class="page" id="page-trend">
+    <section style="grid-column:1/-1;">
+      <div class="section-label">📈 Trend Analysis</div>
+      <div style="display:flex;align-items:center;justify-content:center;min-height:50vh;font-size:1.4rem;font-weight:600;color:var(--muted);">Coming soon</div>
+    </section>
+  </div>
+
 </main>
 
 <script>
@@ -2439,7 +2452,7 @@ function showPage(name) {
   const btn = document.getElementById('nav-' + name);
   if (btn) btn.classList.add('active');
   const _te = document.getElementById('page-title');
-  if (_te) _te.textContent = ({overview:'Team Leaderboard',headcount:'Headcount',overall:'Overall Recruitment',ici:'ICI Conversion',results:'Results View'})[name] || 'Team Dashboard';
+  if (_te) _te.textContent = ({overview:'Team Leaderboard',headcount:'Headcount',overall:'Overall Recruitment',ici:'ICI Conversion',results:'Results View',trend:'Trend Analysis'})[name] || 'Team Dashboard';
   trackEvent('page_view_dashboard', { page: name });
 
   // Show the right header control per page, hide others
